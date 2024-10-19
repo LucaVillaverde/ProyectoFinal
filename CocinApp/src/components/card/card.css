@@ -1,0 +1,99 @@
+.card {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 300px; 
+    max-height: 250px;
+    background-color: var(--secondary-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px #0009;
+    margin: 10px; 
+}
+.card-content-image {
+    width: 100%;
+}
+.card-image {
+    width: 100%;
+    height: auto; 
+    border-radius: 8px 8px 0 0;
+}
+
+
+/* ----------------------------------- */
+
+.card-content {
+    width: 90%;
+    margin: auto;
+    background-color: #ffffff94;
+    box-shadow: 0 0 5px #0009;
+}
+
+.title-card {
+    font-family: Verdana, sans-serif;
+    text-align: center;
+}
+.card-title {
+    font-weight: bolder;
+    font-size: 22px;
+}
+.card-subtitle {
+    font-size: 18px;
+}
+@media (min-width: 375px) {
+    .card {
+        max-height: 229px;
+    }
+
+    .card-content {
+        width: 90%;
+        margin: auto;
+    }
+}
+
+@media (min-width: 720px) {
+    /* Contenedor padre */
+    .contenedor-tarjetas{
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .container {
+        justify-content: space-around; /* Distribuye las tarjetas */
+
+    }
+
+    /* Tarjetas */
+    .card {
+        flex: 1 1 230px; 
+        max-width: 220px; 
+        margin: 1.8%;
+        min-height: 300px; 
+        
+    }
+    .card-content {
+        min-height: 150px;
+    }
+    .title-card{font-size: 1.0em;}
+    .card-title{font-size: .9em;}
+    .card-subtitle{
+        font-size: .8em;
+    }
+
+
+}
+
+@media (min-width:1024px){
+    .card-content {
+        min-height: 140px;
+    }
+}
+@media (min-width:1440px){
+    .card{
+        flex: 1 1 300px; 
+    }
+}
+@media (min-width:1600px){
+    .card{
+        flex: 1 1 300px; 
+        height: 200px;
+    }
+}

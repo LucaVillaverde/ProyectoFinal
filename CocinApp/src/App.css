@@ -1,0 +1,39 @@
+:root{
+  --primary-color  : #EC9603;
+  --secondary-color: #EFB44B;
+  --third-color    : #f7ebc3;
+  --fourth-color   : #1F1F1F;
+  /* font */
+  --font-title     : font-family: sans-serif;
+  --font-paragrph  : font-family: Georgia;
+}
+*{
+  box-sizing: border-box;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+}
+body{
+  width: 100%;
+  background-color: var(--third-color);
+  color: var(--fourth-color); 
+}
+
+h1{
+  margin: 0;
+  padding: 0;
+}
+a{
+  text-decoration: none;
+  color: var(--fourth-color);
+}
+
+
+.container{
+  height: 80vh;
+}
+
+.sub-title{
+  text-align: center;
+}

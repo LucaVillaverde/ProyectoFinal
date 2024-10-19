@@ -1,0 +1,39 @@
+GET http://pruebita.webhop.me:5173/ HTTP/1.1
+host: pruebita.webhop.me:5173
+user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0
+pragma: no-cache
+cache-control: no-cache
+
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Content-Type: text/html
+Cache-Control: no-cache
+Etag: W/"2b2-KgRYUKOOwvekmQIqyPxY5xi/GgA"
+Date: Fri, 18 Oct 2024 15:32:38 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Content-Length: 690
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <script type="module">
+import RefreshRuntime from "/@react-refresh"
+RefreshRuntime.injectIntoGlobalHook(window)
+window.$RefreshReg$ = () => {}
+window.$RefreshSig$ = () => (type) => type
+window.__vite_plugin_react_preamble_installed__ = true
+</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./src/assets/logoFavicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
