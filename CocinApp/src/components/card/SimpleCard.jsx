@@ -1,7 +1,7 @@
 import React from "react";
 import "./card.css";
 
-const SimpleCard = ({ id,image, title, author, dificulty, category }) => {
+const SimpleCard = ({ tiempo, image, title, author, dificulty, category }) => {
     return (
             <div>
                 <div className="card-content-image">
@@ -22,8 +22,8 @@ const SimpleCard = ({ id,image, title, author, dificulty, category }) => {
                         {dificulty}
                     </p>
                     <p className="card-subtitle">
-                        <span className="card-title">Id de la receta: </span>
-                        {id}
+                        <span className="card-title">Tiempo: </span>
+                        {tiempo}
                     </p>
                 </div>
             </div>

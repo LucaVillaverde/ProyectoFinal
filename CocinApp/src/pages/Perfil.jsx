@@ -37,6 +37,8 @@ const Perfil = () => {
   } catch (error) {
       //console.error('Error fetching the recetas:', error);
       console.log(error);
+      window.alert(error);
+      location.reload();
   }
   }
 
@@ -44,13 +46,13 @@ const Perfil = () => {
     try {
       const response = await axios.post(`${host}/api/receta/nueva`, {
         username: user,
-        recipe_name: "Torta",
-        difficulty: "Medio",
-        description: "Una torta rica",
-        ingredients: "Torta XD",
-        steps: "Servir la Torta",
-        categories: "Vegetariana, Postre",
-        tiempo: "1 minuto",
+        recipe_name: "Tarta de Espinacas y Queso Ricotta con Masa Integral Hecha en Casa",
+        difficulty: "GORE",
+        description: "Una milanesa napolitana exquisita",
+        ingredients: "Milanesa napolitana",
+        steps: "Servir la milanesa napolitana",
+        categories: "Entrada, Sopa, Caldo, Ensalada, Plato Principal, Guarnición, Postre, Bebida, Vegetariana, Saludable",
+        tiempo: "2 segundos en servir",
       });
   
       if (response.status === 201) {
@@ -79,10 +81,10 @@ const Perfil = () => {
     ) : (
       <>
       <div className='contenedor-tarjetas'>
-      {recetas.map(({ id_recipe, image, recipe_name, username, difficulty, categories }) => (
+      {recetas.map(({ id_recipe, tiempo, image, recipe_name, username, difficulty, categories }) => (
                         <a className="card" href={`/receta/${id_recipe}`} key={id_recipe}>
                             <SimpleCard
-                                id={id_recipe}
+                                tiempo={tiempo}
                                 image={"https://placehold.co/400x250/000/fff/png"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
                                 title={recipe_name}
                                 author={username}
