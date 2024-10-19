@@ -60,10 +60,10 @@
         justify-items: center;
     }
 
-    .container {
-        /* justify-content: space-around; Distribuye las tarjetas */
-
-    }
+    /* .container {
+        justify-content: space-around; Distribuye las tarjetas
+        
+    } */
 
     /* Tarjetas */
     .card { 
