@@ -17,6 +17,7 @@ import Buscar from "./pages/Buscar";
 import Perfil from "./pages/Perfil";
 import Receta from "./pages/Receta";
 import Page404 from "./pages/404";
+import { FormReceta } from "./pages/formReceta";
 // import UserMenu from "./components/UserMenu/UserMenu";
 
 
@@ -36,7 +37,7 @@ function App() {
   const [passwordRC, setPasswordRC] = useState("");
   // OTROS
   const [userLocal, setUserLocal] = useState("");
-  const User = localStorage.getItem('username'); //           <---------------------<USUARIO ACTUAL
+  // const User = localStorage.getItem('username'); //           <---------------------<USUARIO ACTUAL
   const [categorias, setCategorias] = useState([]);
   // const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -55,6 +56,8 @@ function App() {
   const [visible, setMenuVisible] = useState(false);
   const [fav, setFav] = useState(false);
   const [estado, setEstado] = useState(false);
+
+  console.log("🐔")
 
   const showMenu = () => {
     setMenuVisible(!visible);
@@ -145,34 +148,26 @@ function App() {
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      const token = Cookies.get("token");
-      const storedUsername = localStorage.getItem("username");
+      const tokenNav = Cookies.get("token");
+      const storedUsername = Cookies.get("username");
 
-      if (token && storedUsername) {
+      if (tokenNav && storedUsername) {
         try {
-          const response = await axios.post(
-            `${host}/api/checkeo`,
-            {
-              storedUsername
-            }
-          );
-          
-          if (response.status === 200) {
-            setIsLoggedIn(true);
+          const cookieTokenResponse = await axios.post(`${host}/api/checkeo`, {
+            cookieToken: tokenNav,
+            username: storedUsername,
+          });
+          console.error(cookieTokenResponse.status);
+          if (cookieTokenResponse.status === 200) {
+              setIsLoggedIn(true);
+          } else {
+              console.error('Error al verificar las credenciales:', cookieTokenResponse.data.message);
+              console.error(cookieTokenResponse.status);
           }
-          else {
-            console.error("No se ha encontrado el usuario:", response.status);
-            setIsLoggedIn(false);
-            localStorage.removeItem("username");
-            Cookies.remove("token");
-          }
-        } catch (error) {
-          console.error("Error al verificar el estado de la sesión:", error);
-          setIsLoggedIn(false);
-          localStorage.removeItem("username");
-          Cookies.remove("token");
-        }
-      } if (!token && storedUsername) {
+      } catch (err) {
+          console.error('Error, algo ha salido mal al verificar credenciales:', err);
+      }
+      } if (!tokenNav && storedUsername) {
         try{
             const response1 = await axios.post(
                 `${host}/api/logout`,
@@ -181,15 +176,31 @@ function App() {
                 }
             )
             if (response1.status === 200) {
-                console.error(200);
-                console.log("La cuenta se ha cerrado debido a falta de credenciales.");
-                localStorage.clear("username");
+              try {
+                const cookieTokenDelete = await axios.post(`${host}/api/cookie/delete`, {
+                  nombre: storedUsername,
+                });
+
+                if (cookieTokenDelete.status === 200) {
+                  console.error(200);
+                  console.log("La cuenta se ha cerrado debido a falta de credenciales.");
+                  Cookies.remove("username");
+                  setIsLoggedIn(false);
+                }
+              } catch (err) {
+                console.error(err);
+                Cookies.remove("username");
                 setIsLoggedIn(false);
+                Cookies.remove('token');
+              }
+            } else {
+              console.error(response1.status, response1.data.message);
+              Cookies.remove("username");
+              setIsLoggedIn(false);
             }
         }catch (err){
             console.error(err);
         }
-        setIsLoggedIn(false);
       }
     };
 
@@ -212,25 +223,40 @@ function App() {
         setMessage(`Usuario creado ID: ${response.data.userId}`);
         setTimeout(() => setMessage(""), 5000);
         try {
-            const response1 = await axios.post(
-                `${host}/api/login`,
-                {
-                    username: usernameR,
-                    password: passwordR,
+              try {
+                    const cookieTokenResponse = await axios.post(`${host}/token-generator`,{
+                      username: usernameR,
+                    });
+                    if (cookieTokenResponse.status === 201) {
+                      const { token, nombre, id_user } = cookieTokenResponse.data; // Declarar esta variable para obtener el token creado.
+                  
+                      if (token && nombre && id_user) { // Uso de operador && para mayor claridad
+                          try {
+                              const response2 = await axios.post(`${host}/api/agregar-token`, {
+                                  cookieToken: token,
+                                  username: nombre,
+                                  id_user,
+                              });
+                  
+                              if (response2.status === 201) {
+                                  Cookies.set("token", token, { expires: 1 }); // Configurar la cookie con el token
+                                  Cookies.set("username", nombre);
+                                  setIsLoggedIn(true);
+                              }
+                          } catch (err) {
+                              console.error('Error al agregar el token:', err);
+                          }
+                      } else {
+                          console.error('Token o nombre no encontrados en la respuesta.');
+                      }
+                  } else {
+                      console.error('Error al generar el token:', cookieTokenResponse.data.message);
+                  }
+                  
+                } catch (err) {
+                    console.error('Error al obtener el token:', err);
+                    setMessage("Error al obtener el token.");
                 }
-            );
-
-            if (response1.status === 200){
-                console.error(response1.status);
-                Cookies.set("token", response1.data.token, { expires: 1 }); //Expira la cookie en un dia, si queres probar si expira podes ponerle 1/1440 para que expire en un minuto.
-                localStorage.setItem("username", usernameR);
-                setIsLoggedIn(true);
-                console.log("Entre correctamente.");
-                location.reload();
-            } else {
-                setMessage(`Credeciales incorrectas.`);
-                setTimeout(() => setMessage(""), 5000);
-            }
         } catch (err){
             console.error(err);
         }
@@ -246,37 +272,40 @@ function App() {
   const login = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `${host}/api/login`, // Asegúrate de que la URL es correcta
-        {
-          username,
-          password,
+        const response = await axios.post(`${host}/api/login`, { username, password });
+        if (response.status === 200) {
+            try {
+                const cookieTokenResponse = await axios.get(`${host}/token-generator`);
+                if (cookieTokenResponse.status === 201) {
+                    const { token } = cookieTokenResponse.data; // Asegúrate de obtener el token
+                    console.log(token);
+                    Cookies.set("token", token, { expires: 1 }); // Configurar la cookie con el token
+                    Cookies.set("username", username);
+                    setIsLoggedIn(true);
+                    setMessage(`Bienvenido/a ${username}!`);
+                    setTimeout(() => setMessage(""), 5000);
+                } else {
+                    console.error('Error al generar el token:', cookieTokenResponse.data.message);
+                    setMessage("Error al generar el token.");
+                }
+            } catch (err) {
+                console.error('Error al obtener el token:', err);
+                setMessage("Error al obtener el token.");
+            }
+        } else {
+            setMessage("Credenciales incorrectas.");
         }
-      );
-      if (response.status === 200) {
-        console.log(response.status);
-        Cookies.set("token", response.data.token, { expires: 1 }); //Expira la cookie en un dia, si queres probar si expira podes ponerle 1/1440 para que expire en un minuto.
-        localStorage.setItem("username", username);
-        setIsLoggedIn(true);
-        setMessage(`Bienvenido/a ${username}!`);
-        setTimeout(() => setMessage(""), 5000);
-        location.reload();
-      } else {
-        setMessage(`Credenciales incorrectas.`);
-        setTimeout(() => setMessage(""), 5000);
-      }
     } catch (error) {
-      setMessage(
-        error.response ? error.response.data.message : "Error de conexión"
-      );
-      setTimeout(() => setMessage(""), 5000);
+        console.error('Error en el login:', error);
+        setMessage(error.response ? error.response.data.message : "Error de conexión");
     }
-  };
+    setTimeout(() => setMessage(""), 5000);
+};
   
 
   const logout = async (e) => {
     e.preventDefault();
-    let nombre = localStorage.getItem("username");
+    let nombre = Cookies.get("username");
     try {
       const response = await axios.post(
         `${host}/api/logout`,
@@ -287,7 +316,7 @@ function App() {
 
       if (response.status === 200) {
         Cookies.remove("token");
-        localStorage.removeItem("username");
+        Cookies.remove("username");
         setIsLoggedIn(false);
         console.error(response.status);
         location.reload();
@@ -301,7 +330,7 @@ function App() {
 
   const deleteUser = async (e) => {
     e.preventDefault();
-    let nombre = localStorage.getItem('username');
+    let nombre = Cookies.get("username");
     if (nombre) {
         try {
                 const deleteResponse = await axios.delete(`${host}/api/delete`, {
@@ -312,7 +341,7 @@ function App() {
                     setMessage(`Usuario ${nombre} eliminado correctamente.`);
                     setIsLoggedIn(false);
                     Cookies.remove('token');
-                    localStorage.removeItem('username');
+                    Cookies.remove("username");
                     location.reload();
                 }
             } catch (err) {
@@ -364,6 +393,12 @@ useEffect(() => {
   //   }
   // }, []);
 
+    // useEffect(() => {
+    //   if (username || password){
+    //     console.log(`El nombre de usuario es: ${username}`);
+    //     console.log(`El la contraseña del usuario es: ${password}`);
+    //   }
+    // });
 
   return (
     <Router>
@@ -543,7 +578,7 @@ useEffect(() => {
                 </div>
                 {isLoggedIn ? (
                 <>
-                  <UserMenu username={User} logout={(e)=>logout(e)} del_profile={(e)=>deleteUser(e)}/>
+                  <UserMenu username={Cookies.get("username")} logout={(e)=>logout(e)} del_profile={(e)=>deleteUser(e)}/>
                 </>
               ) : (
                 <>
@@ -569,15 +604,15 @@ useEffect(() => {
         {/* >-------------------- MAIN PAGE --------------------< */}
         <Routes>
           <Route path="/" element={<Home host={host}/>} />
-          <Route path="/receta/:id" element={<Receta username={User}/>} />
+          <Route path="/receta/:id" element={<Receta username={Cookies.get("username")}/>} />
           <Route path="/buscar" element={<Buscar />} />
           <Route path="/perfil/:username" element={<Perfil/>} />
 
           {/* NO ESTA AUN */}
-          <Route path={`/mis-recetas/:${User}`} element={<Perfil />}/>
+          <Route path={`/mis-recetas/:${Cookies.get("username")}`} element={<Perfil />}/>
           <Route path="/modificar-receta/:id" element={<Perfil />} />
           <Route path="/eliminar-receta/:id:" element={<Perfil />} />
-
+          <Route path="/nueva-receta/" element={<FormReceta />} />
           {/* Pagina 404 */}
           <Route path="*" element={<Page404/>} />
         </Routes>

@@ -51,7 +51,7 @@ app.use(function(req, res, next){
 });
 
 app.get('/api/usuarios', (req, res) => {
-    db.all('SELECT id_user, username FROM Users', [], (err, rows) => {
+    db.all('SELECT id_user FROM Users', [], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -59,6 +59,79 @@ app.get('/api/usuarios', (req, res) => {
         res.json(rows);
     });
 });
+
+app.post('/token-generator', async (req, res) => {
+    const { username } = req.body;
+
+    try {
+        const min = 100;
+        const max = 1000;
+        let token = ''; // Inicializar token como una cadena vacía
+
+        const generadorToken = () => {
+            for (let index = 0; index < 100; index++) {
+                const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+                token += randomNumber.toString();
+            }
+        };
+
+        generadorToken(); // Llamar a la función generadorToken
+
+        try {
+            const tokenHashed = await bcrypt.hash(token, 10); // Usar await para manejar la operación asíncrona
+            const hashedUsername = await bcrypt.hash(username, 10);
+
+            if (token.length !== 0 && hashedUsername) {
+                try{
+                    db.get('SELECT id_user FROM Users WHERE username = ?', [username], function (err, row){
+                        if (err){
+                            return res.status(500).json({ message: "Error interno del servidor." });
+                        }
+                        if (!row){
+                            return res.status(404).json({ message: "No se ha encontrado la id." });
+                        }
+                        else {
+                            return res.status(201).json({
+                                message: "Se ha creado el token de la cookie con éxito.",
+                                token: tokenHashed,
+                                nombre: hashedUsername,
+                                id_user: row.id_user,
+                            });
+                        }
+                    })
+                }catch(err){
+
+                }
+            } else {
+                console.log(tokenHashed);
+                return res.status(500).json({ message: "Ha ocurrido un error con el token." });
+            }
+        } catch (err){
+
+        }
+    } catch (err) {
+        return res.status(500).json({ message: "Ha ocurrido un problema.", err: err.message });
+    }
+});
+
+app.post('/api/agregar-token', (req, res) => {
+    const { cookieToken, username, id_user } = req.body;
+    const query = 'INSERT INTO Tokens (username, cookieToken, id_user) VALUES (?, ?, ?)';
+
+    try {
+        db.run(query, [username, cookieToken, id_user], function(err){
+            if (err){
+                return res.status(500).json({ message: "Error interno del servidor." });
+            } else {
+                return res.status(201).json({ message: "Se ha asignado el token correctamente al usuario."});
+            }
+        })
+    } catch (err){
+        return res.status(500).json({ message: 'Error en el servidor', error: error.message });
+    }
+})
+
+
 
 app.get('/api/categorias', (req, res) => {
     const query = 'SELECT category FROM Categories'; // Ajuste en el nombre de la tabla y columna
@@ -116,7 +189,7 @@ app.post('/api/register', (req, res) => {
 
     // Validaciones iniciales
     if (!usernameR || !passwordR || !passwordRC) {
-        return res.status(400).json({ message: 'Faltan el nombre de usuario o la contraseña. 400' });
+        return res.status(400).json({ message: 'Faltan el nombre de usuario o las contraseñas. 400' });
     }
     if (passwordR !== passwordRC) {
         return res.status(400).json({ message: 'Asegurese de repetir bien la contraseña. 400' });
@@ -182,7 +255,7 @@ app.post('/api/logout', (req, res) => {
             if (err) {
                 return res.status(500).json({ message: 'Error al cerrar sesión.' });
             }
-            res.status(200).json({ message: 'Sesión cerrada correctamente.' });
+            res.status(200).json({ message: 'se encontro al usuario, cierre de sesión en proceso.' });
         });
     }
 });
@@ -206,36 +279,52 @@ app.delete('/api/delete', (req, res) => {
 });
 
 app.post('/api/checkeo', (req, res) => {
-    const { storedUsername } = req.body;
-    const checkQuery = 'SELECT username FROM Users WHERE username = ?';
-    db.get(checkQuery, [storedUsername], function (err, row) {
-        if (err) {
-            return res.status(500).json({ message: 'Error al determinar el estado de la cuenta.' });
+    const { cookieToken, username } = req.body;
+
+            const checkToken = 'SELECT cookieToken FROM Tokens WHERE username = ?';
+            try {
+                db.get(checkToken, [username], function (err, row) {
+                    if (err) {
+                        return res.status(500).json({ message: 'Error interno del server.' });
+                    }
+                    if (!row) {
+                        return res.status(404).json({ message: 'No se ha encontrado una cookie' })
+                    } if (row) {
+                        const matchT = (cookieToken, row.cookieToken);
+
+                        if (matchT){
+                            return res.status(200).json({ message: 'Los tokens coinciden.' });
+                        }
+                    }
+                })
+            } catch (err) {
+                return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+            }
         }
-        if (!row) {
-            return res.status(404).json({ message: 'Usuario no encontrado.' });
-        }
-        if (row) {
-            return res.status(200).json({ message: 'Usuario encontrado exitosamente.' });
-        }
-    });
-});
+    );
+
 
 
 
 // app.get(`/api/recetas/:${id_}`)
 
-app.post('/api/cookie', (req, res) => {
+app.post('/api/cookie/delete', (req, res) => {
     const { nombre } = req.body;
     if (!nombre){
         return res.status(400).json({ message: 'Error, no hay nombre de usuario.'});
     } else {
-        db.run('UPDATE Users SET loggedIn = 0 WHERE username = ?', [nombre], (err) => {
-            if (err) {
-                return res.status(500).json({ message: 'Error al cerrar sesión.' });
-            }
-            res.status(200).json({ message: 'Sesión cerrada correctamente.' });
-        });
+        try {
+            db.run('UPDATE Tokens SET cookieToken = 0 WHERE username = ?', [nombre], (err) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Error al cerrar sesión.' });
+                }
+                else {
+                    return res.status(200).json({ message: 'Sesión cerrada correctamente.' });
+                }
+            });
+        } catch (err) {
+            return res.status(500).json({ message: 'Error al borrar el token de la Base de Datos.' });
+        }
     }
 });
 
@@ -330,6 +419,7 @@ app.get('/api/receta/:id', (req, res) => {
         });
     });
 });
+
 
 
 

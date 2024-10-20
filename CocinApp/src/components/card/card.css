@@ -54,8 +54,7 @@
     .contenedor-tarjetas{
         margin: auto;
         display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Fija el número de columnas */
-        gap: 16px;
+        grid-template-columns: repeat(2, 1fr); /* Fija el número de columnas */
         padding: 16px;
         justify-items: center;
     }
@@ -67,14 +66,23 @@
 
     /* Tarjetas */
     .card { 
-        max-width: 220px; 
-        min-height: 300px;  
+        max-width: 300px; 
+        min-height: 485px;
+        max-height: 500px;  
     }
     .card-content {
-        min-height: 150px;
+        min-height: 260px;
+        max-height: 265px;
+        padding: 5px 5px;
+        margin-top: 13px;
     }
-    .title-card{font-size: 1.0em;}
-    .card-title{font-size: .9em;}
+    .title-card{
+        font-size: 1.0em;
+        margin-bottom: 30px;
+    }
+    .card-title{
+        font-size: .9em;
+    }
     .card-subtitle{
         font-size: .8em;
     }
@@ -84,20 +92,31 @@
 
 @media (min-width:1024px){
     .contenedor-tarjetas{
-        grid-template-columns: repeat(4, 1fr)
+        grid-template-columns: 1fr 1fr;
+        row-gap: 100px;
     }
+
+    .card {
+        max-width: 340px;
+        min-height: 462px;
+        max-height: 462px
+    }
+
     .card-content {
-        min-height: 140px;
+        min-height: 220px;
+        max-height: 220px;
+        margin-top: 10px;
+        padding: 5px 5px;
     }
 }
 @media (min-width:1370px){
     .contenedor-tarjetas{
-        grid-template-columns: repeat(4, 1fr)
+        grid-template-columns: repeat(3, 1fr)
     }
     .card{
-        max-width: 290px;
-        min-height: 375px;
-        max-height: 360px;
+        max-width: 350px;
+        min-height: 467px;
+        max-height: 500px;
     }
 }
 @media (min-width:1552px){
@@ -105,7 +124,7 @@
         grid-template-columns: repeat(4, 1fr)
     }
     .card{
-        max-width: 320px;
+        max-width: 325px;
         min-height: 468px;
         height: auto;
         max-height: 488px;
@@ -113,11 +132,10 @@
         padding-bottom: 15px;
     }
     .card-content{
-        margin-top: 17px;
         padding: 5px 5px;
-        min-height: 242px;
+        min-height: 250px;
         height: auto;
-        max-height: 242px;
+        max-height: 250px;
     }
 
     .card-title{

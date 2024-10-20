@@ -10,6 +10,7 @@ const Perfil = () => {
 
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);
+  const user = localStorage.getItem("username");
 
   useEffect(() => {
     const metaDescription = document.createElement('meta');
@@ -22,7 +23,7 @@ const Perfil = () => {
         document.getElementsByTagName('head')[0].removeChild(metaDescription);
     };
 }, []);
-  const user = localStorage.getItem("username");
+
 
   const llamadoBD = async () => {
     try {
@@ -51,7 +52,7 @@ const Perfil = () => {
         description: "Una milanesa napolitana exquisita",
         ingredients: "Milanesa napolitana",
         steps: "Servir la milanesa napolitana",
-        categories: "Entrada, Sopa, Caldo, Ensalada, Plato Principal, Guarnición, Postre, Bebida, Vegetariana, Saludable",
+        categories: "Entrada, Bebida, Vegetariana, Saludable",
         tiempo: "2 segundos en servir",
       });
   
@@ -66,6 +67,7 @@ const Perfil = () => {
     }
   }
 
+
   return (
     <>
     <span>USUARIO ID:{user}</span>
@@ -74,30 +76,31 @@ const Perfil = () => {
     <br></br>
     <button onClick={agregarRecipe}>Agregar Receta</button>
     <br></br>
-    {!info ?(
-      <>
-      <span>No hay info</span>
-      </>
-    ) : (
-      <>
-      <div className='contenedor-tarjetas'>
-      {recetas.map(({ id_recipe, tiempo, image, recipe_name, username, difficulty, categories }) => (
-                        <a className="card" href={`/receta/${id_recipe}`} key={id_recipe}>
-                            <SimpleCard
-                                tiempo={tiempo}
-                                image={"https://placehold.co/400x250/000/fff/png"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
-                                title={recipe_name}
-                                author={username}
-                                dificulty={difficulty}
-                                category={categories}  // Si tienes categorías como un array, deberías ajustarlo
-                            />
-                        </a>
-                    ))}
-      </div>
-      </>
-    )}
+      {!info ?(
+        <>
+        <span>No hay 🐔!!!</span>
+        </>
+      ) : (
+        <>
+        <div className='contenedor-tarjetas'>
+        {recetas.map(({ id_recipe, tiempo, image, recipe_name, username, difficulty, categories }) => (
+                          <a className="card" href={`/receta/${id_recipe}`} key={id_recipe}>
+                              <SimpleCard
+                                  tiempo={tiempo}
+                                  image={"https://placehold.co/400x250/000/fff/png"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
+                                  title={recipe_name}
+                                  author={username}
+                                  dificulty={difficulty}
+                                  category={categories}  // Si tienes categorías como un array, deberías ajustarlo
+                              />
+                          </a>
+                      ))}
+        </div>
+        </>
+      )}
     </>
-  )
+    )
 }
 
 export default Perfil
+
