@@ -36,13 +36,8 @@ function App() {
   const [passwordR, setPasswordR] = useState("");
   const [passwordRC, setPasswordRC] = useState("");
   // OTROS
-  const [userLocal, setUserLocal] = useState("");
-  // const User = localStorage.getItem('username'); //           <---------------------<USUARIO ACTUAL
-  const [categorias, setCategorias] = useState([]);
-  // const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState(null);
   const [movil, setMovil] = useState(false);
   const [tabletOrdenador, setTabletOrdenador] = useState(false);
   // PATH
@@ -51,7 +46,6 @@ function App() {
     { href: "/buscar", label: "BUSCAR" },
     { href: "/receta", label: "CATEGORIAS" },
   ];
-  const [path, setPath] = useState('');
   //LOGICA DE COMPONENTE
   const [visible, setMenuVisible] = useState(false);
   const [fav, setFav] = useState(false);
@@ -113,20 +107,6 @@ function App() {
       }
     }
   }, [estado]);
-
-  const cat = async (e) => {
-    e.preventDefault();
-    try {
-        const response = await axios.get(`${host}/api/categorias`);
-        if (response.status === 200) {
-            setCategorias(response.data.categories);
-            console.log(response.data.categories);
-        }
-    } catch (error) {
-        console.error('Error al obtener las categorías:', error);
-        setError(error.message); // Establecer el mensaje de error
-    }
-};
 
   const cerrar = () => {
     const form = document.getElementById("form_login");
@@ -530,7 +510,6 @@ useEffect(() => {
                 </>
               ) : (
                 <>
-                  {/* <button onClick={cat}>Categorias</button> */}
                   <button className="btn_user" onClick={() => setEstado(true)}>Ingreso / Registro</button>
                 </>
               )}
@@ -582,7 +561,6 @@ useEffect(() => {
                 </>
               ) : (
                 <>
-                  {/* <button onClick={cat}>Categorias</button> */}
                   <div className="btn_user-move">
                   <button className="btn_user" onClick={() => setEstado(true)}>Ingreso</button>
                   <button className="btn_user" onClick={() => setEstado(true)}>Registro</button>
