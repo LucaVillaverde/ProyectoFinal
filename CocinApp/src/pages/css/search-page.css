@@ -1,23 +1,73 @@
+/* ESTILOS VINCULADOS A LA BARRA DE BUSQUEDA Y FILTROS */
 .search-title{text-align: center;}
 
-.search-box{
+.search-bar-cont{
     width: 100%;
-    height: 8vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    height: 20%;
 }
-
+.search-bar{
+    width: 100%;
+    height:100%;
+    display: flex;
+    padding:10px;
+    text-align: center;
+}
 .search-inpt{
     width: 90%;
-    padding: 7px;
-    border-radius:20px 0 0 20px ;
+    display: block;
+    padding: 5px 8px ;
+    border: 1px solid var(--fourth-color);
+    border-right: none;
+    border-radius: 20px 0 0 20px;
+    outline: none;
+    background-color: var(--secondary-color);
+}
+.search-inpt:focus-visible{
+    outline: none;
+    background-color: white;
 }
 .search-btn{
-    width: 35px;
-    height: auto;
+    width: 10%;
+    height: 30px;
     background-color: var(--primary-color);
+    border: 1px solid var(--fourth-color);
+    border-left: none;
+    border-radius: 0 20px 20px 0;
+    
+}
+
+/* PRUEBA DE FILTROS */
+.filters {
+    width: 100%;
+    overflow-x: hidden;
+    background-color: aliceblue;
+    white-space: nowrap;
+}
+
+.filter-menu {
+    display: flex; 
+    white-space: nowrap;
+    overflow-x: auto; /* Habilita el scroll horizontal */
+}
+
+.filter {
+    display: inline-block;
+    padding: 10px 20px;
+    color: white;
+    text-decoration: none;
+    background-color: #333;
     border: none;
-    padding: 8px;
-    border-radius: 0 20px 20px 0 ;
+    margin: 1px;
+}
+
+.filter-menu::-webkit-scrollbar {
+    display: none; /* Ocultar la barra de scroll en navegadores que lo soporten */
+}
+
+
+/* RECETAS */
+.recipe-content{
+    background-color: aquamarine;
+    width: 100%;
+
 }
