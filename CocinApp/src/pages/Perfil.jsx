@@ -1,16 +1,46 @@
 import { React, useEffect, useState } from 'react';
 import axios from "axios";
+import { useParams } from "react-router-dom";
 import SimpleCard from '../components/card/SimpleCard';
 
 
 const Perfil = () => {
+  const { localUsername } = useParams();
   const host = 'http://pruebita.webhop.me:5000';
   // const host = 'http://localhost:5000';
   // const host = "http://192.168.0.225:5000";
 
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);
-  const user = localStorage.getItem("username");
+
+
+  useEffect(() => {
+    const llamadoBD = async () => {
+        try {
+            const response = await axios.post(`${host}/api/recetas/personales`, {
+              usernameNH: localUsername,
+            });
+            if (response.status === 200) {
+                setRecetas(response.data.recetas);
+                console.log(response.data.recetas);
+                setInfo(true);
+            }
+        } catch (error) {
+            console.log(error);
+            window.alert(error);
+            location.reload();
+        }
+    };
+
+    const intervalId = setInterval(() => {
+        llamadoBD();
+    }, 5000); // 60000 milisegundos = 1 minuto
+
+    // Limpiar el intervalo cuando el componente se desmonta
+    return () => clearInterval(intervalId);
+}, []);
+
+ 
 
   useEffect(() => {
     const metaDescription = document.createElement('meta');
@@ -24,29 +54,27 @@ const Perfil = () => {
     };
 }, []);
 
-
-  const llamadoBD = async () => {
-    try {
-      const response = await axios.get(`${host}/api/recetas`);
-      
+const llamarRecetas = async () => {
+  try {
+      const response = await axios.post(`${host}/api/recetas/personales`, {
+        usernameNH: localUsername,
+      });
       if (response.status === 200) {
-        setRecetas(response.data.recetas);;
-        console.log(response.data.recetas);
-        setInfo(true);
+          setRecetas(response.data.recetas);
+          console.log(response.data.recetas);
+          setInfo(true);
       }
-      
   } catch (error) {
-      //console.error('Error fetching the recetas:', error);
       console.log(error);
       window.alert(error);
       location.reload();
   }
-  }
+};
 
   const agregarRecipe = async () => {
     try {
       const response = await axios.post(`${host}/api/receta/nueva`, {
-        username: user,
+        username: localUsername,
         recipe_name: "Tarta de Espinacas y Queso Ricotta con Masa Integral Hecha en Casa",
         difficulty: "GORE",
         description: "Una milanesa napolitana exquisita",
@@ -58,7 +86,7 @@ const Perfil = () => {
   
       if (response.status === 201) {
         console.log("Se ha creado exitosamente la receta.");
-        llamadoBD();
+        llamarRecetas();
       } else {
         console.error(response.status)
       }
@@ -67,12 +95,26 @@ const Perfil = () => {
     }
   }
 
+  if (localUsername !== '') {
+    const Perfil = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await axios.get(`${host}/api/mis-recetas/${localUsername}`); // Aquí usas el valor real de username
+            if (response.status === 200) {
+            }
+        } catch (error) {
+            console.error('Error al obtener la receta:', error);
+            setError(error.message); 
+        }
+    };
+}
+
 
   return (
     <>
-    <span>USUARIO ID:{user}</span>
+    <span>USUARIO ID{localUsername}</span>
     <br></br>
-    <button onClick={llamadoBD}>Traer Recetas</button>
+    <button onClick={llamarRecetas}>Traer tus recetas</button>
     <br></br>
     <button onClick={agregarRecipe}>Agregar Receta</button>
     <br></br>

@@ -22,7 +22,7 @@ const Home = ({host}) => {
 
     const fetchRecetas = async () => {
         try {
-            const response = await axios.get(`${host}/api/recetas/`);  
+            const response = await axios.get(`${host}/api/recetas`);  
             setRecetas(response.data.recetas);
             setLoading(false);
             console.log(response.data.recetas);
@@ -42,96 +42,96 @@ const Home = ({host}) => {
     }, []);
 
 
-    const dataSet = [
-        {
-            id: "123",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "124",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "125",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "126",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "127",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "128",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "129",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "130",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "131",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "132",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        },
-        {
-            id: "133",
-            image: "https://placehold.co/400x250/000/fff/png",
-            title: "[NOMBRE-RECETA]",
-            author: "[AUTOR-RECETA]",
-            category: "[RECETA-CATEGORIA]",
-            dificulty: "[DIFICULTAD-RECETA]",
-        }
-    ];
+    // const dataSet = [
+    //     {
+    //         id: "123",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "124",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "125",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "126",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "127",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "128",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "129",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "130",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "131",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "132",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     },
+    //     {
+    //         id: "133",
+    //         image: "https://placehold.co/400x250/000/fff/png",
+    //         title: "[NOMBRE-RECETA]",
+    //         author: "[AUTOR-RECETA]",
+    //         category: "[RECETA-CATEGORIA]",
+    //         dificulty: "[DIFICULTAD-RECETA]",
+    //     }
+    // ];
     return (
         <>
             <h2 className="title">RECIENTES</h2>
@@ -139,19 +139,19 @@ const Home = ({host}) => {
             {loading ? (
                 <p>Cargando recetas...</p>
             ) : (
-                <div className="card-grid">
-                    {dataSet.map(({ id, image, title, author, dificulty, category }) => (
-                        <a className="card" href={`/receta/${id}`} key={id}>
-                            <SimpleCard
-                                id={id}
-                                image={image || 'default_image_url.jpg'}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
-                                nombre={title}
-                                author={author}
-                                dificulty={dificulty}
-                                category={category}  // Si tienes categorías como un array, deberías ajustarlo
-                            />
-                        </a>
-                    ))}
+                <div className='contenedor-tarjetas'>
+                {recetas.map(({ id_recipe, tiempo, image, recipe_name, username, difficulty, categories }) => (
+                                  <a className="card" href={`/receta/${id_recipe}`} key={id_recipe}>
+                                      <SimpleCard
+                                          tiempo={tiempo}
+                                          image={"https://placehold.co/400x250/000/fff/png"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
+                                          title={recipe_name}
+                                          author={id_recipe}
+                                          dificulty={difficulty}
+                                          category={categories}  // Si tienes categorías como un array, deberías ajustarlo
+                                      />
+                                  </a>
+                              ))}
                 </div>
             )}
             </div>

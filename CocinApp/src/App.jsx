@@ -22,8 +22,8 @@ import { FormReceta } from "./pages/formReceta";
 
 
 // HOST intercambiables
-const host = 'http://localhost:5000';
-// const host = 'http://pruebita.webhop.me:5000';
+// const host = 'http://localhost:5000';
+const host = 'http://pruebita.webhop.me:5000';
 
 function App() {
   // VARIABLES
@@ -39,6 +39,7 @@ function App() {
   const [message, setMessage] = useState("");
   const [movil, setMovil] = useState(false);
   const [tabletOrdenador, setTabletOrdenador] = useState(false);
+  const [localUsername, setLocalUsername] = useState('');
   // PATH
   const links = [
     { href: "/", label: "INICIO" },
@@ -81,40 +82,38 @@ function App() {
     }
   }, [estado]);
 
+    const clearCookiesAndLogout = () => {
+      Cookies.remove("token");
+      Cookies.remove("username");
+      Cookies.remove("id_user");
+      setIsLoggedIn(false);
+  };
 
+  const logoutAndClearSession = async (data) => {
+    try {
+        const logoutResponse = await axios.post(`${host}/api/logout`, data);
+        if (logoutResponse.status === 200) {
+            const deleteCookieResponse = await axios.post(`${host}/api/cookie/delete`, data);
+            if (deleteCookieResponse.status === 200) {
+                clearCookiesAndLogout();
+            } else {
+                console.error('Error al eliminar la cookie:', deleteCookieResponse.data.message);
+            }
+        } else {
+            console.error('Error al cerrar sesión:', logoutResponse.data.message);
+            clearCookiesAndLogout();
+        }
+    } catch (err) {
+        console.error('Error en el proceso de cierre de sesión:', err);
+        clearCookiesAndLogout();
+    }
+};
 
   useEffect(() => {
     const checkLoginStatus = async () => {
         const tokenNav = Cookies.get("token");
         const usernameNav = Cookies.get("username");
         const idUserNav = Cookies.get("id_user");
-
-        const clearCookiesAndLogout = () => {
-            Cookies.remove("token");
-            Cookies.remove("username");
-            Cookies.remove("id_user");
-            setIsLoggedIn(false);
-        };
-
-        const logoutAndClearSession = async (data) => {
-            try {
-                const logoutResponse = await axios.post(`${host}/api/logout`, data);
-                if (logoutResponse.status === 200) {
-                    const deleteCookieResponse = await axios.post(`${host}/api/cookie/delete`, data);
-                    if (deleteCookieResponse.status === 200) {
-                        clearCookiesAndLogout();
-                    } else {
-                        console.error('Error al eliminar la cookie:', deleteCookieResponse.data.message);
-                    }
-                } else {
-                    console.error('Error al cerrar sesión:', logoutResponse.data.message);
-                    clearCookiesAndLogout();
-                }
-            } catch (err) {
-                console.error('Error en el proceso de cierre de sesión:', err);
-                clearCookiesAndLogout();
-            }
-        };
 
         // Si todas las cookies están presentes
         if (tokenNav && usernameNav && idUserNav) {
@@ -162,6 +161,7 @@ function App() {
 
   const signUp = async (e) => {
     e.preventDefault();
+
     try {
       const response = await axios.post(`${host}/api/register`, {
         usernameR,
@@ -190,26 +190,14 @@ function App() {
               setIsLoggedIn(true);
             } else {
               console.error("Token o nombre no encontrados en la respuesta.");
-              Cookies.remove("token");
-              Cookies.remove("username");
-              Cookies.remove("id_user");
-              setIsLoggedIn(false);
+
             }
           } else {
             console.error("Error al generar el token:", cookieTokenResponse.data.message);
-            Cookies.remove("token");
-            Cookies.remove("username");
-            Cookies.remove("id_user");
-            setIsLoggedIn(false);
           }
         } catch (err) {
-          console.error(err, "Hola");
+          console.error(err);
           console.error("Error al obtener el token:", err);
-          setMessage("Error al obtener el token.");
-          Cookies.remove("token");
-          Cookies.remove("username");
-          Cookies.remove("id_user");
-          setIsLoggedIn(false);
         }
       }
     } catch (err) {
@@ -217,12 +205,12 @@ function App() {
         err.response ? err.response.data.message : "Error al crear la cuenta."
       );
       setTimeout(() => setMessage(""), 5000);
-      Cookies.remove("token");
-      Cookies.remove("username");
-      Cookies.remove("id_user");
-      setIsLoggedIn(false);
+      console.log(err);
+      console.error(err);
     }
   };
+
+
   const login = async (e) => {
     e.preventDefault();
     try {
@@ -245,41 +233,25 @@ function App() {
                             setMessage(`Bienvenido/a ${username}!`);
                         } else {
                           console.error('Error no hay datos', 404);
-                          Cookies.remove("token");
-                          Cookies.remove("username");
-                          Cookies.remove("id_user");
-                          setIsLoggedIn(false);
                         }
                     } else {
                       console.error('Error al generar el token:', cookieTokenResponse.data.message);
                       setMessage("Error al generar el token.");
-                      Cookies.remove("token");
-                      Cookies.remove("username");
-                      Cookies.remove("id_user");
-                      setIsLoggedIn(false);
                   }
                 } catch (err) {
                   console.error(err);
-                  Cookies.remove("token");
-                  Cookies.remove("username");
-                  Cookies.remove("id_user");
-                  setIsLoggedIn(false);
                 }
             }
         }
      catch (error) {
         console.error('Error en el login:', error);
         setMessage(error.response ? error.response.data.message : "Error de conexión");
-        Cookies.remove("token");
-        Cookies.remove("username");
-        Cookies.remove("id_user");
-        setIsLoggedIn(false);
         setTimeout(() => setMessage(""), 5000);
     }
 };
 const logout = async (e) => {
     e.preventDefault();
-    let idUserNav = Cookies.get("id_user");
+    const idUserNav = Cookies.get("id_user");
     try {
       const response = await axios.post(
         `${host}/api/logout`,
@@ -325,32 +297,45 @@ const logout = async (e) => {
       setIsLoggedIn(false);
     }
   };
-const deleteUser = async (e) => {
+
+
+  const deleteUser = async (e) => {
     e.preventDefault();
-    let nombre = Cookies.get("username");
-    if (nombre) {
-        try {
-                const deleteResponse = await axios.delete(`${host}/api/delete`, {
-                    data: { nombre }
-                });
-                if (deleteResponse.status === 200) {
-                    console.log(`Usuario ${nombre} eliminado correctamente.`);
-                    setMessage(`Usuario ${nombre} eliminado correctamente.`);
-                    setIsLoggedIn(false);
-                    Cookies.remove('token');
-                    Cookies.remove("username");
-                    Cookies.remove("id_user");
-                    location.reload();
-                }
-            } catch (err) {
-            console.error(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
-            setMessage(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
+    const user = Cookies.get("id_user");
+    console.log(user);
+    
+    try {
+        const deleteResponse = await axios.delete(`${host}/api/delete`, {
+            data: { user } // Asegúrate de pasar 'user' dentro de 'data'
+        });
+        if (deleteResponse.status === 200) {
+            setIsLoggedIn(false);
+            Cookies.remove('token');
+            Cookies.remove("username");
+            Cookies.remove("id_user");
+            location.reload();
         }
-    } else {
-        console.error('Tienes que estar logueado para eliminar tu cuenta.');
-        setMessage('Tienes que estar logueado para eliminar tu cuenta.');
+    } catch (err) {
+        console.error(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
+        setMessage(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
+        // Asegúrate de eliminar las cookies incluso si hay un error
     }
 };
+
+  const llamadoInfoUsuario = async () => {
+    const user = Cookies.get("id_user");
+    try{
+      const llamado = await axios.post(`${host}/api/info-usuario`, {
+        id_user: user,
+      });
+      if (llamado.status === 200){
+        setLocalUsername(llamado.data.username);
+      }
+    }catch(err){
+      console.error(err);
+    }
+  }
+
 const determinarTipoDispositivo = (ancho) => {
   if (ancho < 720) {
       return (1);
@@ -384,7 +369,6 @@ useEffect(() => {
 // NEW LOGIN (FUNCIONES)
 const closeForm = () => {
     setEstado(false);
-    console.log(estado);
 };
 const changeForm =() => {
     if (form === "login") {
@@ -511,7 +495,7 @@ useEffect(() => {
             <div className="seccion">
               {isLoggedIn ? (
                 <>
-                  <UserMenu username={User} logout={(e)=>logout(e)} del_profile={(e)=>deleteUser(e)}/>
+                  <UserMenu username={localUsername} logout={(e)=>logout(e)} del_profile={(e)=>deleteUser(e)}/>
                 </>
               ) : (
                 <>
@@ -562,7 +546,7 @@ useEffect(() => {
                 </div>
                 {isLoggedIn ? (
                 <>
-                  <UserMenu username={Cookies.get("username")} logout={(e)=>logout(e)} del_profile={(e)=>deleteUser(e)}/>
+                  <UserMenu username={localUsername} logout={(e)=>logout(e)} del_profile={deleteUser}/>
                 </>
               ) : (
                 <>
@@ -587,12 +571,12 @@ useEffect(() => {
         {/* >-------------------- MAIN PAGE --------------------< */}
         <Routes>
           <Route path="/" element={<Home host={host}/>} />
-          <Route path="/receta/:id" element={<Receta username={Cookies.get("username")}/>} />
+          <Route path="/receta/:id" element={<Receta username={localUsername}/>} />
           <Route path="/buscar" element={<Buscar />} />
           <Route path="/perfil/:username" element={<Perfil/>} />
 
           {/* NO ESTA AUN */}
-          <Route path={`/mis-recetas/:${Cookies.get("username")}`} element={<Perfil />}/>
+          <Route path={`/mis-recetas/:localUsername`} element={<Perfil />}/>
           <Route path="/modificar-receta/:id" element={<Perfil />} />
           <Route path="/eliminar-receta/:id:" element={<Perfil />} />
           <Route path="/nueva-receta/" element={<FormReceta />} />
@@ -609,10 +593,26 @@ useEffect(() => {
 export default App;
 
 
-const UserMenu = ({username,add_recipe ,logout, del_profile}) => {
+const UserMenu = ({add_recipe, logout, del_profile}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [movil, setMovil] = useState(false);
-
+  const [localUsername, setLocalStorage] = useState('');
+  useEffect(() => {
+    const llamadoInfoUsuario = async () => {
+      const user = Cookies.get("id_user");
+      try{
+        const llamado = await axios.post(`${host}/api/info-usuario`, {
+          id_user: user,
+        });
+        if (llamado.status === 200){
+          setLocalStorage(llamado.data.username);
+        }
+      }catch(err){
+        console.error(err);
+      }
+    }
+    llamadoInfoUsuario();
+  }, [])
 
   const determinarTipoDispositivo = (ancho) => {
     if (ancho < 720) {
@@ -670,8 +670,8 @@ const UserMenu = ({username,add_recipe ,logout, del_profile}) => {
                 </button>
         {isOpen && (
           <div className="menu-content">
-            <span className="menu-span" >Hola {username}</span>
-            <a href={`/mis-recetas/:${username}`}>Mis recetas</a>
+            <span className="menu-span" >Hola {localUsername}</span>
+            <a href={`/mis-recetas/:${localUsername}`}>Mis recetas</a>
             <button className="btn_del btn_menu" onClick={add_recipe}>Añadir Receta</button>
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
@@ -690,9 +690,9 @@ const UserMenu = ({username,add_recipe ,logout, del_profile}) => {
                 </button>
         {isOpen && (
           <div className="menu-content">
-            <span className="menu-span" >Hola {username}</span>
-            <a href={`/mis-recetas/:${username}`}>Mis recetas</a>
-            <a href={`/mis-favoritos/:${username}`}>Favoritos</a>
+            <span className="menu-span" >Hola {localUsername}</span>
+            <a href={`/mis-recetas/:${localUsername}`}>Mis recetas</a>
+            <a href={`/mis-favoritos/:${localUsername}`}>Favoritos</a>
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
           </div>
