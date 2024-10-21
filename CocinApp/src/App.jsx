@@ -429,7 +429,7 @@ useEffect(() => {
                         <h2 className="form-title">
                             {form === "login" ? "Login" : "Registro"}
                         </h2>
-                        <form onSubmit={login}>
+                        <form onSubmit={form === 'login' ? login : signUp}>
                             {form === "login" ? (
                                 <>
                                     <input
