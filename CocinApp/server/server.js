@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
+const cron = require('node-cron');
 const app = express();
 const PORT = 5000;
 const host = 'http://pruebita.webhop.me';
@@ -38,6 +39,16 @@ app.use(express.json());
 const db = new sqlite3.Database('./BasedeDatos.db');
 // const db = new sqlite3.Database('./db.db');
 
+cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
+    console.log('Ejecutando tarea programada: establecer cookieToken a 0');
+    db.run('UPDATE Tokens SET cookieToken = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
+        if (err) {
+            return console.error('Error al actualizar cookieToken:', err.message);
+        }
+        console.log('cookieToken actualizado a 0');
+    });
+});
+
 app.use(function(req, res, next){
     const redirectURL = '/'; // Ruta a la que deseas redirigir
 
@@ -60,76 +71,105 @@ app.get('/api/usuarios', (req, res) => {
     });
 });
 
-app.post('/token-generator', async (req, res) => {
-    const { username } = req.body;
+
+app.post('/token-register', async (req, res) => {
+    const { usernameNH } = req.body;
+
+    // Generador de token
+    const generateToken = () => {
+        const min = 100;
+        const max = 3000;
+        let token = '';
+        for (let i = 0; i < 300; i++) {
+            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+            token += randomNumber.toString();
+        }
+        return token;
+    };
 
     try {
-        const min = 100;
-        const max = 1000;
-        let token = ''; // Inicializar token como una cadena vacía
+        const tokenNH = generateToken();
+        const tokenH = await bcrypt.hash(tokenNH, 10);
+        const usernameH = await bcrypt.hash(usernameNH, 10); // Asegúrate de pasar la "salt"
+        const createdAt = new Date().toISOString();
 
-        const generadorToken = () => {
-            for (let index = 0; index < 100; index++) {
-                const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-                token += randomNumber.toString();
+        db.get('SELECT id_user FROM Users WHERE username = ?', [usernameNH], function (err, row) {
+            if (err) {
+                return res.status(500).json({ message: "Error interno del servidor al obtener id del usuario." });
             }
-        };
+            if (!row) {
+                return res.status(404).json({ message: "No se ha encontrado el id del usuario." });
+            }
 
-        generadorToken(); // Llamar a la función generadorToken
-
-        try {
-            const tokenHashed = await bcrypt.hash(token, 10); // Usar await para manejar la operación asíncrona
-            const hashedUsername = await bcrypt.hash(username, 10);
-
-            if (token.length !== 0 && hashedUsername) {
-                try{
-                    db.get('SELECT id_user FROM Users WHERE username = ?', [username], function (err, row){
-                        if (err){
-                            return res.status(500).json({ message: "Error interno del servidor." });
-                        }
-                        if (!row){
-                            return res.status(404).json({ message: "No se ha encontrado la id." });
-                        }
-                        else {
-                            return res.status(201).json({
-                                message: "Se ha creado el token de la cookie con éxito.",
-                                token: tokenHashed,
-                                nombre: hashedUsername,
-                                id_user: row.id_user,
-                            });
-                        }
-                    })
-                }catch(err){
-
+            const id_user = row.id_user;
+            db.run('INSERT INTO Tokens (username, cookieToken, id_user, created_at) VALUES (?, ?, ?, ?)', [usernameNH, tokenNH, id_user, createdAt], function (err) {
+                if (err) {
+                    return res.status(500).json({ message: "Error interno del servidor al intentar colocar los datos del registro (Tokens)." });
                 }
-            } else {
-                console.log(tokenHashed);
-                return res.status(500).json({ message: "Ha ocurrido un error con el token." });
-            }
-        } catch (err){
-
-        }
+                return res.status(201).json({
+                    message: "Se han colocado los datos exitosamente (Tokens).",
+                    tokenH,
+                    usernameH,
+                    id_user,
+                });
+            });
+        });
     } catch (err) {
-        return res.status(500).json({ message: "Ha ocurrido un problema.", err: err.message });
+        console.error(err);
+        return res.status(500).json({ message: "Error interno del servidor.", error: err.message });
     }
 });
 
-app.post('/api/agregar-token', (req, res) => {
-    const { cookieToken, username, id_user } = req.body;
-    const query = 'INSERT INTO Tokens (username, cookieToken, id_user) VALUES (?, ?, ?)';
 
-    try {
-        db.run(query, [username, cookieToken, id_user], function(err){
-            if (err){
-                return res.status(500).json({ message: "Error interno del servidor." });
-            } else {
-                return res.status(201).json({ message: "Se ha asignado el token correctamente al usuario."});
+
+app.post('/token-login', async (req, res) => {
+    const { usernameNH } = req.body;
+    
+    // Generador de token
+    const generateToken = () => {
+        const min = 100;
+        const max = 3000;
+        let token = '';
+        for (let i = 0; i < 300; i++) {
+            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+            token += randomNumber.toString();
+        }
+        return token;
+    };
+
+        try {
+            const tokenNH = generateToken();
+            const tokenH = await bcrypt.hash(tokenNH, 10)
+            const usernameH = await bcrypt.hash(usernameNH, 10);
+            const createdAt = new Date().toISOString();
+
+                db.get('SELECT id_user FROM Users WHERE username = ?', [usernameNH], (err, row) => {
+                    if (err) {
+                        return res.status(500).json({ message: `Error interno del servidor ${usernameNH}.` });
+                    }
+                    if (!row) {
+                        return res.status(404).json({ message: `No hay datos sobre este usuario: ${usernameNH}.` });
+                    }
+
+                    const id_user = row.id_user;
+                    db.run('UPDATE Tokens SET cookieToken = ?, created_at = ? WHERE username = ?', [tokenNH, createdAt, usernameNH], function (err) {
+                        if (err) {
+                            return res.status(500).json({ message: "Error interno del servidor." });
+                        }
+                        return res.status(201).json({
+                            message: "Se ha creado el token de la cookie con éxito.",
+                            tokenH,
+                            usernameH,
+                            id_user: id_user,
+                        });
+                    });
+                });
+            } catch (err) {
+                return res.status(400).json({ message: "Error en los datos proporcionados." });
             }
-        })
-    } catch (err){
-        return res.status(500).json({ message: 'Error en el servidor', error: error.message });
     }
-})
+);
+
 
 
 
@@ -245,20 +285,79 @@ app.post('/api/register', (req, res) => {
 
 
 
+app.post('/api/logout', async (req, res) => {
+    const { id_user, usernameNav, tokenNav } = req.body;
 
-app.post('/api/logout', (req, res) => {
-    const { nombre } = req.body;
-    if (!nombre){
-        return res.status(400).json({ message: 'Error, no hay nombre de usuario.'});
-    } else {
-        db.get('Select * FROM Users WHERE username = ?', [nombre], (err) => {
-            if (err) {
-                return res.status(500).json({ message: 'Error al cerrar sesión.' });
-            }
-            res.status(200).json({ message: 'se encontro al usuario, cierre de sesión en proceso.' });
-        });
+    if (id_user) {
+        try {
+            db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE id_user = ?', [id_user], (err) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Error al cerrar sesión.' });
+                }
+                return res.status(200).json({ message: 'Sesión cerrada correctamente.' });
+            });
+        } catch (err) {
+            return res.status(500).json({ message: 'Error al borrar el token de la Base de Datos.' });
+        }
+    } else if (usernameNav) {
+        try {
+            db.all('SELECT username FROM Tokens', async (err, rows) => {
+                if (err) {
+                    return res.status(500).json({ message: "Error interno del servidor al obtener los usuarios." });
+                }
+
+                // Iteramos sobre los resultados y comparamos el hash
+                let userFound = false;
+                for (const row of rows) {
+                    const matchU = await bcrypt.compare(row.username, usernameNav);
+                    if (matchU) {
+                        userFound = true;
+                        // Actualizamos la base de datos para ese usuario
+                        db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE username = ?', [row.username], (err) => {
+                            if (err) {
+                                return res.status(500).json({ message: "Error al actualizar cookieToken y created_at." });
+                            }
+                            return res.status(200).json({ message: "Sesión cerrada correctamente." });
+                        });
+                        break; // Salimos del bucle si encontramos el usuario
+                    }
+                }
+
+                if (!userFound) {
+                    return res.status(404).json({ message: "Usuario no encontrado." });
+                }
+            });
+        } catch (err) {
+            return res.status(500).json({ message: "Error al intentar obtener los datos.", error: err.message });
+        }
+    } else if (tokenNav){
+        try{
+            db.all('SELECT cookieToken FROM Tokens', async (err, rows) => {
+                if (err){
+                    return res.status(500).json({ message: "Error interno del servidor al querer obtener las cookies de la base de datos." });
+                }
+                let cookieFound = false;
+                for (const row of rows) {
+                    const matchC = await bcrypt.compare(row.cookieToken, tokenNav);
+                    if (matchC){
+                        cookieFound = true;
+                        db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE cookieToken = ?', [row.cookieToken], (err) => {
+                            if (err) {
+                                return res.status(500).json({ message: "Error al actualizar cookieToken y created_at." });
+                            }
+                            return res.status(200).json({ message: "Sesión cerrada correctamente." });
+                        });
+                        break; // Salimos del bucle si encontramos el usuario
+                    }
+                }
+            })
+        } catch (err) {
+            return res.status(err);
+        }
     }
 });
+
+
 
 app.delete('/api/delete', (req, res) => {
     const { nombre } = req.body;
@@ -278,55 +377,126 @@ app.delete('/api/delete', (req, res) => {
     }
 });
 
-app.post('/api/checkeo', (req, res) => {
-    const { cookieToken, username } = req.body;
 
-            const checkToken = 'SELECT cookieToken FROM Tokens WHERE username = ?';
-            try {
-                db.get(checkToken, [username], function (err, row) {
-                    if (err) {
-                        return res.status(500).json({ message: 'Error interno del server.' });
-                    }
-                    if (!row) {
-                        return res.status(404).json({ message: 'No se ha encontrado una cookie' })
-                    } if (row) {
-                        const matchT = (cookieToken, row.cookieToken);
+app.post('/api/checkeo', async (req, res) => {
+    const { tokenNav, usernameNav, idUserNav } = req.body;
+    const tiempoActual = new Date().toISOString();
 
-                        if (matchT){
-                            return res.status(200).json({ message: 'Los tokens coinciden.' });
-                        }
-                    }
-                })
-            } catch (err) {
-                return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+    try {
+        db.get('SELECT cookieToken, username, created_at FROM Tokens WHERE id_user = ?', [idUserNav], async function (err, row) {
+            if (err) {
+                console.error('Error de base de datos:', err);
+                return res.status(500).json({ message: 'Error interno del servidor.' });
             }
-        }
-    );
+            if (!row) {
+                return res.status(404).json({ message: 'No se han encontrado los datos.' });
+            }
 
+            const matchT = await bcrypt.compare(row.cookieToken, tokenNav); // Usar tokenNav y row.cookieToken
+            console.log('Comparación de token:', matchT);
+            const usernameMatch = await bcrypt.compare(row.username, usernameNav); // Usar usernameNav y row.username
+            console.log('Comparación de usuario:', usernameMatch);
+
+            const createdAt = row.created_at;
+            const tiempo = (createdAt, tiempoActual) => {
+                const createdDate = new Date(createdAt);
+                const currentDate = new Date(tiempoActual);
+                const UnDiaMilisegundos = 24 * 60 * 60 * 1000;
+                return (currentDate - createdDate) >= UnDiaMilisegundos;
+            };
+
+            if (tiempo(createdAt, tiempoActual)) {
+                db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0, WHERE id_user = ?', [idUserNav], function (err) {
+                    if (err) {
+                        return res.status(500).json({ message: "Error interno del servidor al actualizar el estado del cookieToken." });
+                    }
+                    else {
+                        return res.status(err).json({ message: err.message });
+                    }
+                });
+            } else {
+                if (matchT && usernameMatch) {
+                    return res.status(200).json({ message: 'Los tokens coinciden.' });
+                } else {
+                    return res.status(401).json({ message: 'Los tokens no coinciden.' });
+                }
+            }
+        });
+    } catch (err) {
+        console.error('Error interno del servidor:', err);
+        return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+    }
+});
 
 
 
 // app.get(`/api/recetas/:${id_}`)
 
-app.post('/api/cookie/delete', (req, res) => {
-    const { nombre } = req.body;
-    if (!nombre){
-        return res.status(400).json({ message: 'Error, no hay nombre de usuario.'});
-    } else {
+
+
+app.post('/api/cookie/delete', async (req, res) => {
+    const { id_user, usernameNav } = req.body;
+
+    if (id_user !== undefined) {
         try {
-            db.run('UPDATE Tokens SET cookieToken = 0 WHERE username = ?', [nombre], (err) => {
+            db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE id_user = ?', [id_user], (err) => {
                 if (err) {
+                    console.error('Error al cerrar sesión:', err);
                     return res.status(500).json({ message: 'Error al cerrar sesión.' });
                 }
-                else {
-                    return res.status(200).json({ message: 'Sesión cerrada correctamente.' });
+                console.log('Sesión cerrada correctamente para id_user:', id_user);
+                return res.status(200).json({ message: 'Sesión cerrada correctamente.' });
+            });
+        } catch (err) {
+            console.error('Error al borrar el token de la Base de Datos:', err);
+            return res.status(500).json({ message: 'Error al borrar el token de la Base de Datos.' });
+        }
+    } else if (usernameNav !== undefined) {
+        try {
+            db.all('SELECT username FROM Tokens', async (err, rows) => {
+                if (err) {
+                    console.error('Error al obtener todos los usuarios:', err);
+                    return res.status(500).json({ message: "Error interno del servidor al obtener todos los usuarios." });
+                }
+
+                let userFound = false;
+                for (const row of rows) {
+                    let matchU = await bcrypt.compare(row.username, usernameNav);
+                    if (matchU) {
+                        userFound = true;
+                        let usernameNH = row.username;
+                        console.log('Usuario encontrado:', usernameNH);
+                        try {
+                            db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE username = ?', [usernameNH], (err) => {
+                                if (err) {
+                                    console.error('Error al intentar actualizar cookieToken y created_at:', err);
+                                    return res.status(500).json({ message: "Error interno del servidor al intentar actualizar cookieToken y created_at." });
+                                }
+                                console.log('Datos actualizados correctamente para usuario:', usernameNH);
+                                return res.status(200).json({ message: "Se han actualizado los datos correctamente." });
+                            });
+                        } catch (err) {
+                            console.error('Error al intentar actualizar los datos:', err);
+                            return res.status(500).json({ message: "Error al intentar actualizar los datos.", error: err.message });
+                        }
+                        break;
+                    }
+                }
+                if (!userFound) {
+                    console.log('Usuario no encontrado');
+                    return res.status(404).json({ message: "Usuario no encontrado." });
                 }
             });
         } catch (err) {
-            return res.status(500).json({ message: 'Error al borrar el token de la Base de Datos.' });
+            console.error('Error al intentar obtener los datos:', err);
+            return res.status(500).json({ message: "Error al intentar obtener los datos.", error: err.message });
         }
+    } else {
+        return res.status(400).json({ message: "No se proporcionó ni id_user ni usernameNav." });
     }
 });
+
+
 
 
 // ------------------------ API REST (Recetas) -------------------------
@@ -402,7 +572,6 @@ app.post("/api/receta/nueva", (req, res) => {
 
 
 
-
 app.get('/api/receta/:id', (req, res) => {
     const { id } = req.params; // req.params es un objeto, no una función
     const getQuery = 'SELECT * FROM Recipe WHERE id_recipe = ?';
@@ -419,11 +588,6 @@ app.get('/api/receta/:id', (req, res) => {
         });
     });
 });
-
-
-
-
-
 
 
 process.on('SIGINT', () => {

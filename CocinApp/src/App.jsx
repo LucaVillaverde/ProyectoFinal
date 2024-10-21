@@ -44,14 +44,13 @@ function App() {
   const links = [
     { href: "/", label: "INICIO" },
     { href: "/buscar", label: "BUSCAR" },
-    { href: "/receta", label: "CATEGORIAS" },
+    { href: "/receta", label: "TIPOS DE CATEGORIAS" },
   ];
   //LOGICA DE COMPONENTE
   const [visible, setMenuVisible] = useState(false);
   const [fav, setFav] = useState(false);
   const [estado, setEstado] = useState(false);
 
-  console.log("🐔")
 
   const showMenu = () => {
     setMenuVisible(!visible);
@@ -128,117 +127,131 @@ function App() {
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      const tokenNav = Cookies.get("token");
-      const storedUsername = Cookies.get("username");
+        const tokenNav = Cookies.get("token");
+        const usernameNav = Cookies.get("username");
+        const idUserNav = Cookies.get("id_user");
 
-      if (tokenNav && storedUsername) {
-        try {
-          const cookieTokenResponse = await axios.post(`${host}/api/checkeo`, {
-            cookieToken: tokenNav,
-            username: storedUsername,
-          });
-          console.error(cookieTokenResponse.status);
-          if (cookieTokenResponse.status === 200) {
-              setIsLoggedIn(true);
-          } else {
-              console.error('Error al verificar las credenciales:', cookieTokenResponse.data.message);
-              console.error(cookieTokenResponse.status);
-          }
-      } catch (err) {
-          console.error('Error, algo ha salido mal al verificar credenciales:', err);
-      }
-      } if (!tokenNav && storedUsername) {
-        try{
-            const response1 = await axios.post(
-                `${host}/api/logout`,
-                {
-                    nombre: storedUsername,
-                }
-            )
-            if (response1.status === 200) {
-              try {
-                const cookieTokenDelete = await axios.post(`${host}/api/cookie/delete`, {
-                  nombre: storedUsername,
-                });
+        const clearCookiesAndLogout = () => {
+            Cookies.remove("token");
+            Cookies.remove("username");
+            Cookies.remove("id_user");
+            setIsLoggedIn(false);
+        };
 
-                if (cookieTokenDelete.status === 200) {
-                  console.error(200);
-                  console.log("La cuenta se ha cerrado debido a falta de credenciales.");
-                  Cookies.remove("username");
-                  setIsLoggedIn(false);
+        const logoutAndClearSession = async (data) => {
+            try {
+                const logoutResponse = await axios.post(`${host}/api/logout`, data);
+                if (logoutResponse.status === 200) {
+                    const deleteCookieResponse = await axios.post(`${host}/api/cookie/delete`, data);
+                    if (deleteCookieResponse.status === 200) {
+                        clearCookiesAndLogout();
+                    } else {
+                        console.error('Error al eliminar la cookie:', deleteCookieResponse.data.message);
+                    }
+                } else {
+                    console.error('Error al cerrar sesión:', logoutResponse.data.message);
+                    clearCookiesAndLogout();
                 }
-              } catch (err) {
-                console.error(err);
-                Cookies.remove("username");
-                setIsLoggedIn(false);
-                Cookies.remove('token');
-              }
-            } else {
-              console.error(response1.status, response1.data.message);
-              Cookies.remove("username");
-              setIsLoggedIn(false);
+            } catch (err) {
+                console.error('Error en el proceso de cierre de sesión:', err);
+                clearCookiesAndLogout();
             }
-        }catch (err){
-            console.error(err);
+        };
+
+        // Si todas las cookies están presentes
+        if (tokenNav && usernameNav && idUserNav) {
+            try {
+                const cookieTokenResponse = await axios.post(`${host}/api/checkeo`, { tokenNav, usernameNav, idUserNav });
+                if (cookieTokenResponse.status === 200) {
+                    setIsLoggedIn(true);
+                } else {
+                    console.error('Error al verificar las credenciales:', cookieTokenResponse.data.message);
+                    clearCookiesAndLogout();
+                }
+            } catch (err) {
+                console.error('Error al verificar credenciales:', err);
+                clearCookiesAndLogout();
+            }
         }
-      }
+        // Si falta el token pero el id_user está presente
+        else if (!tokenNav && idUserNav) {
+            await logoutAndClearSession({ id_user: idUserNav });
+        }
+        // Si el id_user falta, pero el username y token están presentes
+        else if (!idUserNav && usernameNav && tokenNav) {
+            console.log("Falta id_user, eliminando cookies.");
+            await logoutAndClearSession({ usernameNav });
+        }
+        // Si el id_user falta pero el username está presente
+        else if (!idUserNav && usernameNav) {
+            await logoutAndClearSession({ usernameNav });
+        }
+        // Si el id_user y username faltan pero token está presente
+        else if (!idUserNav && !usernameNav && tokenNav) {
+            await logoutAndClearSession({ tokenNav });
+        }
+        // Si el id_user está presente pero falta usernameNav
+        else if (idUserNav && tokenNav && !usernameNav) {
+            await logoutAndClearSession({ id_user: idUserNav });
+        }
     };
 
     checkLoginStatus();
-  }, []);
+}, []);
+
+
+
 
   const signUp = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `${host}/api/register`,
-        {
-          usernameR,
-          passwordR,
-          passwordRC,
-        }
-      );
+      const response = await axios.post(`${host}/api/register`, {
+        usernameR,
+        passwordR,
+        passwordRC,
+      });
 
       if (response.status === 201) {
         setMessage(`Usuario creado ID: ${response.data.userId}`);
         setTimeout(() => setMessage(""), 5000);
         try {
-              try {
-                    const cookieTokenResponse = await axios.post(`${host}/token-generator`,{
-                      username: usernameR,
-                    });
-                    if (cookieTokenResponse.status === 201) {
-                      const { token, nombre, id_user } = cookieTokenResponse.data; // Declarar esta variable para obtener el token creado.
-                  
-                      if (token && nombre && id_user) { // Uso de operador && para mayor claridad
-                          try {
-                              const response2 = await axios.post(`${host}/api/agregar-token`, {
-                                  cookieToken: token,
-                                  username: nombre,
-                                  id_user,
-                              });
-                  
-                              if (response2.status === 201) {
-                                  Cookies.set("token", token, { expires: 1 }); // Configurar la cookie con el token
-                                  Cookies.set("username", nombre);
-                                  setIsLoggedIn(true);
-                              }
-                          } catch (err) {
-                              console.error('Error al agregar el token:', err);
-                          }
-                      } else {
-                          console.error('Token o nombre no encontrados en la respuesta.');
-                      }
-                  } else {
-                      console.error('Error al generar el token:', cookieTokenResponse.data.message);
-                  }
-                  
-                } catch (err) {
-                    console.error('Error al obtener el token:', err);
-                    setMessage("Error al obtener el token.");
-                }
-        } catch (err){
-            console.error(err);
+          const cookieTokenResponse = await axios.post(
+            `${host}/token-register`,
+            {
+              usernameNH: usernameR,
+            }
+          );
+          if (cookieTokenResponse.status === 201) {
+            const { tokenH, usernameH, id_user } = cookieTokenResponse.data; // Declarar esta variable para obtener el token creado.
+
+            if (tokenH && usernameH && id_user) {
+              // Uso de operador && para mayor claridad
+              Cookies.set("token", tokenH, { expires: 1 }); // Configurar la cookie con el token
+              Cookies.set("username", usernameH), { expires: 1 };
+              Cookies.set("id_user", id_user);
+              setIsLoggedIn(true);
+            } else {
+              console.error("Token o nombre no encontrados en la respuesta.");
+              Cookies.remove("token");
+              Cookies.remove("username");
+              Cookies.remove("id_user");
+              setIsLoggedIn(false);
+            }
+          } else {
+            console.error("Error al generar el token:", cookieTokenResponse.data.message);
+            Cookies.remove("token");
+            Cookies.remove("username");
+            Cookies.remove("id_user");
+            setIsLoggedIn(false);
+          }
+        } catch (err) {
+          console.error(err, "Hola");
+          console.error("Error al obtener el token:", err);
+          setMessage("Error al obtener el token.");
+          Cookies.remove("token");
+          Cookies.remove("username");
+          Cookies.remove("id_user");
+          setIsLoggedIn(false);
         }
       }
     } catch (err) {
@@ -246,6 +259,10 @@ function App() {
         err.response ? err.response.data.message : "Error al crear la cuenta."
       );
       setTimeout(() => setMessage(""), 5000);
+      Cookies.remove("token");
+      Cookies.remove("username");
+      Cookies.remove("id_user");
+      setIsLoggedIn(false);
     }
   };
 
@@ -255,56 +272,102 @@ function App() {
         const response = await axios.post(`${host}/api/login`, { username, password });
         if (response.status === 200) {
             try {
-                const cookieTokenResponse = await axios.get(`${host}/token-generator`);
+                const cookieTokenResponse = await axios.post(`${host}/token-login`, {
+                  usernameNH: username,
+                });
                 if (cookieTokenResponse.status === 201) {
-                    const { token } = cookieTokenResponse.data; // Asegúrate de obtener el token
-                    console.log(token);
-                    Cookies.set("token", token, { expires: 1 }); // Configurar la cookie con el token
-                    Cookies.set("username", username);
-                    setIsLoggedIn(true);
-                    setMessage(`Bienvenido/a ${username}!`);
-                    setTimeout(() => setMessage(""), 5000);
-                } else {
-                    console.error('Error al generar el token:', cookieTokenResponse.data.message);
-                    setMessage("Error al generar el token.");
+                    const { tokenH, usernameH, id_user } = cookieTokenResponse.data; // Asegúrate de obtener el token
+                    // console.log(`El nombre de usuario es: ${nombre}`);
+                    // console.log(`El token del usuario es: ${token}`);
+                    // console.log(`El id del usuario es: ${id_user}`)
+                    if (tokenH && usernameH && id_user) {
+                            Cookies.set("token", tokenH, { expires: 1}); // Configurar la cookie con el token
+                            Cookies.set("username", usernameH, { expires: 1});
+                            Cookies.set("id_user", id_user);
+                            setIsLoggedIn(true);
+                            setMessage(`Bienvenido/a ${username}!`);
+                        } else {
+                          console.error('Error no hay datos', 404);
+                          Cookies.remove("token");
+                          Cookies.remove("username");
+                          Cookies.remove("id_user");
+                          setIsLoggedIn(false);
+                        }
+                    } else {
+                      console.error('Error al generar el token:', cookieTokenResponse.data.message);
+                      setMessage("Error al generar el token.");
+                      Cookies.remove("token");
+                      Cookies.remove("username");
+                      Cookies.remove("id_user");
+                      setIsLoggedIn(false);
+                  }
+                } catch (err) {
+                  console.error(err);
+                  Cookies.remove("token");
+                  Cookies.remove("username");
+                  Cookies.remove("id_user");
+                  setIsLoggedIn(false);
                 }
-            } catch (err) {
-                console.error('Error al obtener el token:', err);
-                setMessage("Error al obtener el token.");
             }
-        } else {
-            setMessage("Credenciales incorrectas.");
         }
-    } catch (error) {
+     catch (error) {
         console.error('Error en el login:', error);
         setMessage(error.response ? error.response.data.message : "Error de conexión");
+        Cookies.remove("token");
+        Cookies.remove("username");
+        Cookies.remove("id_user");
+        setIsLoggedIn(false);
+        setTimeout(() => setMessage(""), 5000);
     }
-    setTimeout(() => setMessage(""), 5000);
 };
   
 
   const logout = async (e) => {
     e.preventDefault();
-    let nombre = Cookies.get("username");
+    let idUserNav = Cookies.get("id_user");
     try {
       const response = await axios.post(
         `${host}/api/logout`,
         {
-          nombre,
+          id_user: idUserNav,
         }
       );
 
       if (response.status === 200) {
-        Cookies.remove("token");
-        Cookies.remove("username");
-        setIsLoggedIn(false);
-        console.error(response.status);
-        location.reload();
+        try {
+          const cookieTokenDelete = await axios.post(`${host}/api/cookie/delete`, {
+            id_user: idUserNav,
+          });
+
+          if (cookieTokenDelete.status === 200) {
+            console.error(200);
+            console.log("La cuenta se ha cerrado exitosamente.");
+            Cookies.remove("username");
+            Cookies.remove('token');
+            Cookies.remove('id_user');
+            setIsLoggedIn(false);
+          }
+        } catch (err) {
+          console.error(err);
+          Cookies.remove("username");
+          Cookies.remove('token');
+          Cookies.remove('id_user');
+          setIsLoggedIn(false);
+        }
+
       } else {
         console.error(response.status);
+        Cookies.remove("username");
+        Cookies.remove('token');
+        Cookies.remove('id_user');
+        setIsLoggedIn(false);
       }
     } catch (err) {
       console.error(err);
+      Cookies.remove("username");
+      Cookies.remove('token');
+      Cookies.remove('id_user');
+      setIsLoggedIn(false);
     }
   };
 
@@ -322,6 +385,7 @@ function App() {
                     setIsLoggedIn(false);
                     Cookies.remove('token');
                     Cookies.remove("username");
+                    Cookies.remove("id_user");
                     location.reload();
                 }
             } catch (err) {
