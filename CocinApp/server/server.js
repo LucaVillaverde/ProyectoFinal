@@ -5,8 +5,8 @@ const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
 const PORT = 5000;
-// const host = 'http://pruebita.webhop.me';
-const host = 'http://localhost';
+const host = 'http://pruebita.webhop.me';
+// const host = 'http://localhost';
 // const host = "http://192.168.0.225";
 
 function validarEntrada(texto) {
@@ -71,6 +71,24 @@ app.get('/api/usuarios', (req, res) => {
     });
 });
 
+app.post('/api/info-usuario', async (req, res) => {
+    const { id_user } = req.body;
+    console.log(id_user);
+    try{
+        db.get('SELECT username FROM Users WHERE id_user = ?', [id_user], (err, row) => {
+            if(err){
+                return res.status(500).json({ message: "Error interno del server al querer obtener el nombre de usuario en la base de datos." });
+            }
+            const username = row.username;
+            return res.status(200).json({ 
+                message: "Se obtuvo el usuario con exito de la base de datos.",
+                username: username,
+             })
+        })
+    }catch (err){
+        return res.status(err);
+    }
+})
 
 app.post('/token-register', async (req, res) => {
     const { usernameNH } = req.body;
@@ -360,20 +378,30 @@ app.post('/api/logout', async (req, res) => {
 
 
 app.delete('/api/delete', (req, res) => {
-    const { nombre } = req.body;
-    if (nombre) {
-        const deleteQuery = 'DELETE FROM Users WHERE username = ?';
-        db.run(deleteQuery, [nombre], function (err) {
-            if (err) {
-                return res.status(500).json({ message: 'Error al eliminar el usuario.' });
-            }
-            if (this.changes === 0) {
-                return res.status(404).json({ message: 'Usuario no encontrado.' });
-            }
-            res.status(200).json({ message: `Usuario ${nombre} eliminado correctamente.` });
-        });
+    const { user } = req.body;
+    if (user) {
+        const deleteQueryUsersTable = 'DELETE FROM Users WHERE id_user = ?';
+        const deleteQueryTokensTable = 'DELETE FROM Tokens WHERE id_user = ?';
+
+        try{
+            db.run(deleteQueryTokensTable, [user], (err) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Error interno del server al eliminar el usuario.' });
+                }
+                
+            db.run(deleteQueryUsersTable, [user], (err) => {
+                if (err){
+                    return res.status(500).json({ message: "Error interno del server al eliminar al usuario." });
+                    }
+                return res.status(200).json({ message: "Usuario eliminado con exito de la tabla Users y Tokens." });
+            });
+            });
+        } catch (err){
+            
+        }
     } else {
-        return res.status(400).json({ message: 'No se ha indicado un nombre para borrar.' });
+        console.log(user);
+        return res.status(400).json({ message: 'No se ha indicado un usuario para borrar.' });
     }
 });
 
@@ -427,10 +455,6 @@ app.post('/api/checkeo', async (req, res) => {
         return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
     }
 });
-
-
-
-// app.get(`/api/recetas/:${id_}`)
 
 
 
@@ -501,8 +525,9 @@ app.post('/api/cookie/delete', async (req, res) => {
 
 // ------------------------ API REST (Recetas) -------------------------
 app.get('/api/recetas', (req, res) => {
-    const getQuery = 'SELECT * FROM Recipe';
-    db.all(getQuery, [], (err, rows) => {
+    // const getQuery = 'SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT 8'; // DESC para traer las ultimas LIMIT 4 para traer solo 4 si queres traer las primeras (id_recipe mas bajo) entonces en vez de usar "DESC" usas "ASC".
+    const getQuery1 = 'SELECT * FROM Recipe ORDER BY id_recipe DESC';
+    db.all(getQuery1, [], (err, rows) => {
         if (err) {
             return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
         }
@@ -517,7 +542,27 @@ app.get('/api/recetas', (req, res) => {
     });
 });
 
+app.post('/api/recetas/personales', (req, res) => {
+    const { usernameNH } = req.body;
 
+    const getQuery = 'SELECT * FROM Recipe WHERE username = ? ORDER BY id_recipe DESC';
+    try{
+        db.all(getQuery, [usernameNH], (err, rows) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
+            }
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'No se han encontrado recetas.' });
+            }
+            return res.status(200).json({
+                message: 'Se han encontrado todos los datos de la receta.',
+                recetas: rows,
+            });
+        })
+    }catch (err){
+        return res.status(err);
+    }
+})
 
 app.post("/api/receta/nueva", (req, res) => {
     const { username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo } = req.body;
