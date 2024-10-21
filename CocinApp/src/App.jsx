@@ -22,8 +22,8 @@ import { FormReceta } from "./pages/formReceta";
 
 
 // HOST intercambiables
-// const host = 'http://localhost:5000';
-const host = 'http://pruebita.webhop.me:5000';
+const host = 'http://localhost:5000';
+// const host = 'http://pruebita.webhop.me:5000';
 
 function App() {
   // VARIABLES
@@ -391,10 +391,10 @@ useEffect(() => {
 
   return (
     <Router>
-      <div>
+      <>
         {/* >-------------------- Login-Register --------------------< */}
         <div
-            className="backgroundForm "
+            className="backgroundForm"
             style={{ display: estado ? "none" : "flex" }}
             id="form_login"
         >
@@ -588,7 +588,7 @@ useEffect(() => {
         </Routes>
         {/* >-------------------- FOOTER --------------------< */}
         <Footer/>
-      </div>
+      </>
     </Router>
   );
 };
