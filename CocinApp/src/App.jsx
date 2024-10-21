@@ -179,6 +179,7 @@ function App() {
                                   Cookies.set("token", token, { expires: 1 }); // Configurar la cookie con el token
                                   Cookies.set("username", nombre);
                                   setIsLoggedIn(true);
+                                  setEstado(false);
                               }
                           } catch (err) {
                               console.error('Error al agregar el token:', err);
@@ -211,15 +212,15 @@ function App() {
         const response = await axios.post(`${host}/api/login`, { username, password });
         if (response.status === 200) {
             try {
-                const cookieTokenResponse = await axios.get(`${host}/token-generator`);
+                const cookieTokenResponse = await axios.post(`${host}/token-generator`,{username : username});
                 if (cookieTokenResponse.status === 201) {
-                    const { token } = cookieTokenResponse.data; // Asegúrate de obtener el token
-                    console.log(token);
+                    const { token, nombre } = cookieTokenResponse.data; // Asegúrate de obtener el token
                     Cookies.set("token", token, { expires: 1 }); // Configurar la cookie con el token
-                    Cookies.set("username", username);
+                    Cookies.set("username", nombre);
                     setIsLoggedIn(true);
                     setMessage(`Bienvenido/a ${username}!`);
                     setTimeout(() => setMessage(""), 5000);
+                    setEstado(false);
                 } else {
                     console.error('Error al generar el token:', cookieTokenResponse.data.message);
                     setMessage("Error al generar el token.");
@@ -364,7 +365,7 @@ useEffect(() => {
                         <h2 className="form-title">
                             {form === "login" ? "Login" : "Registro"}
                         </h2>
-                        <form onSubmit={login}>
+                        <form onSubmit={form === 'login' ? login : signUp}>
                             {form === "login" ? (
                                 <>
                                     <input
