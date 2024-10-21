@@ -1,0 +1,23 @@
+.search-title{text-align: center;}
+
+.search-box{
+    width: 100%;
+    height: 8vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.search-inpt{
+    width: 90%;
+    padding: 7px;
+    border-radius:20px 0 0 20px ;
+}
+.search-btn{
+    width: 35px;
+    height: auto;
+    background-color: var(--primary-color);
+    border: none;
+    padding: 8px;
+    border-radius: 0 20px 20px 0 ;
+}
