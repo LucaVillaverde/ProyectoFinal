@@ -22,9 +22,8 @@ import { FormReceta } from "./pages/formReceta";
 
 
 // HOST intercambiables
-// const host = 'http://localhost:5000';
-const host = 'http://pruebita.webhop.me:5000';
-// const host = "http://192.168.0.225:5000";
+const host = 'http://localhost:5000';
+// const host = 'http://pruebita.webhop.me:5000';
 
 function App() {
   // VARIABLES
@@ -48,38 +47,13 @@ function App() {
   ];
   //LOGICA DE COMPONENTE
   const [visible, setMenuVisible] = useState(false);
-  const [fav, setFav] = useState(false);
+  const [form, setForm] = useState(false);
   const [estado, setEstado] = useState(false);
 
 
   const showMenu = () => {
     setMenuVisible(!visible);
   };
-
-  const showPerfil = (User) => {
-    alert(`[TU PERFIL]${User}`);
-  };
-
-  const favoritos = async () => {
-    if (fav){
-      setFav(false);
-    } else {
-      setFav(true);
-      try {
-        const responseSetFav = await axios.post(`${host}/api/AñadirFavoritos`, {
-          fav: true,
-          username: User,
-        });
-
-        if (responseSetFav.status === 200){
-          console.log(`Se ha establecido la receta como favorita con total exito para el usuario: ${User}.`);
-          setFav(false);
-        }
-      } catch (err) {
-        console.log(err)
-      }
-    }
-  }
 
   useEffect(() => {
     const handleResize = () => {
@@ -107,23 +81,7 @@ function App() {
     }
   }, [estado]);
 
-  const cerrar = () => {
-    const form = document.getElementById("form_login");
-    if (form) {
-      if (estado) {
-        // Ocultar el formulario y deshabilitar el scroll
-        setEstado(false);
-        form.style.display = "none";
-      } else {
-        // Mostrar el formulario y habilitar el scroll
-        form.style.display = "block";
-        setEstado(true);
-      }
-    }
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }
+
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -265,7 +223,6 @@ function App() {
       setIsLoggedIn(false);
     }
   };
-
   const login = async (e) => {
     e.preventDefault();
     try {
@@ -320,9 +277,7 @@ function App() {
         setTimeout(() => setMessage(""), 5000);
     }
 };
-  
-
-  const logout = async (e) => {
+const logout = async (e) => {
     e.preventDefault();
     let idUserNav = Cookies.get("id_user");
     try {
@@ -370,8 +325,7 @@ function App() {
       setIsLoggedIn(false);
     }
   };
-
-  const deleteUser = async (e) => {
+const deleteUser = async (e) => {
     e.preventDefault();
     let nombre = Cookies.get("username");
     if (nombre) {
@@ -397,7 +351,6 @@ function App() {
         setMessage('Tienes que estar logueado para eliminar tu cuenta.');
     }
 };
-
 const determinarTipoDispositivo = (ancho) => {
   if (ancho < 720) {
       return (1);
@@ -405,7 +358,6 @@ const determinarTipoDispositivo = (ancho) => {
       return (2);
   } 
 };
-
 useEffect(() => {
   const verificarAncho = () => {
       const ancho = window.innerWidth;
@@ -429,138 +381,127 @@ useEffect(() => {
   };
 }, []);
 
-  // useEffect(() => {
-  //   if (estado) {
-  //     setEstado(true);
-  //   } else {
-  //     setEstado(false);
-  //   }
-  // }, []);
+// NEW LOGIN (FUNCIONES)
+const closeForm = () => {
+    setEstado(false);
+    console.log(estado);
+};
+const changeForm =() => {
+    if (form === "login") {
+        setForm("register");
+    } else {
+        setForm("login");
+    }
+};
+useEffect(() => {
+    if (form === "login") {
+      setForm("register");
+    } else {
+      setForm("login");
+    }
+  }, []);
 
-    // useEffect(() => {
-    //   if (username || password){
-    //     console.log(`El nombre de usuario es: ${username}`);
-    //     console.log(`El la contraseña del usuario es: ${password}`);
-    //   }
-    // });
 
   return (
     <Router>
       <div>
         {/* >-------------------- Login-Register --------------------< */}
         <div
-          className="backgroundForm "
-          style={{ display: estado ? "block" : "none" }}
-          id="form_login"
+            className="backgroundForm "
+            style={{ display: estado ? "none" : "flex" }}
+            id="form_login"
         >
-          <div className="wrapper">
-            <div className="card-switch">
-              <label className="switch">
-                <input type="checkbox" className="toggle" />
-                <span className="slider" />
-                <span className="card-side" />
-                <div className="flip-card__inner">
-                  <div className="flip-card__front">
-                    <div className="btn_close_menu">
-                      <button
-                        className="formClose"
-                        onClick={() => cerrar()}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="1em"
-                          height="1em"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            fill="black"
-                            d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="title">LOGIN</div>
-                      <form className="flip-card__form" onSubmit={login}>
-                        <input
-                          className="flip-card__input"
-                          placeholder="Usuario"
-                          type="text"
-                          autoComplete="username"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          required
-                        />
-                        <input
-                          className="flip-card__input"
-                          placeholder="Contraseña"
-                          type="password"
-                          autoComplete="current-password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          required
-                        />
-                        <button className="flip-card__btn" type="submit">
-                          Iniciar sesión
+            <div className="form-user">
+                <div className="form-head">
+                    <div className="form-change bts">
+                        <button className="form-btnChange" onClick={changeForm}>
+                            {form === "login" ? "Registro" : "Login"}
                         </button>
-                      </form>
-                    <p className="message_form">{message}</p>
-                  </div>
-                  <div className="flip-card__back">
-                  <div className="btn_close_menu">
-                      <button
-                        className="formClose"
-                        onClick={() => cerrar()}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="1em"
-                          height="1em"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            fill="black"
-                            d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"
-                          />
-                        </svg>
-                      </button>
                     </div>
-                    <div className="title">REGISTRARSE</div>
-                    <form onSubmit={signUp} className="flip-card__form" >
-                      <input
-                        className="flip-card__input"
-                        placeholder="Usuario"
-                        type="text"
-                        autoComplete="username"
-                        value={usernameR}
-                        onChange={(e) => setUsernameR(e.target.value)}
-                        required
-                      />
-                      <input
-                        className="flip-card__input"
-                        placeholder="Contraseña"
-                        type="password"
-                        autoComplete="new-password"
-                        value={passwordR}
-                        onChange={(e) => setPasswordR(e.target.value)}
-                        required
-                      />
-                      <input
-                        className="flip-card__input"
-                        placeholder="Contraseña"
-                        type="password"
-                        autoComplete="new-password"
-                        value={passwordRC}
-                        onChange={(e) => setPasswordRC(e.target.value)}
-                        required
-                      />
-                      <button className="flip-card__btn">Confirm!</button>
-                    </form>
-                    <p className="message_form">{message}</p>
-                  </div>
+                    <div className="form-close bts">
+                        <button className="form-btnClose" onClick={closeForm}>
+                            X
+                        </button>
+                    </div>
                 </div>
-              </label>
+                <div className="form-content">
+                    <div className="form">
+                        <h2 className="form-title">
+                            {form === "login" ? "Login" : "Registro"}
+                        </h2>
+                        <form onSubmit={login}>
+                            {form === "login" ? (
+                                <>
+                                    <input
+                                        className="form-input"
+                                        placeholder="Usuario"
+                                        type="text"
+                                        autoComplete="username"
+                                        value={username}
+                                        onChange={(e) =>
+                                            setUsername(e.target.value)
+                                        }
+                                        required
+                                    />
+                                    <input
+                                        className="form-input"
+                                        placeholder="Contraseña"
+                                        type="password"
+                                        autoComplete="current-password"
+                                        value={password}
+                                        onChange={(e) =>
+                                            setPassword(e.target.value)
+                                        }
+                                        required
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <input
+                                        className="form-input"
+                                        placeholder="Usuario"
+                                        type="text"
+                                        autoComplete="username"
+                                        value={usernameR}
+                                        onChange={(e) =>
+                                            setUsernameR(e.target.value)
+                                        }
+                                        required
+                                    />
+                                    <input
+                                        className="form-input"
+                                        placeholder="Contraseña"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        value={passwordR}
+                                        onChange={(e) =>
+                                            setPasswordR(e.target.value)
+                                        }
+                                        required
+                                    />
+                                    <input
+                                        className="form-input"
+                                        placeholder="Confirmar Contraseña"
+                                        type="password"
+                                        autoComplete="new-password"
+                                        value={passwordRC}
+                                        onChange={(e) =>
+                                            setPasswordRC(e.target.value)
+                                        }
+                                        required
+                                    />
+                                </>
+                            )}
+                            <div className="btn_submit">
+                                <button className="btn-form" type="submit">
+                                    {form === "login" ? "Iniciar sesión": "Registrarse"}
+                                </button>
+                            </div>
+                        </form>
+                        <span>{message}</span>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
         {/* >-------------------- HEADER --------------------< */}
         {movil ? (
