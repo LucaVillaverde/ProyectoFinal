@@ -41,7 +41,7 @@ const db = new sqlite3.Database('./BasedeDatos.db');
 
 cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
     console.log('Ejecutando tarea programada: establecer cookieToken a 0');
-    db.run('UPDATE Tokens SET cookieToken = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
+    db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
         if (err) {
             return console.error('Error al actualizar cookieToken:', err.message);
         }
