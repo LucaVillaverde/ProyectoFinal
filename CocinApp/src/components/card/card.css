@@ -6,7 +6,7 @@
     background-color: var(--secondary-color);
     border-radius: 8px;
     box-shadow: 0 4px 6px #0009;
-    margin: 10px; 
+    margin: 15% 0; 
 }
 .card-content-image {
     width: 100%;
