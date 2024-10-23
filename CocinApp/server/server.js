@@ -5,8 +5,8 @@ const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
 const PORT = 5000;
-// const host = 'http://pruebita.webhop.me';
-const host = 'http://localhost';
+const host = 'http://pruebita.webhop.me';
+// const host = 'http://localhost';
 // const host = "http://192.168.0.225";
 
 function validarEntrada(texto) {
@@ -41,11 +41,11 @@ const db = new sqlite3.Database('./BasedeDatos.db');
 
 cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
     console.log('Ejecutando tarea programada: establecer cookieToken a 0');
-    db.run('UPDATE Tokens SET cookieToken = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
+    db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
         if (err) {
             return console.error('Error al actualizar cookieToken:', err.message);
         }
-        console.log('cookieToken actualizado a 0');
+        console.log('cookieToken y created_at actualizados a 0');
     });
 });
 
@@ -140,51 +140,77 @@ app.post('/token-register', async (req, res) => {
 
 
 
-app.post('/token-login', async (req, res) => {
+app.post('/token-login', (req, res) => {
     const { usernameNH } = req.body;
-    
-    // Generador de token
-    const generateToken = () => {
-        const min = 100;
-        const max = 3000;
-        let token = '';
-        for (let i = 0; i < 300; i++) {
-            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-            token += randomNumber.toString();
-        }
-        return token;
-    };
 
-        try {
-            const tokenNH = generateToken();
-            const tokenH = await bcrypt.hash(tokenNH, 10)
-            const usernameH = await bcrypt.hash(usernameNH, 10);
-            const createdAt = new Date().toISOString();
-
-                db.get('SELECT id_user FROM Users WHERE username = ?', [usernameNH], (err, row) => {
-                    if (err) {
-                        return res.status(500).json({ message: `Error interno del servidor ${usernameNH}.` });
-                    }
-                    if (!row) {
-                        return res.status(404).json({ message: `No hay datos sobre este usuario: ${usernameNH}.` });
-                    }
-
-                    const id_user = row.id_user;
-                    db.run('UPDATE Tokens SET cookieToken = ?, created_at = ? WHERE username = ?', [tokenNH, createdAt, usernameNH], function (err) {
-                        if (err) {
-                            return res.status(500).json({ message: "Error interno del servidor." });
-                        }
-                        return res.status(201).json({
-                            message: "Se ha creado el token de la cookie con éxito.",
-                            tokenH,
-                            usernameH,
-                            id_user: id_user,
-                        });
-                    });
-                });
-            } catch (err) {
-                return res.status(400).json({ message: "Error en los datos proporcionados." });
+    try {
+        db.get('SELECT cookieToken FROM Tokens WHERE username = ?', [usernameNH], async (err, row) => {
+            if (err) {
+                return res.status(500).json({ message: `Error interno del servidor al verificar el valor de cookieToken en la tabla Tokens en base al usuario: ${usernameNH}.` });
             }
+            if (!row){
+                return res.status(400).json({ message: `No se ha encontrado el cookieToken del usuario con el nombre: ${usernameNH}` });
+            }
+            let tokenDB = row.cookieToken;
+            if (tokenDB != '0'){
+                return res.status(403).json({ message: `El usuario ${usernameNH} no tiene autorización para iniciar sesión (Ya hay alguien con una sesión activa).` });
+            }
+            if (tokenDB = '0'){
+                try{
+                        // Generador de token
+                    const generateToken = () => {
+                        const min = 100;
+                        const max = 3000;
+                        let token = '';
+                        for (let i = 0; i < 300; i++) {
+                            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+                            token += randomNumber.toString();
+                        }
+                        return token;
+                    };
+
+                            try {
+                                const tokenNH = generateToken();
+                                const tokenH = await bcrypt.hash(tokenNH, 10)
+                                const usernameH = await bcrypt.hash(usernameNH, 10);
+                                const createdAt = new Date().toISOString();
+
+                                    db.get('SELECT id_user FROM Users WHERE username = ?', [usernameNH], (err, row) => {
+                                        if (err) {
+                                            return res.status(500).json({ message: `Error interno del servidor ${usernameNH}.` });
+                                        }
+                                        if (!row) {
+                                            return res.status(404).json({ message: `No hay datos sobre este usuario: ${usernameNH}.` });
+                                        }
+
+                                        const id_user = row.id_user;
+                                        db.run('UPDATE Tokens SET cookieToken = ?, created_at = ? WHERE username = ?', [tokenNH, createdAt, usernameNH], function (err) {
+                                            if (err) {
+                                                return res.status(500).json({ message: "Error interno del servidor." });
+                                            }
+                                            return res.status(201).json({
+                                                message: "Se ha creado el token de la cookie con éxito.",
+                                                tokenH,
+                                                usernameH,
+                                                id_user: id_user,
+                                            });
+                                        });
+                                    });
+                                } catch (err) {
+                                    return res.status(400).json({ message: "Error en los datos proporcionados." });
+                                }
+                        }catch (err){
+                            return res.status(500).json({ 
+                                message: `Ha ocurrido un error al intentar loguear al usuario ${usernameNH}, error: ${err}`
+                             })
+                        }
+                    }
+                })
+    } catch (err) {
+        return res.status(500).json({ 
+            message: `Ha ocurrido un error al intentar loguear al usuario ${usernameNH}, error: ${err}`
+         })
+    }
     }
 );
 
@@ -564,56 +590,52 @@ app.post('/api/recetas/personales', (req, res) => {
     }
 })
 
-app.post("/api/receta/nueva", (req, res) => {
+app.post("/api/receta-nueva", async (req, res) => {
     const { username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo } = req.body;
 
     if (!username || !recipe_name || !difficulty || !description || !ingredients || !steps || !categories || !tiempo) {
         console.log("Faltan parámetros:", { username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo });
         return res.status(400).json({ message: "No se ha indicado uno o varios parámetros." });
-    } else {
-        try {
-            const categoryArray = categories.split(',').map(cat => cat.trim()); // Separar y limpiar categorías
+    }
 
-            // Verificar si las categorías existen
-            const placeholders = categoryArray.map(() => '?').join(',');
-            const checkCategoriesQuery = `SELECT category FROM Categories WHERE category IN (${placeholders})`;
-            console.log("Verificando categorías con consulta:", checkCategoriesQuery);
+    try {
+        const categoryArray = categories.split(',').map(cat => cat.trim());
 
-            db.all(checkCategoriesQuery, categoryArray, function(err, rows) {
-                if (err) {
-                    console.error("Error al verificar las categorías:", err.message);
-                    return res.status(500).json({ message: 'Error al verificar las categorías.', error: err.message });
-                }
+        const placeholders = categoryArray.map(() => '?').join(',');
+        const checkCategoriesQuery = `SELECT category FROM Categories WHERE category IN (${placeholders})`;
+        console.log("Verificando categorías con consulta:", checkCategoriesQuery);
 
-                // Encontrar las categorías que faltan
-                const existingCategories = rows.map(row => row.category);
-                const missingCategories = categoryArray.filter(cat => !existingCategories.includes(cat));
-                console.log("Categorías que faltan:", missingCategories);
-
-                if (missingCategories.length > 0) {
-                    return res.status(400).json({ message: `Una o más categorías no existen: ${missingCategories.join(', ')}` });
-                }
-
-                // Insertar la nueva receta
-                const insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-                console.log("Insertando receta con consulta:", insertQuery);
-
-                db.run(insertQuery, [username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo], function(err) {
-                    if (err) {
-                        console.error("Error al insertar la receta: ", err.message);
-                        return res.status(500).json({ message: 'Error al crear la receta.', error: err.message });
-                    } else {
-                        console.log("Receta creada con éxito, ID de receta:", this.lastID);
-                        return res.status(201).json({ message: "Se ha creado la receta.", recipeId: this.lastID });
-                    }
-                });
+        const rows = await new Promise((resolve, reject) => {
+            db.all(checkCategoriesQuery, categoryArray, (err, rows) => {
+                if (err) reject(err);
+                resolve(rows);
             });
-        } catch (err) {
-            console.error("Error en el servidor:", err.message);
-            return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+        });
+
+        const existingCategories = rows.map(row => row.category);
+        const missingCategories = categoryArray.filter(cat => !existingCategories.includes(cat));
+        if (missingCategories.length > 0) {
+            return res.status(400).json({ message: `Una o más categorías no existen: ${missingCategories.join(', ')}` });
         }
+
+        const insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+        console.log("Insertando receta con consulta:", insertQuery);
+
+        await new Promise((resolve, reject) => {
+            db.run(insertQuery, [username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo], function(err) {
+                if (err) reject(err);
+                resolve(this.lastID);
+            });
+        });
+
+        return res.status(201).json({ message: "Se ha creado la receta." });
+
+    } catch (err) {
+        console.error("Error en el servidor:", err.message);
+        return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
     }
 });
+
 
 
 

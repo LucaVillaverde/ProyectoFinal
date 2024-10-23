@@ -22,8 +22,8 @@ import { FormReceta } from "./pages/formReceta";
 
 
 // HOST intercambiables
-const host = 'http://localhost:5000';
-// const host = 'http://pruebita.webhop.me:5000';
+// const host = 'http://localhost:5000';
+const host = 'http://pruebita.webhop.me:5000';
 
 function App() {
   // VARIABLES
@@ -55,6 +55,7 @@ function App() {
   const showMenu = () => {
     setMenuVisible(!visible);
   };
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -577,6 +578,7 @@ useEffect(() => {
           <Route path="/receta/:id" element={<Receta username={Cookies.get("username")}/>} />
           <Route path="/buscar" element={<Buscar host={host} />} />
           <Route path="/perfil/:username" element={<Perfil/>} />
+          <Route path="/formulario-recetas/:localUsername" element={<FormReceta/>} />
 
           {/* NO ESTA AUN */}
           <Route path={`/mis-recetas/:localUsername`} element={<Perfil />}/>

@@ -2,17 +2,22 @@ import { React, useEffect, useState } from 'react';
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import SimpleCard from '../components/card/SimpleCard';
+import "../components/card/card.css";
 
 
 const Perfil = () => {
   const { localUsername } = useParams();
-  const host = 'http://pruebita.webhop.me:5000';
-  // const host = 'http://localhost:5000';
+ // const host = 'http://pruebita.webhop.me:5000';
+   const host = 'http://localhost:5000';
   // const host = "http://192.168.0.225:5000";
 
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);
 
+
+  useEffect(() => {
+    llamarRecetas();
+  }, []);
 
   useEffect(() => {
     const llamadoBD = async () => {
@@ -27,8 +32,6 @@ const Perfil = () => {
             }
         } catch (error) {
             console.log(error);
-            window.alert(error);
-            location.reload();
         }
     };
 
@@ -63,11 +66,14 @@ const llamarRecetas = async () => {
           setRecetas(response.data.recetas);
           console.log(response.data.recetas);
           setInfo(true);
+      } else if (response.status === 404) {
+        setInfo(false);
+        window.alert("No tienes recetas para mostrar.");
+        console.log("No tienes recetas para mostrar.");
       }
+
   } catch (error) {
       console.log(error);
-      window.alert(error);
-      location.reload();
   }
 };
 
@@ -120,7 +126,7 @@ const llamarRecetas = async () => {
     <br></br>
       {!info ?(
         <>
-        <span>No hay 🐔!!!</span>
+        <span>No tienes recetas para mostrar</span>
         </>
       ) : (
         <>
