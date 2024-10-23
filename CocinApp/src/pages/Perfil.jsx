@@ -7,8 +7,8 @@ import "../components/card/card.css";
 
 const Perfil = () => {
   const { localUsername } = useParams();
-  const host = 'http://pruebita.webhop.me:5000';
-  // const host = 'http://localhost:5000';
+ // const host = 'http://pruebita.webhop.me:5000';
+   const host = 'http://localhost:5000';
   // const host = "http://192.168.0.225:5000";
 
   const [recetas, setRecetas] = useState([]);
