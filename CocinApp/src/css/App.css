@@ -15,7 +15,8 @@ html, body {
   padding: 0;
 }
 body{
-  width: 100%;
+  width: 100vw;
+  overflow-x: hidden;
   background-color: var(--third-color);
   color: var(--fourth-color); 
 }

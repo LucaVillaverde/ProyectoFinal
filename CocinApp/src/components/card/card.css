@@ -2,11 +2,10 @@
     display: flex;
     flex-direction: column;
     flex: 1 1 300px; 
-    max-height: 250px;
     background-color: var(--secondary-color);
     border-radius: 8px;
     box-shadow: 0 4px 6px #0009;
-    margin: 10px; 
+    margin: 10% 10px; 
 }
 .card-content-image {
     width: 100%;
@@ -30,23 +29,14 @@
 .title-card {
     font-family: Verdana, sans-serif;
     text-align: center;
+    font-size: 17px ;
 }
 .card-title {
     font-weight: bolder;
-    font-size: 22px;
+    font-size: 17px;
 }
 .card-subtitle {
     font-size: 18px;
-}
-@media (min-width: 375px) {
-    .card {
-        max-height: 229px;
-    }
-
-    .card-content {
-        width: 90%;
-        margin: auto;
-    }
 }
 
 @media (min-width: 720px) {

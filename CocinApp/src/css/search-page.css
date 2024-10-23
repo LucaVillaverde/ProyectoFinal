@@ -40,34 +40,49 @@
 .filters {
     width: 100%;
     overflow-x: hidden;
-    background-color: aliceblue;
     white-space: nowrap;
 }
 
 .filter-menu {
+    width: 100%;
     display: flex; 
     white-space: nowrap;
+    background-color: var(--primary-color);
     overflow-x: auto; /* Habilita el scroll horizontal */
 }
 
-.filter {
-    display: inline-block;
-    padding: 10px 20px;
-    color: white;
-    text-decoration: none;
-    background-color: #333;
-    border: none;
-    margin: 1px;
+.filter{
+    /* width: 200px; */
+    margin: 0 8px;
+    padding: 0 10px;
+    background-color: var(--secondary-color);
+    text-align: center;
+    border: 1px solid #000;
+}
+
+.filter-inpt{
+    width: 20px;
+    background-color: red;
 }
 
 .filter-menu::-webkit-scrollbar {
-    display: none; /* Ocultar la barra de scroll en navegadores que lo soporten */
-}
+    display: none;}
 
 
 /* RECETAS */
 .recipe-content{
-    background-color: aquamarine;
-    width: 100%;
+    width: 100vw;
+}
 
+@media (min-width: 768px){
+    .search-bar{
+        width: 80%;
+        height: 65px;
+        margin: auto;
+        font-size: 12px;
+    }
+    .search-btn{
+        height: 45px;
+
+    }
 }

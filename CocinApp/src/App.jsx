@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Await } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route} from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -6,7 +6,7 @@ import "./components/LoginRegister/style.css";
 import "./components/header/header.css";
 import Footer from "./components/footer/Footer";
 // import "./components/footer/footer.css";
-import "./App.css";
+import "./css/app.css";
 // LOGO
 import logoimg from "./assets/logo1.png";
 import logoPerfilM from "./assets/LogoPerfilMovil.jpg";
