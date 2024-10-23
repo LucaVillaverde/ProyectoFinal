@@ -132,6 +132,7 @@ const Home = ({host}) => {
     //         dificulty: "[DIFICULTAD-RECETA]",
     //     }
     // ];
+    
     return (
         <>
             <h2 className="title">RECIENTES</h2>

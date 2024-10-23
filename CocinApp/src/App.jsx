@@ -22,8 +22,8 @@ import { FormReceta } from "./pages/formReceta";
 
 
 // HOST intercambiables
-// const host = 'http://localhost:5000';
-const host = 'http://pruebita.webhop.me:5000';
+const host = 'http://localhost:5000';
+// const host = 'http://pruebita.webhop.me:5000';
 
 function App() {
   // VARIABLES
@@ -156,9 +156,6 @@ function App() {
     checkLoginStatus();
 }, []);
 
-
-
-
   const signUp = async (e) => {
     e.preventDefault();
 
@@ -231,6 +228,7 @@ function App() {
                             Cookies.set("id_user", id_user);
                             setIsLoggedIn(true);
                             setMessage(`Bienvenido/a ${username}!`);
+                            location.reload()
                         } else {
                           console.error('Error no hay datos', 404);
                         }
@@ -366,6 +364,11 @@ useEffect(() => {
   };
 }, []);
 
+const showForm =(form)=>{
+  setForm(form);
+  setEstado(true);
+};
+
 // NEW LOGIN (FUNCIONES)
 const closeForm = () => {
     setEstado(false);
@@ -388,10 +391,10 @@ useEffect(() => {
 
   return (
     <Router>
-      <div>
+      <>
         {/* >-------------------- Login-Register --------------------< */}
         <div
-            className="backgroundForm "
+            className="backgroundForm"
             style={{ display: estado ? "none" : "flex" }}
             id="form_login"
         >
@@ -495,7 +498,7 @@ useEffect(() => {
             <div className="seccion">
               {isLoggedIn ? (
                 <>
-                  <UserMenu username={localUsername} logout={(e)=>logout(e)} del_profile={(e)=>deleteUser(e)}/>
+                  <UserMenu username={username} logout={(e)=>logout(e)} del_profile={(e)=>deleteUser(e)}/>
                 </>
               ) : (
                 <>
@@ -551,8 +554,8 @@ useEffect(() => {
               ) : (
                 <>
                   <div className="btn_user-move">
-                  <button className="btn_user" onClick={() => setEstado(true)}>Ingreso</button>
-                  <button className="btn_user" onClick={() => setEstado(true)}>Registro</button>
+                  <button className="btn_user" onClick={() => showForm('login')}>Ingreso</button>
+                  <button className="btn_user" onClick={() => showForm('registro')}>Registro</button>
                   </div>
                 </>
               )}
@@ -571,8 +574,8 @@ useEffect(() => {
         {/* >-------------------- MAIN PAGE --------------------< */}
         <Routes>
           <Route path="/" element={<Home host={host}/>} />
-          <Route path="/receta/:id" element={<Receta username={localUsername}/>} />
-          <Route path="/buscar" element={<Buscar />} />
+          <Route path="/receta/:id" element={<Receta username={Cookies.get("username")}/>} />
+          <Route path="/buscar" element={<Buscar host={host} />} />
           <Route path="/perfil/:username" element={<Perfil/>} />
 
           {/* NO ESTA AUN */}
@@ -585,7 +588,7 @@ useEffect(() => {
         </Routes>
         {/* >-------------------- FOOTER --------------------< */}
         <Footer/>
-      </div>
+      </>
     </Router>
   );
 };

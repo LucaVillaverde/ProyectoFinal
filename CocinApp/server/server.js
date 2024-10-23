@@ -5,8 +5,8 @@ const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
 const PORT = 5000;
-const host = 'http://pruebita.webhop.me';
-// const host = 'http://localhost';
+// const host = 'http://pruebita.webhop.me';
+const host = 'http://localhost';
 // const host = "http://192.168.0.225";
 
 function validarEntrada(texto) {
