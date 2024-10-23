@@ -61,14 +61,20 @@ app.use(function(req, res, next){
     next();
 });
 
-app.get('/api/usuarios', (req, res) => {
-    db.all('SELECT id_user FROM Users', [], (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(rows);
-    });
+app.post('/api/usuarios', (req, res) => {
+    const { id } = req.body;
+    try{
+        db.get('SELECT username FROM Users WHERE id_user = ?', [id], (err, row) => {
+            if(err){
+                return res.status(500).json({ message: "Error interno del servidor" });
+            }
+            if(!row){
+                return res.status(404).json({  })
+            }
+        })
+    }catch(err){
+
+    }
 });
 
 app.post('/api/info-usuario', async (req, res) => {
@@ -152,10 +158,68 @@ app.post('/token-login', (req, res) => {
                 return res.status(400).json({ message: `No se ha encontrado el cookieToken del usuario con el nombre: ${usernameNH}` });
             }
             let tokenDB = row.cookieToken;
-            if (tokenDB != '0'){
-                return res.status(403).json({ message: `El usuario ${usernameNH} no tiene autorización para iniciar sesión (Ya hay alguien con una sesión activa).` });
+            if (tokenDB !== '0'){
+                try{
+                    db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE username = ?', [usernameNH], async (err) => {
+                        if (err) {
+                            return res.status(500).json({ message: 'Error interno del servidor al intentar cambiar los datos de cookieToken y created_at.' });
+                        }
+                        else {
+                            try{
+                                // Generador de token
+                            const generateToken = () => {
+                                const min = 100;
+                                const max = 3000;
+                                let token = '';
+                                for (let i = 0; i < 300; i++) {
+                                    const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+                                    token += randomNumber.toString();
+                                }
+                                return token;
+                            };
+        
+                                    try {
+                                        const tokenNH = generateToken();
+                                        const tokenH = await bcrypt.hash(tokenNH, 10)
+                                        const usernameH = await bcrypt.hash(usernameNH, 10);
+                                        const createdAt = new Date().toISOString();
+        
+                                            db.get('SELECT id_user FROM Users WHERE username = ?', [usernameNH], (err, row) => {
+                                                if (err) {
+                                                    return res.status(500).json({ message: `Error interno del servidor ${usernameNH}.` });
+                                                }
+                                                if (!row) {
+                                                    return res.status(404).json({ message: `No hay datos sobre este usuario: ${usernameNH}.` });
+                                                }
+        
+                                                const id_user = row.id_user;
+                                                db.run('UPDATE Tokens SET cookieToken = ?, created_at = ? WHERE username = ?', [tokenNH, createdAt, usernameNH], function (err) {
+                                                    if (err) {
+                                                        return res.status(500).json({ message: "Error interno del servidor." });
+                                                    }
+                                                    return res.status(201).json({
+                                                        message: "Se ha creado el token de la cookie con éxito.",
+                                                        tokenH: tokenH,
+                                                        usernameH: usernameH,
+                                                        id_user: id_user,
+                                                    });
+                                                });
+                                            });
+                                        } catch (err) {
+                                            return res.status(400).json({ message: "Error en los datos proporcionados." });
+                                        }
+                                }catch (err){
+                                    return res.status(500).json({ 
+                                        message: `Ha ocurrido un error al intentar loguear al usuario ${usernameNH}, error: ${err}`
+                                     })
+                                }
+                        }   
+                    })
+                } catch (err){
+                    return res.status(err);
+                }
             }
-            if (tokenDB = '0'){
+            if (tokenDB === '0'){
                 try{
                         // Generador de token
                     const generateToken = () => {

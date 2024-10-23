@@ -1,3 +1,12 @@
+.contenedor-tarjetas{
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(1, 1fr); /* Fija el número de columnas */
+    padding: 16px;
+    gap: 50px;
+    justify-items: center;
+}
+
 .card {
     display: flex;
     flex-direction: column;
@@ -6,7 +15,6 @@
     background-color: var(--secondary-color);
     border-radius: 8px;
     box-shadow: 0 4px 6px #0009;
-    margin: 15% 0; 
 }
 .card-content-image {
     width: 100%;
@@ -39,11 +47,6 @@
 .card-subtitle {
     font-size: 18px;
 }
-@media (min-width: 375px) {
- .card{
-    margin-bottom: 17%;
- }
-}
 
 @media (min-width: 720px) {
     /* Contenedor padre */
@@ -52,6 +55,7 @@
         display: grid;
         grid-template-columns: repeat(2, 1fr); /* Fija el número de columnas */
         padding: 16px;
+        gap: 50px;
         justify-items: center;
     }
 
@@ -62,9 +66,9 @@
 
     /* Tarjetas */
     .card { 
-        max-width: 300px; 
-        min-height: 485px;
-        max-height: 500px;  
+        max-width: 320px; 
+        min-height: 500px;
+        max-height: 540px;  
     }
     .card-content {
         min-height: 260px;
@@ -74,7 +78,6 @@
     }
     .title-card{
         font-size: 1.0em;
-        margin-bottom: 30px;
     }
     .card-title{
         font-size: .9em;
@@ -90,6 +93,7 @@
     .contenedor-tarjetas{
         grid-template-columns: 1fr 1fr;
         row-gap: 100px;
+        gap: 105px;
     }
 
     .card {
@@ -108,7 +112,7 @@
 @media (min-width:1370px){
     .contenedor-tarjetas{
         grid-template-columns: repeat(3, 1fr);
-        gap: 70px;
+        gap: 100px;
     }
     .card{
         max-width: 350px;
@@ -118,7 +122,8 @@
 }
 @media (min-width:1552px){
     .contenedor-tarjetas{
-        grid-template-columns: repeat(4, 1fr)
+        grid-template-columns: repeat(4, 1fr);
+        gap: 55px;
     }
     .card{
         max-width: 325px;

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { axios } from 'axios';
+import axios from 'axios';
 
 export const FormReceta = () => {
   const { localUsername } = useParams();
   const [form, setForm] = useState(0);
   // HOST intercambiables
-// const host = 'http://localhost:5000';
-const host = 'http://pruebita.webhop.me:5000';
+  // const host = 'http://localhost:5000';
+  const host = 'http://pruebita.webhop.me:5000';
 
   const agregar = () => {
     setForm(1);
@@ -60,7 +60,7 @@ const host = 'http://pruebita.webhop.me:5000';
         <>
           <form id="formReceta" onSubmit={llamadaDB}>
           <label for='nombreReceta'>Nombre de la Receta:</label>
-          <input type='text' value={recipe_name} placeholder='Nombre de la receta' name='nombreReceta'/>
+          <input type='text' placeholder='Nombre de la receta' name='nombreReceta'/>
           <br></br>
 
           <label for='dificultad'>Dificultad de la Receta:</label>

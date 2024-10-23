@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Await } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -17,7 +17,7 @@ import Buscar from "./pages/Buscar";
 import Perfil from "./pages/Perfil";
 import Receta from "./pages/Receta";
 import Page404 from "./pages/404";
-import { FormReceta } from "./pages/formReceta";
+import { FormReceta } from "./pages/FormReceta";
 // import UserMenu from "./components/UserMenu/UserMenu";
 
 
@@ -575,7 +575,7 @@ useEffect(() => {
         {/* >-------------------- MAIN PAGE --------------------< */}
         <Routes>
           <Route path="/" element={<Home host={host}/>} />
-          <Route path="/receta/:id" element={<Receta username={Cookies.get("username")}/>} />
+          <Route path="/receta/:id" element={<Receta/>} />
           <Route path="/buscar" element={<Buscar host={host} />} />
           <Route path="/perfil/:username" element={<Perfil/>} />
           <Route path="/formulario-recetas/:localUsername" element={<FormReceta/>} />
