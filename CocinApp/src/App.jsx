@@ -6,7 +6,7 @@ import "./components/LoginRegister/style.css";
 import "./components/header/header.css";
 import Footer from "./components/footer/Footer";
 // import "./components/footer/footer.css";
-import "./App.css";
+import "./css/app.css";
 // LOGO
 import logoimg from "./assets/logo1.png";
 import logoPerfilM from "./assets/LogoPerfilMovil.jpg";

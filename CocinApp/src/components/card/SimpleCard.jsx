@@ -3,7 +3,7 @@ import "./card.css";
 
 const SimpleCard = ({ tiempo, image, title, author, dificulty, category }) => {
     return (
-            <div>
+            <>
                 <div className="card-content-image">
                     <img src={image} alt={title} className="card-image" />
                 </div>
@@ -26,7 +26,7 @@ const SimpleCard = ({ tiempo, image, title, author, dificulty, category }) => {
                         {tiempo}
                     </p>
                 </div>
-            </div>
+            </>
     );
 };
 

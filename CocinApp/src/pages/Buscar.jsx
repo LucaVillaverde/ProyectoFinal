@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
-import "./css/search-page.css";
 import SimpleCard from "../components/card/SimpleCard.jsx";
 import axios from "axios";
+import "../css/search-page.css";
 
 const Buscar = ({ host }) => {
     const [query, setQuery] = useState("");
-    const [cat, setCat] = useState("");
+    const [selectedCategories, setSelectedCategories] = useState([]); 
+    const menuRef = useRef(null);
     const [recetas, setRecetas] = useState([]);
     const [loading, setLoading] = useState(true);
-    const menuRef = useRef(null);
 
     useEffect(() => {
         const metaDescription = document.createElement("meta");
@@ -26,12 +26,11 @@ const Buscar = ({ host }) => {
     }, []);
     useEffect(() => {
         console.log(query);
-        console.log(cat);
-    }, [query, cat]);
+    }, [query]);
 
     const { find } = useParams();
     useEffect(() => {
-        document.title = `CocinApp : Buscando ${find}`;
+        document.title = `CocinApp : Buscar`;
     });
 
     const search = (e) => {
@@ -39,25 +38,14 @@ const Buscar = ({ host }) => {
         console.log("BUSCAR:" + query);
     };
 
-    // Filtros
-    useEffect(() => {
-        const menu = menuRef.current;
-
-        const handleScroll = (e) => {
-            e.preventDefault();
-            menu.scrollLeft += e.deltaY; // Desplazamiento horizontal
-        };
-
-        if (menu) {
-            menu.addEventListener("wheel", handleScroll);
+    // Manejar cambios de checkbox
+    const handleCheckboxChange = (category) => {
+        if (selectedCategories.includes(category)) {
+        setSelectedCategories(selectedCategories.filter(cat => cat !== category));
+        } else {
+        setSelectedCategories([...selectedCategories, category]);
         }
-
-        return () => {
-            if (menu) {
-                menu.removeEventListener("wheel", handleScroll);
-            }
-        };
-    }, []);
+    };
 
     // RECETAS
     const fetchRecetas = async () => {
@@ -67,7 +55,6 @@ const Buscar = ({ host }) => {
             setLoading(false);
             console.log(response.data.recetas);
         } catch (error) {
-            //console.error('Error fetching the recetas:', error);
             console.log(error);
             setLoading(false);
         }
@@ -79,7 +66,7 @@ const Buscar = ({ host }) => {
 
     return (
         <>
-            {/* BARRA PARA BUSCAR RECETAS*/}
+            {/* BARRA PARA BUSCAR RECETAS */}
             <div className="search-cont">
                 <h2 className="search-title">BUSCAR RECETAS</h2>
                 <div className="search-filters">
@@ -107,63 +94,76 @@ const Buscar = ({ host }) => {
                             </button>
                         </div>
                     </form>
-                    <div className="filters">
-                        <div className="filter-menu" ref={menuRef}>
-                            <button
-                                onClick={() => setCat("")}
-                                className="filter"
-                            >
-                                TODO
-                            </button>
-                            <button
-                                onClick={() => setCat("cat2")}
-                                className="filter"
-                            >
-                                Carnes
-                            </button>
-                            <button
-                                onClick={() => setCat("cat3")}
-                                className="filter"
-                            >
-                                Vegetariana
-                            </button>
-                            <button
-                                onClick={() => setCat("cat4")}
-                                className="filter"
-                            >
-                                Postre
-                            </button>
-                            <button
-                                onClick={() => setCat("cat5")}
-                                className="filter"
-                            >
-                                BTN
-                            </button>
-                            <button
-                                onClick={() => setCat("cat6")}
-                                className="filter"
-                            >
-                                BTN
-                            </button>
-                            <button
-                                onClick={() => setCat("cat7")}
-                                className="filter"
-                            >
-                                BTN
-                            </button>
-                            <button
-                                onClick={() => setCat("cat8")}
-                                className="filter"
-                            >
-                                BTN
-                            </button>
+                    <div>
+                        <h3>Categorias</h3>
+                        <div className="filters" >
+                            <div className="filter-menu" ref={menuRef}>
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter-inpt"
+                                        value="carne"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    carne
+                                </label>
+
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter-inpt"
+                                        value="vegetariana"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    vegetariana
+                                </label>
+
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter-inpt"
+                                        value="pescados y mariscos"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    Pescados
+                                </label>
+
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter-inpt"
+                                        value="postre"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    Postre
+                                </label>
+
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter-inpt"
+                                        value="cat5"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    Sopas
+                                </label>
+
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter"
+                                        value="cat6"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            {/* SECCION PARA MOSTRAR RECETAS (POR DEFECTO TODAS) */}
             <div className="recipe-content">
-                {/* {loading ? (
+                {loading ? (
                     <p>Cargando recetas...</p>
                 ) : (
                     <div className="contenedor-tarjetas">
@@ -196,7 +196,7 @@ const Buscar = ({ host }) => {
                             )
                         )}
                     </div>
-                )} */}
+                )}
             </div>
         </>
     );
