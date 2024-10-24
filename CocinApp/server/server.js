@@ -19,20 +19,22 @@ function validarEntrada(texto) {
 }
 
 
-const allowedOrigins = [`${host}:5173`];
+const allowedOrigins = [`http://pruebita.webhop.me:5173`];
+
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
+    console.log('Solicitud proveniente del origen:', origin || 'Sin origen (solicitud local o del mismo servidor)');
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);  // Permite solicitudes de orígenes permitidos
     } else {
-      callback(new Error('No permitido por CORS'));
+      callback(new Error('No permitido por CORS'));  // Bloquea orígenes no permitidos
     }
   },
   optionsSuccessStatus: 200
 };
 
-
-
+// Middleware para aplicar CORS y registrar el origen
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -40,12 +42,13 @@ const db = new sqlite3.Database('./BasedeDatos.db');
 // const db = new sqlite3.Database('./db.db');
 
 cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
-    console.log('Ejecutando tarea programada: establecer cookieToken a 0');
+    console.log('Ejecutando tarea de verificacion');
     db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
         if (err) {
             return console.error('Error al actualizar cookieToken:', err.message);
+        }else{
+            console.log('cookieToken y created_at actualizados a 0');
         }
-        console.log('cookieToken y created_at actualizados a 0');
     });
 });
 
@@ -326,6 +329,9 @@ app.post('/api/login', (req, res) => {
 
                     if (matchP) {
                         return res.status(200).json({ message: 'Se ha iniciado sesión con exito.' });
+                    }
+                    else {
+                        return res.status(400).json({ message: "Los datos no coinciden con la base de datos." });
                     }
                 }
             });
@@ -615,9 +621,9 @@ app.post('/api/cookie/delete', async (req, res) => {
 
 // ------------------------ API REST (Recetas) -------------------------
 app.get('/api/recetas', (req, res) => {
-    // const getQuery = 'SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT 8'; // DESC para traer las ultimas LIMIT 4 para traer solo 4 si queres traer las primeras (id_recipe mas bajo) entonces en vez de usar "DESC" usas "ASC".
+    const getQuery = 'SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT 8'; // DESC para traer las ultimas LIMIT 4 para traer solo 4 si queres traer las primeras (id_recipe mas bajo) entonces en vez de usar "DESC" usas "ASC".
     const getQuery1 = 'SELECT * FROM Recipe ORDER BY id_recipe DESC';
-    db.all(getQuery1, [], (err, rows) => {
+    db.all(getQuery, [], (err, rows) => {
         if (err) {
             return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
         }

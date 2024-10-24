@@ -14,6 +14,7 @@
     background-color: var(--secondary-color);
     border-radius: 8px;
     box-shadow: 0 4px 6px #0009;
+    min-height: 475px;
 }
 .card-content-image {
     width: 100%;
@@ -32,6 +33,7 @@
     margin: auto;
     background-color: #ffffff94;
     box-shadow: 0 0 5px #0009;
+    min-height: 250px;
 }
 
 .title-card {
@@ -45,6 +47,18 @@
 }
 .card-subtitle {
     font-size: 18px;
+}
+
+@media (min-width: 375px) {
+    .card{
+        min-height: 515px;
+    }
+}
+
+@media (min-width: 425px) {
+    .card{
+        min-height: 540px;
+    }
 }
 
 @media (min-width: 720px) {
@@ -76,13 +90,13 @@
         margin-top: 13px;
     }
     .title-card{
-        font-size: 1.0em;
+        font-size: 1.1em;
     }
     .card-title{
-        font-size: .9em;
+        font-size: 1em;
     }
     .card-subtitle{
-        font-size: .8em;
+        font-size: .9em;
     }
 
 
@@ -108,9 +122,15 @@
         padding: 5px 5px;
     }
 }
-@media (min-width:1370px){
+
+@media (min-width: 1230px){
     .contenedor-tarjetas{
         grid-template-columns: repeat(3, 1fr);
+        gap: 60px;
+    }
+}
+@media (min-width:1370px){
+    .contenedor-tarjetas{
         gap: 100px;
     }
     .card{
