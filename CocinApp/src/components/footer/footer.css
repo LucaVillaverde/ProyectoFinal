@@ -15,7 +15,6 @@ footer{
 }
 
 .footer-icons{
-    background-color: var(--secondary-color);
     display: flex;
     margin: auto;
     padding: 3px 8px;
