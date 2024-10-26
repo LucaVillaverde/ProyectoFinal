@@ -23,7 +23,7 @@ const allowedOrigins = [`http://pruebita.webhop.me:5173`];
 
 const corsOptions = {
   origin: (origin, callback) => {
-    console.log('Solicitud proveniente del origen:', origin || 'Sin origen (solicitud local o del mismo servidor)');
+    // console.log('Solicitud proveniente del origen:', origin || 'Sin origen (solicitud local o del mismo servidor)');
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);  // Permite solicitudes de orígenes permitidos
@@ -637,6 +637,37 @@ app.get('/api/recetas', (req, res) => {
         });
     });
 });
+
+app.post('/api/recetas/filtradas', (req, res) => {
+    const arrayCategorias = Array.isArray(req.body.arrayCategorias) ? req.body.arrayCategorias : [req.body.arrayCategorias];
+
+    try {
+        if (!arrayCategorias || arrayCategorias.length === 0) {
+            return res.status(400).json({ message: 'No se han proporcionado categorías' });
+        }
+
+        const placeholders = arrayCategorias.map(() => 'categories LIKE ?').join(' OR ');
+        const query = `SELECT * FROM Recipe WHERE ${placeholders}`;
+
+        const params = arrayCategorias.map(cat => `%${cat}%`); // Prepara los parámetros para el LIKE
+
+        db.all(query, params, (err, rows) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error interno del servidor' });
+            } else if (rows.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron recetas para las categorías seleccionadas' });
+            } else {
+                return res.status(200).json({
+                    message: 'Recetas encontradas exitosamente',
+                    recetas: rows
+                });
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({ message: 'Error inesperado', error: err.message });
+    }
+});
+
 
 app.post('/api/recetas/personales', (req, res) => {
     const { usernameNH } = req.body;
