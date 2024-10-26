@@ -145,7 +145,7 @@ const Home = ({host}) => {
                                   <a className="card" href={`/receta/${id_recipe}`} key={id_recipe}>
                                       <SimpleCard
                                           tiempo={tiempo}
-                                          image={"https://placehold.co/400x250/000/fff/png"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
+                                          image={"https://placehold.co/400x250/000/fff/webp"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
                                           title={recipe_name}
                                           author={id_recipe}
                                           dificulty={difficulty}

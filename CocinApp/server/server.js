@@ -5,9 +5,9 @@ const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
 const PORT = 5000;
-const host = 'http://pruebita.webhop.me';
+// const host = 'http://pruebita.webhop.me';
 // const host = 'http://localhost';
-// const host = "http://192.168.0.225";
+const host = "http://192.168.0.168";
 
 function validarEntrada(texto) {
     const espaciosContinuos = /\s{2,}/.test(texto);
@@ -19,7 +19,7 @@ function validarEntrada(texto) {
 }
 
 
-const allowedOrigins = [`http://pruebita.webhop.me:5173`];
+const allowedOrigins = [`${host}:4173`];
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -28,7 +28,7 @@ const corsOptions = {
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);  // Permite solicitudes de orígenes permitidos
     } else {
-      callback(new Error('No permitido por CORS'));  // Bloquea orígenes no permitidos
+      callback();  // Bloquea orígenes no permitidos
     }
   },
   optionsSuccessStatus: 200
