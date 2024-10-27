@@ -388,7 +388,7 @@ useEffect(() => {
           setLocalUsername(llamado.data.username);
         }
       }catch(err){
-        console.error(err);
+        console.log(err);
       }
     }
     llamadoInfoUsuario();

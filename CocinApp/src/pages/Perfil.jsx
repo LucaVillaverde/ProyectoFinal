@@ -3,45 +3,89 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import SimpleCard from '../components/card/SimpleCard';
 import "../components/card/card.css";
+import Cookies from 'js-cookie';
 
 
-const Perfil = ({nombreUsuario}) => {
-  console.log(nombreUsuario);
+const Perfil = () => {
   const host = 'http://pruebita.webhop.me:5000';
   // const host = 'http://localhost:5000';
   // const host = "http://192.168.0.168:5000";
-
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);
-
+  const [nombreUsuario, setNombreUsuario]= useState('');
 
   useEffect(() => {
-    llamarRecetas();
+    const id_user = Cookies.get('id_user');
+    const obtenerNombre = async () => {
+      try{
+        const response = await axios.post(`${host}/api/info-usuario`, {
+          id_user,
+        });
+        if(response.status === 200){
+          setNombreUsuario(response.data.username);
+          llamado(response.data.username);
+        }
+      }catch(err){
+        console.error(err);
+      }
+    }
+    
+    obtenerNombre();
   }, []);
 
-  useEffect(() => {
-    const llamadoBD = async () => {
-        try {
-            const response = await axios.post(`${host}/api/recetas/personales`, {
-              usernameNH: nombreUsuario,
-            });
-            if (response.status === 200) {
-                setRecetas(response.data.recetas);
-                console.log(response.data.recetas);
-                setInfo(true);
-            }
-        } catch (error) {
-            console.log(error);
+const llamado = (nombre) =>{
+    const llamadoPersonal = async () => {
+      try {
+        const response = await axios.post(`${host}/api/recetas/personales`, {
+          usernameNH: nombre,
+        });
+        if (response.status === 200) {
+            setRecetas(response.data.recetas);
+            console.log(response.data.recetas);
+            setInfo(true);
+        } else if (response.status === 404) {
+          setInfo(false);
+          window.alert("No tienes recetas para mostrar.");
+          console.log("No tienes recetas para mostrar.");
         }
-    };
+  
+    } catch (error) {
+        console.log(error);
+    }
 
-    const intervalId = setInterval(() => {
-        llamadoBD();
-    }, 5000); // 60000 milisegundos = 1 minuto
+    }
+      llamadoPersonal();
+}
 
-    // Limpiar el intervalo cuando el componente se desmonta
-    return () => clearInterval(intervalId);
-}, []);
+
+//   useEffect(() => {
+//     const intervalId = setInterval(() => {
+//       const llamadoPersonal = async () => {
+//         try {
+//           const response = await axios.post(`${host}/api/recetas/personales`, {
+//             usernameNH: nombreUsuario,
+//           });
+//           if (response.status === 200) {
+//               setRecetas(response.data.recetas);
+//               console.log(response.data.recetas);
+//               setInfo(true);
+//           } else if (response.status === 404) {
+//             setInfo(false);
+//             window.alert("No tienes recetas para mostrar.");
+//             console.log("No tienes recetas para mostrar.");
+//           }
+    
+//       } catch (error) {
+//           console.log(error);
+//       }
+  
+//       }
+//         llamadoPersonal();
+//     }, 5000); // 60000 milisegundos = 1 minuto
+
+//     // Limpiar el intervalo cuando el componente se desmonta
+//     return () => clearInterval(intervalId);
+// }, [nombreUsuario]);
 
  
 
@@ -81,12 +125,12 @@ const llamarRecetas = async () => {
     try {
       const response = await axios.post(`${host}/api/receta-nueva`, {
         username: nombreUsuario,
-        recipe_name: "Papas fritas caseras",
+        recipe_name: "Ensalada Sana",
         difficulty: "GORE",
         description: "Unas Papas fritas caseras",
         ingredients: "50 papas",
         steps: "Servir las  Papas fritas caseras",
-        categories: "Entrada, Guarnición",
+        categories: "Vegetariana, Saludable, Ensalada",
         tiempo: "2 segundos en servir",
       });
   
@@ -101,19 +145,16 @@ const llamarRecetas = async () => {
     }
   }
 
-  if (nombreUsuario !== '') {
-    const Perfil = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.get(`${host}/api/mis-recetas/${nombreUsuario}`); // Aquí usas el valor real de username
-            if (response.status === 200) {
-            }
-        } catch (error) {
-            console.error('Error al obtener la receta:', error);
-            setError(error.message); 
-        }
-    };
-}
+//   if (nombreUsuario !== '') {
+//         try {
+//             const response = await axios.get(`${host}/api/mis-recetas/${nombreUsuario}`); // Aquí usas el valor real de username
+//             if (response.status === 200) {
+//             }
+//         } catch (error) {
+//             console.error('Error al obtener la receta:', error);
+//             setError(error.message); 
+//         }
+// }
 
 
   return (

@@ -6,7 +6,7 @@ const cron = require('node-cron');
 const app = express();
 // PORTS
 const PORT = 5000;
-const PORT_FRONTEND = 5173
+const PORT_FRONTEND = 4173
 // HOST
 const host = 'http://pruebita.webhop.me';
 // const host = 'http://localhost';
@@ -45,12 +45,9 @@ const db = new sqlite3.Database('./BasedeDatos.db');
 // const db = new sqlite3.Database('./db.db');
 
 cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
-    console.log('Ejecutando tarea de verificacion');
     db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
         if (err) {
             return console.error('Error al actualizar cookieToken:', err.message);
-        }else{
-            console.log('cookieToken y created_at actualizados a 0');
         }
     });
 });
@@ -85,20 +82,23 @@ app.post('/api/usuarios', (req, res) => {
 
 app.post('/api/info-usuario', async (req, res) => {
     const { id_user } = req.body;
-    console.log(id_user);
-    try{
-        db.get('SELECT username FROM Users WHERE id_user = ?', [id_user], (err, row) => {
-            if(err){
-                return res.status(500).json({ message: "Error interno del server al querer obtener el nombre de usuario en la base de datos." });
-            }
-            const username = row.username;
-            return res.status(200).json({ 
-                message: "Se obtuvo el usuario con exito de la base de datos.",
-                username,
-             })
-        })
-    }catch (err){
-        return res.status(err);
+    if (!id_user){
+        return res.status(400).json({ message: "no hay id_user indicado,"});
+    }else {
+        try{
+            db.get('SELECT username FROM Users WHERE id_user = ?', [id_user], (err, row) => {
+                if(err){
+                    return res.status(500).json({ message: "Error interno del server al querer obtener el nombre de usuario en la base de datos." });
+                }
+                const username = row.username;
+                return res.status(200).json({ 
+                    message: "Se obtuvo el usuario con exito de la base de datos.",
+                    username,
+                 })
+            })
+        }catch (err){
+            return res.status(err);
+        }
     }
 })
 
@@ -386,7 +386,6 @@ app.post('/api/register', (req, res) => {
                             }
                         }
                         const userId = this.lastID;
-                        console.log('Usuario creado ID:', userId);
                         return res.status(201).json({ message: 'Usuario creado', userId: userId });
                     });
                 } catch (hashError) {
@@ -499,7 +498,6 @@ app.delete('/api/delete', (req, res) => {
             
         }
     } else {
-        console.log(user);
         return res.status(400).json({ message: 'No se ha indicado un usuario para borrar.' });
     }
 });
@@ -520,9 +518,7 @@ app.post('/api/checkeo', async (req, res) => {
             }
 
             const matchT = await bcrypt.compare(row.cookieToken, tokenNav); // Usar tokenNav y row.cookieToken
-            console.log('Comparación de token:', matchT);
             const usernameMatch = await bcrypt.compare(row.username, usernameNav); // Usar usernameNav y row.username
-            console.log('Comparación de usuario:', usernameMatch);
 
             const createdAt = row.created_at;
             const tiempo = (createdAt, tiempoActual) => {
@@ -567,7 +563,6 @@ app.post('/api/cookie/delete', async (req, res) => {
                     console.error('Error al cerrar sesión:', err);
                     return res.status(500).json({ message: 'Error al cerrar sesión.' });
                 }
-                console.log('Sesión cerrada correctamente para id_user:', id_user);
                 return res.status(200).json({ message: 'Sesión cerrada correctamente.' });
             });
         } catch (err) {
@@ -588,14 +583,12 @@ app.post('/api/cookie/delete', async (req, res) => {
                     if (matchU) {
                         userFound = true;
                         let usernameNH = row.username;
-                        console.log('Usuario encontrado:', usernameNH);
                         try {
                             db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE username = ?', [usernameNH], (err) => {
                                 if (err) {
                                     console.error('Error al intentar actualizar cookieToken y created_at:', err);
                                     return res.status(500).json({ message: "Error interno del servidor al intentar actualizar cookieToken y created_at." });
                                 }
-                                console.log('Datos actualizados correctamente para usuario:', usernameNH);
                                 return res.status(200).json({ message: "Se han actualizado los datos correctamente." });
                             });
                         } catch (err) {
@@ -606,7 +599,7 @@ app.post('/api/cookie/delete', async (req, res) => {
                     }
                 }
                 if (!userFound) {
-                    console.log('Usuario no encontrado');
+
                     return res.status(404).json({ message: "Usuario no encontrado." });
                 }
             });
@@ -648,7 +641,7 @@ app.post('/api/recetas/filtradas', (req, res) => {
 
 
     // Solo buscar por categorías si hay alguna
-    if (arrayCategorias && arrayCategorias.length > 0) {
+    if (arrayCategorias && arrayCategorias.length > 0 && !nombreReceta) {
         const placeholders = arrayCategorias.map(() => 'categories LIKE ?').join(' AND ');
         const query = `SELECT * FROM Recipe WHERE ${placeholders}`;
         const params = arrayCategorias.map(cat => `%${cat}%`);
@@ -665,12 +658,11 @@ app.post('/api/recetas/filtradas', (req, res) => {
                 recetas: rows
             });
         });
-    } else if (nombreReceta) { // Buscar solo por nombre
+    } else if (nombreReceta && !arrayCategorias) { // Buscar solo por nombre
         const querynombre = 'SELECT * FROM Recipe WHERE LOWER(recipe_name) LIKE LOWER(?)';
 
         db.all(querynombre, [`%${nombreReceta}%`], (err, rows) => {
             if (err) {
-                console.log('Error en la consulta por nombre:', err);
                 return res.status(500).json({ message: "Ha habido un error al tratar de conseguir la o las recetas mediante el nombre." });
             }
             if (rows.length === 0) {
@@ -681,8 +673,23 @@ app.post('/api/recetas/filtradas', (req, res) => {
                 recetas: rows
             });
         });
-    } else {
-        return res.status(400).json({ message: 'Se requiere al menos una categoría o el nombre de la receta.' });
+    } else if (nombreReceta && arrayCategorias.length > 0){
+        const placeholders = arrayCategorias.map(() => 'categories LIKE ?').join(' AND ');
+        const query = `SELECT * FROM Recipe WHERE LOWER(recipe_name) LIKE LOWER(?) AND ${placeholders}`;
+        const params = [`%${nombreReceta}%`, ...arrayCategorias.map(cat => `%${cat}%`)];
+
+        db.all(query, params, (err, rows) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error interno del servidor' });
+            }
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron recetas para las categorías y nombre proporcionados.' });
+            }
+            return res.status(200).json({
+                message: 'Recetas encontradas exitosamente',
+                recetas: rows
+            });
+        });
     }
 });
 
@@ -716,8 +723,7 @@ app.post("/api/receta-nueva", async (req, res) => {
     const { username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo } = req.body;
 
     if (!username || !recipe_name || !difficulty || !description || !ingredients || !steps || !categories || !tiempo) {
-        console.log("Faltan parámetros:", { username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo });
-        return res.status(400).json({ message: "No se ha indicado uno o varios parámetros." });
+        return res.status(400).json({ message: `No se ha indicado uno o varios parámetros. ${ username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo }` });
     }
     
     try {

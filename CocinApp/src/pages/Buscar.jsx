@@ -50,11 +50,14 @@ const Buscar = ({ host }) => {
                             console.log(response.data.recetas);
                     }
                     if (response.status === 404){
+                        window.alert(`No hay Receta con un nombre similar a: ${query}. Se cargaran todas las recetas generales.`)
+                        setQuery("");
                         fetchRecetas();
-                        console.log("Hola");
                     }
                 }catch(err){
                     console.error(err);
+                    window.alert(`No hay Receta con un nombre similar a: ${query}. Se cargaran todas las recetas generales.`)
+                    setQuery("");
                     fetchRecetas();
                 }
             }
@@ -64,6 +67,7 @@ const Buscar = ({ host }) => {
             fetchRecetas();
         } else if (selectedCategories.length !== 0 && query.length === 0){
             const fetchRecetasCategorizadas = async () => {
+                const checkboxes = document.querySelectorAll('.filter-inpt')
                 try {
                     const response = await axios.post(`${host}/api/recetas/filtradas`, {
                         arrayCategorias: selectedCategories, // Se envía en el cuerpo
@@ -74,15 +78,52 @@ const Buscar = ({ host }) => {
                         console.log(response.data.recetas);
                     } else {
                         localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
-                        location.reload();
+                        window.alert('No hay recetas con esas caracteristicas.');
+                        checkboxes.forEach(checkbox => checkbox.checked = false);
+                        setSelectedCategories([]);
+                        fetchRecetas();
                     }
                 } catch (error) {
                     localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
-                    location.reload();
+                    checkboxes.forEach(checkbox => checkbox.checked = false);
+                    setSelectedCategories([]);
+                    fetchRecetas();
+                    window.alert('No hay recetas con esas caracteristicas.');
                     console.log(error);
                 }
             };
             fetchRecetasCategorizadas();
+        } else if (query.length !== 0 && selectedCategories.length !== 0){
+            const fetchRecetasNombre_Categoria = async () => {
+                const checkboxes = document.querySelectorAll('.filter-inpt')
+                try {
+                    const response = await axios.post(`${host}/api/recetas/filtradas`, {
+                        arrayCategorias: selectedCategories, // Se envía en el cuerpo
+                        nombreReceta: query,
+                    });
+                    if (response.status === 200) {
+                        setRecetas(response.data.recetas);
+                        setLoading(false);
+                        console.log(response.data.recetas);
+                    } else {
+                        localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
+                        window.alert('No hay recetas con esas caracteristicas.');
+                        checkboxes.forEach(checkbox => checkbox.checked = false);
+                        setQuery('');
+                        setSelectedCategories([]);
+                        fetchRecetas();
+                    }
+                } catch (error) {
+                    localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
+                    checkboxes.forEach(checkbox => checkbox.checked = false);
+                    setQuery('');
+                    setSelectedCategories([]);
+                    fetchRecetas();
+                    window.alert('No hay recetas con esas caracteristicas.');
+                    console.log(error);
+                }
+            };
+            fetchRecetasNombre_Categoria();
         }
     },[query, selectedCategories])
 
@@ -181,7 +222,7 @@ const Buscar = ({ host }) => {
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Buscar..."
                             />
-                            <button className="search-btn" type="submit">
+                            <button title="Botón para buscar recetas" className="search-btn" type="submit">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="1em"

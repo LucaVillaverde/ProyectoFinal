@@ -65,7 +65,7 @@
     /* Contenedor padre */
     .contenedor-tarjetas{
         margin: auto;
-        display: grid;
+        /* display: grid; */
         grid-template-columns: repeat(2, 1fr); /* Fija el número de columnas */
         padding: 16px 1% 16px 0;
         gap: 50px;
