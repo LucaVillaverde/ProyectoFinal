@@ -89,12 +89,18 @@ const Buscar = ({ host }) => {
     useEffect(() => {
         // Al montar, asegurarte de que las categorías están deseleccionadas
         setSelectedCategories([]);
-
         return () => {
             // Opcionalmente puedes limpiar el estado aquí si es necesario
             setSelectedCategories([]);
         };
     }, []);
+
+    useEffect(() => {
+        if (query === ''){
+            document.title = `CocinApp : ${query}`;
+        }
+        document.title = `CocinApp : Buscar`;
+    });
 
     const handleCheckboxChange = (category) => {
         if (selectedCategories.includes(category)) {
@@ -135,7 +141,14 @@ const Buscar = ({ host }) => {
     //     }
     // }, [selectedCategories]);
 
-    // RECETAS
+    // BUSQUEDA
+    const search = (e) => {
+        e.preventDefault();
+        console.log("BUSCAR:" + query);
+        document.title = `CocinApp : ${query}`;
+    };
+
+    // RECETAS (desde DB)
     const fetchRecetas = async () => {
         try {
             const response = await axios.get(`${host}/api/recetas`);
@@ -147,6 +160,7 @@ const Buscar = ({ host }) => {
             setLoading(false);
         }
     };
+    // Traer Recetas (actualizando)
     useEffect(() => {
         fetchRecetas();
         setNoRecetas(false);
