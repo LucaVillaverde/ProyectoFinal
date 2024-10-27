@@ -384,7 +384,7 @@ useEffect(() => {
           id_user: user,
         });
         if (llamado.status === 200){
-          console.log(llamado.data.username)
+          // console.log(llamado.data.username)
           setLocalUsername(llamado.data.username);
         }
       }catch(err){
@@ -583,7 +583,7 @@ useEffect(() => {
           <Route path="/receta/:id" element={<Receta/>} />
           <Route path="/buscar" element={<Buscar host={host} />} />
           <Route path="/perfil/:username" element={<Perfil/>} />
-          <Route path='/formulario-recetas/:localUsername' element={<FormReceta nombreUsuario={localUsername}/>} />
+          <Route path='/formulario-recetas/:localUsername' element={<FormReceta nombreUsuario={localUsername} host={host}/>} />
 
           {/* NO ESTA AUN */}
           <Route path='/mis-recetas/:localUsername' element={<Perfil nombreUsuario={localUsername}/>}/>
@@ -614,7 +614,7 @@ const UserMenu = ({add_recipe, logout, del_profile}) => {
           id_user: user,
         });
         if (llamado.status === 200){
-          console.log(llamado.data.username)
+          // console.log(llamado.data.username)
           setLocalUsername(llamado.data.username);
         }
       }catch(err){

@@ -8,8 +8,8 @@ const app = express();
 const PORT = 5000;
 const PORT_FRONTEND = 5173
 // HOST
-// const host = 'http://pruebita.webhop.me';
-const host = 'http://localhost';
+const host = 'http://pruebita.webhop.me';
+// const host = 'http://localhost';
 // const host = "http://192.168.0.168";
 
 function validarEntrada(texto) {
@@ -719,7 +719,7 @@ app.post("/api/receta-nueva", async (req, res) => {
         console.log("Faltan parámetros:", { username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo });
         return res.status(400).json({ message: "No se ha indicado uno o varios parámetros." });
     }
-
+    
     try {
         const categoryArray = categories.split(',').map(cat => cat.trim());
 
