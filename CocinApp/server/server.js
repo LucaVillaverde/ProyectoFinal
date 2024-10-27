@@ -4,10 +4,13 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
+// PORTS
 const PORT = 5000;
+const PORT_FRONTEND = 5173
+// HOST
 // const host = 'http://pruebita.webhop.me';
-// const host = 'http://localhost';
-const host = "http://192.168.0.168";
+const host = 'http://localhost';
+// const host = "http://192.168.0.168";
 
 function validarEntrada(texto) {
     const espaciosContinuos = /\s{2,}/.test(texto);
@@ -19,7 +22,7 @@ function validarEntrada(texto) {
 }
 
 
-const allowedOrigins = [`${host}:4173`];
+const allowedOrigins = [`${host}:${PORT_FRONTEND}`];
 
 const corsOptions = {
   origin: (origin, callback) => {

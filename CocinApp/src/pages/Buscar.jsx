@@ -28,35 +28,26 @@ const Buscar = ({ host }) => {
     useEffect(() => {
         // Al montar, asegurarte de que las categorías están deseleccionadas
         setSelectedCategories([]);
-
         return () => {
             // Opcionalmente puedes limpiar el estado aquí si es necesario
             setSelectedCategories([]);
         };
     }, []);
     
+    // actualizar busqueda
     useEffect(() => {
         console.log(query);
     }, [query]);
 
-    const { find } = useParams();
+    // Titulo dinamico si se busca algo, si no queda "bur"
     useEffect(() => {
+        if (query === ''){
+            document.title = `CocinApp : ${query}`;
+        }
         document.title = `CocinApp : Buscar`;
     });
 
-    const search = (e) => {
-        e.preventDefault();
-        console.log("BUSCAR:" + query);
-    };
 
-    const handleCheckboxChange = (category) => {
-        if (selectedCategories.includes(category)) {
-            setSelectedCategories(selectedCategories.filter(cat => cat !== category));
-        } else {
-            setSelectedCategories([...selectedCategories, category]);
-        }
-    };
-    
     // Monitorear el cambio de selectedCategories
     useEffect(() => {
         if (selectedCategories.length === 0) {
@@ -78,12 +69,27 @@ const Buscar = ({ host }) => {
                     console.log(error);
                 }
             };
-            
             fetchRecetasCategorizadas();
         }
     }, [selectedCategories]);
 
-    // RECETAS
+    // BUSQUEDA
+    const search = (e) => {
+        e.preventDefault();
+        console.log("BUSCAR:" + query);
+        document.title = `CocinApp : ${query}`;
+    };
+
+    const handleCheckboxChange = (category) => {
+        if (selectedCategories.includes(category)) {
+            setSelectedCategories(selectedCategories.filter(cat => cat !== category));
+        } else {
+            setSelectedCategories([...selectedCategories, category]);
+        }
+    };
+    
+
+    // RECETAS (desde DB)
     const fetchRecetas = async () => {
         try {
             const response = await axios.get(`${host}/api/recetas`);
@@ -95,6 +101,7 @@ const Buscar = ({ host }) => {
             setLoading(false);
         }
     };
+    // Traer Recetas (actualizando)
     useEffect(() => {
         fetchRecetas();
     }, []);
