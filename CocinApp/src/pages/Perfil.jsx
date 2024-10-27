@@ -5,11 +5,11 @@ import SimpleCard from '../components/card/SimpleCard';
 import "../components/card/card.css";
 
 
-const Perfil = () => {
-  const { localUsername } = useParams();
-  // const host = 'http://pruebita.webhop.me:5000';
+const Perfil = ({nombreUsuario}) => {
+  console.log(nombreUsuario);
+  const host = 'http://pruebita.webhop.me:5000';
   // const host = 'http://localhost:5000';
-  const host = "http://192.168.0.168:5000";
+  // const host = "http://192.168.0.168:5000";
 
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);
@@ -23,7 +23,7 @@ const Perfil = () => {
     const llamadoBD = async () => {
         try {
             const response = await axios.post(`${host}/api/recetas/personales`, {
-              usernameNH: localUsername,
+              usernameNH: nombreUsuario,
             });
             if (response.status === 200) {
                 setRecetas(response.data.recetas);
@@ -60,7 +60,7 @@ const Perfil = () => {
 const llamarRecetas = async () => {
   try {
       const response = await axios.post(`${host}/api/recetas/personales`, {
-        usernameNH: localUsername,
+        usernameNH: nombreUsuario,
       });
       if (response.status === 200) {
           setRecetas(response.data.recetas);
@@ -80,13 +80,13 @@ const llamarRecetas = async () => {
   const agregarRecipe = async () => {
     try {
       const response = await axios.post(`${host}/api/receta-nueva`, {
-        username: localUsername,
-        recipe_name: "Tarta de Espinacas y Queso Ricotta con Masa Integral Hecha en Casa",
+        username: nombreUsuario,
+        recipe_name: "Papas fritas caseras",
         difficulty: "GORE",
-        description: "Una milanesa napolitana exquisita",
-        ingredients: "Milanesa napolitana",
-        steps: "Servir la milanesa napolitana",
-        categories: "Entrada, Bebida, Vegetariana, Saludable",
+        description: "Unas Papas fritas caseras",
+        ingredients: "50 papas",
+        steps: "Servir las  Papas fritas caseras",
+        categories: "Entrada, Guarnición",
         tiempo: "2 segundos en servir",
       });
   
@@ -101,11 +101,11 @@ const llamarRecetas = async () => {
     }
   }
 
-  if (localUsername !== '') {
+  if (nombreUsuario !== '') {
     const Perfil = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.get(`${host}/api/mis-recetas/${localUsername}`); // Aquí usas el valor real de username
+            const response = await axios.get(`${host}/api/mis-recetas/${nombreUsuario}`); // Aquí usas el valor real de username
             if (response.status === 200) {
             }
         } catch (error) {
@@ -118,7 +118,7 @@ const llamarRecetas = async () => {
 
   return (
     <>
-    <span>USUARIO ID{localUsername}</span>
+    <span>USUARIO ID:{nombreUsuario}</span>
     <br></br>
     <button onClick={llamarRecetas}>Traer tus recetas</button>
     <br></br>

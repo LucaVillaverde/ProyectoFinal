@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { resolvePath, useParams } from "react-router-dom";
 import SimpleCard from "../components/card/SimpleCard.jsx";
 import axios from "axios";
 import "../css/search-page.css";
+import image_404 from '../assets/image_404.png'
 
 const Buscar = ({ host }) => {
     const [query, setQuery] = useState("");
@@ -10,9 +11,18 @@ const Buscar = ({ host }) => {
     const menuRef = useRef(null);
     const [recetas, setRecetas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [noRecetas, setNoRecetas] = useState();
+
+    useEffect(()=>{
+        if(localStorage.getItem("errorRecetas")){
+            console.error(localStorage.getItem("errorRecetas"));
+            localStorage.removeItem("errorRecetas");
+        }
+    },[])
 
     useEffect(() => {
         const metaDescription = document.createElement("meta");
+        document.title = `CocinApp : Buscar`;
         metaDescription.name = "description";
         metaDescription.content =
             "Pagina buscar de CocinApp, donde puedes encontrar recetas.";
@@ -25,36 +35,34 @@ const Buscar = ({ host }) => {
         };
     }, []);
 
-    useEffect(() => {
-        // Al montar, asegurarte de que las categorías están deseleccionadas
-        setSelectedCategories([]);
-        return () => {
-            // Opcionalmente puedes limpiar el estado aquí si es necesario
-            setSelectedCategories([]);
-        };
-    }, []);
-    
-    // actualizar busqueda
-    useEffect(() => {
-        console.log(query);
-    }, [query]);
 
-    // Titulo dinamico si se busca algo, si no queda "bur"
-    useEffect(() => {
-        if (query === ''){
-            document.title = `CocinApp : ${query}`;
-        }
-        document.title = `CocinApp : Buscar`;
-    });
-
-
-    // Monitorear el cambio de selectedCategories
-    useEffect(() => {
-        if (selectedCategories.length === 0) {
-            console.log(`No hay categorias seleccionadas`);
+    useEffect(()=>{
+        if (query.length !== 0 && selectedCategories.length === 0){
+            const filtroNombreReceta = async () => {
+                try{
+                    const response = await axios.post(`${host}/api/recetas/filtradas`,{
+                        nombreReceta: query,
+                    })
+        
+                    if (response.status === 200){
+                            setRecetas(response.data.recetas);
+                            setLoading(false);
+                            console.log(response.data.recetas);
+                    }
+                    if (response.status === 404){
+                        fetchRecetas();
+                        console.log("Hola");
+                    }
+                }catch(err){
+                    console.error(err);
+                    fetchRecetas();
+                }
+            }
+            
+            filtroNombreReceta();
+        } else if (query.length === 0 && selectedCategories.length === 0){
             fetchRecetas();
-            return;
-        }else{
+        } else if (selectedCategories.length !== 0 && query.length === 0){
             const fetchRecetasCategorizadas = async () => {
                 try {
                     const response = await axios.post(`${host}/api/recetas/filtradas`, {
@@ -64,21 +72,35 @@ const Buscar = ({ host }) => {
                         setRecetas(response.data.recetas);
                         setLoading(false);
                         console.log(response.data.recetas);
+                    } else {
+                        localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
+                        location.reload();
                     }
                 } catch (error) {
+                    localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
+                    location.reload();
                     console.log(error);
                 }
             };
             fetchRecetasCategorizadas();
         }
-    }, [selectedCategories]);
+    },[query, selectedCategories])
 
-    // BUSQUEDA
-    const search = (e) => {
-        e.preventDefault();
-        console.log("BUSCAR:" + query);
-        document.title = `CocinApp : ${query}`;
-    };
+    useEffect(() => {
+        // Al montar, asegurarte de que las categorías están deseleccionadas
+        setSelectedCategories([]);
+        return () => {
+            // Opcionalmente puedes limpiar el estado aquí si es necesario
+            setSelectedCategories([]);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (query === ''){
+            document.title = `CocinApp : ${query}`;
+        }
+        document.title = `CocinApp : Buscar`;
+    });
 
     const handleCheckboxChange = (category) => {
         if (selectedCategories.includes(category)) {
@@ -88,6 +110,43 @@ const Buscar = ({ host }) => {
         }
     };
     
+    // Monitorear el cambio de selectedCategories
+    // useEffect(() => {
+    //     if (selectedCategories.length === 0) {
+    //         console.log(`No hay categorias seleccionadas`);
+    //         fetchRecetas();
+    //         return;
+    //     }else{
+    //         const fetchRecetasCategorizadas = async () => {
+    //             try {
+    //                 const response = await axios.post(`${host}/api/recetas/filtradas`, {
+    //                     arrayCategorias: selectedCategories, // Se envía en el cuerpo
+    //                 });
+    //                 if (response.status === 200) {
+    //                     setRecetas(response.data.recetas);
+    //                     setLoading(false);
+    //                     console.log(response.data.recetas);
+    //                 } else {
+    //                     localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
+    //                     location.reload();
+    //                 }
+    //             } catch (error) {
+    //                 localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
+    //                 location.reload();
+    //                 console.log(error);
+    //             }
+    //         };
+            
+    //         fetchRecetasCategorizadas();
+    //     }
+    // }, [selectedCategories]);
+
+    // BUSQUEDA
+    const search = (e) => {
+        e.preventDefault();
+        console.log("BUSCAR:" + query);
+        document.title = `CocinApp : ${query}`;
+    };
 
     // RECETAS (desde DB)
     const fetchRecetas = async () => {
@@ -104,6 +163,7 @@ const Buscar = ({ host }) => {
     // Traer Recetas (actualizando)
     useEffect(() => {
         fetchRecetas();
+        setNoRecetas(false);
     }, []);
 
     return (
@@ -112,7 +172,7 @@ const Buscar = ({ host }) => {
             <div className="search-cont">
                 <h2 className="search-title">BUSCAR RECETAS</h2>
                 <div className="search-filters">
-                    <form onSubmit={search} className="search-bar-cont">
+                    <form className="search-bar-cont">
                         <div className="search-bar">
                             <input
                                 className="search-inpt"
@@ -154,10 +214,40 @@ const Buscar = ({ host }) => {
                                     <input
                                         type="checkbox"
                                         className="filter-inpt"
-                                        value="Vegetariana"
+                                        value="Sopa"
                                         onChange={(e) => handleCheckboxChange(e.target.value)}
                                     />
-                                    Vegetariana
+                                    Sopa
+                                </label>
+
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter-inpt"
+                                        value="Caldo"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    Caldo
+                                </label>
+
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter-inpt"
+                                        value="Ensalada"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    Ensalada
+                                </label>
+
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter-inpt"
+                                        value="Plato Principal"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    Plato Principal
                                 </label>
 
                                 <label className="filter">
@@ -184,10 +274,20 @@ const Buscar = ({ host }) => {
                                     <input
                                         type="checkbox"
                                         className="filter-inpt"
-                                        value="Sopa"
+                                        value="Bebida"
                                         onChange={(e) => handleCheckboxChange(e.target.value)}
                                     />
-                                    Sopa
+                                    Bebida
+                                </label>
+
+                                <label className="filter">
+                                    <input
+                                        type="checkbox"
+                                        className="filter-inpt"
+                                        value="Vegetariana"
+                                        onChange={(e) => handleCheckboxChange(e.target.value)}
+                                    />
+                                    Vegetariana
                                 </label>
 
                                 <label className="filter">
@@ -207,6 +307,15 @@ const Buscar = ({ host }) => {
             <div className="recipe-content">
                 {loading ? (
                     <p>Cargando recetas...</p>
+                ) : noRecetas ? (
+                        <div id="contenedorIMG404">
+                                <div className='container'>
+                                <div className='cont-404'>
+                                    <h2 className='title-404' >PAGINA NO ENCONTRADA ERROR: {error}</h2>
+                                    <img src={image_404} alt="No encontrado" className='image-404'/>
+                                </div>
+                                </div>
+                        </div>
                 ) : (
                     <div className="contenedor-tarjetas">
                         {recetas.map(
