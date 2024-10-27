@@ -5,9 +5,9 @@ const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
 const PORT = 5000;
-// const host = 'http://pruebita.webhop.me';
+const host = 'http://pruebita.webhop.me';
 // const host = 'http://localhost';
-const host = "http://192.168.0.168";
+// const host = "http://192.168.0.168";
 
 function validarEntrada(texto) {
     const espaciosContinuos = /\s{2,}/.test(texto);
@@ -19,7 +19,7 @@ function validarEntrada(texto) {
 }
 
 
-const allowedOrigins = [`${host}:4173`];
+const allowedOrigins = [`${host}:5173`];
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -91,7 +91,7 @@ app.post('/api/info-usuario', async (req, res) => {
             const username = row.username;
             return res.status(200).json({ 
                 message: "Se obtuvo el usuario con exito de la base de datos.",
-                username: username,
+                username,
              })
         })
     }catch (err){
@@ -639,34 +639,52 @@ app.get('/api/recetas', (req, res) => {
 });
 
 app.post('/api/recetas/filtradas', (req, res) => {
-    const arrayCategorias = Array.isArray(req.body.arrayCategorias) ? req.body.arrayCategorias : [req.body.arrayCategorias];
+    // const arrayCategorias = Array.isArray(req.body.arrayCategorias) ? req.body.arrayCategorias : [req.body.arrayCategorias];
+    // const nombreReceta = req.body.nombreReceta;
+    const { nombreReceta, arrayCategorias } = req.body;
 
-    try {
-        if (!arrayCategorias || arrayCategorias.length === 0) {
-            return res.status(400).json({ message: 'No se han proporcionado categorías' });
-        }
 
-        const placeholders = arrayCategorias.map(() => 'categories LIKE ?').join(' OR ');
+    // Solo buscar por categorías si hay alguna
+    if (arrayCategorias && arrayCategorias.length > 0) {
+        const placeholders = arrayCategorias.map(() => 'categories LIKE ?').join(' AND ');
         const query = `SELECT * FROM Recipe WHERE ${placeholders}`;
-
-        const params = arrayCategorias.map(cat => `%${cat}%`); // Prepara los parámetros para el LIKE
+        const params = arrayCategorias.map(cat => `%${cat}%`);
 
         db.all(query, params, (err, rows) => {
             if (err) {
                 return res.status(500).json({ message: 'Error interno del servidor' });
-            } else if (rows.length === 0) {
-                return res.status(404).json({ message: 'No se encontraron recetas para las categorías seleccionadas' });
-            } else {
-                return res.status(200).json({
-                    message: 'Recetas encontradas exitosamente',
-                    recetas: rows
-                });
             }
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron recetas para las categorías seleccionadas' });
+            }
+            return res.status(200).json({
+                message: 'Recetas encontradas exitosamente',
+                recetas: rows
+            });
         });
-    } catch (err) {
-        return res.status(500).json({ message: 'Error inesperado', error: err.message });
+    } else if (nombreReceta) { // Buscar solo por nombre
+        const querynombre = 'SELECT * FROM Recipe WHERE LOWER(recipe_name) LIKE LOWER(?)';
+
+        db.all(querynombre, [`%${nombreReceta}%`], (err, rows) => {
+            if (err) {
+                console.log('Error en la consulta por nombre:', err);
+                return res.status(500).json({ message: "Ha habido un error al tratar de conseguir la o las recetas mediante el nombre." });
+            }
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron recetas mediante el nombre.' });
+            }
+            return res.status(200).json({ 
+                message: 'Recetas encontradas exitosamente',
+                recetas: rows
+            });
+        });
+    } else {
+        return res.status(400).json({ message: 'Se requiere al menos una categoría o el nombre de la receta.' });
     }
 });
+
+
+
 
 
 app.post('/api/recetas/personales', (req, res) => {

@@ -39,23 +39,28 @@
 /* PRUEBA DE FILTROS */
 .filters {
     width: 100%;
+    min-height: 5vh;
     overflow-x: hidden;
     white-space: nowrap;
 }
 
 .filter-menu {
     width: 100%;
+    height: 7vh;
     display: flex; 
     white-space: nowrap;
+    /* flex-wrap: wrap; */
+    justify-content: space-evenly;
     background-color: var(--primary-color);
     overflow-x: auto; /* Habilita el scroll horizontal */
 }
 
 .filter{
-    /* width: 200px; */
+    width: 45%;
     margin: 0 8px;
     padding: 0 10px;
     background-color: var(--secondary-color);
+    align-self: center;
     text-align: center;
     border: 1px solid #000;
 }

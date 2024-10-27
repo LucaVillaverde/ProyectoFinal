@@ -22,8 +22,8 @@ import { FormReceta } from "./pages/FormReceta";
 
 
 // HOST intercambiables
-const host = 'http://localhost:5000';
-// const host = 'http://pruebita.webhop.me:5000';
+// const host = 'http://localhost:5000';
+const host = 'http://pruebita.webhop.me:5000';
 // const host = "http://192.168.0.168:5000";
 
 function App() {
@@ -40,7 +40,6 @@ function App() {
   const [message, setMessage] = useState("");
   const [movil, setMovil] = useState(false);
   const [tabletOrdenador, setTabletOrdenador] = useState(false);
-  const [localUsername, setLocalUsername] = useState('');
   // PATH
   const links = [
     { href: "/", label: "INICIO" },
@@ -51,6 +50,7 @@ function App() {
   const [visible, setMenuVisible] = useState(false);
   const [form, setForm] = useState(false);
   const [estado, setEstado] = useState(false);
+  const [localUsername, setLocalUsername] = useState('');
 
 
   const showMenu = () => {
@@ -322,20 +322,6 @@ const logout = async (e) => {
     }
 };
 
-  const llamadoInfoUsuario = async () => {
-    const user = Cookies.get("id_user");
-    try{
-      const llamado = await axios.post(`${host}/api/info-usuario`, {
-        id_user: user,
-      });
-      if (llamado.status === 200){
-        setLocalUsername(llamado.data.username);
-      }
-    }catch(err){
-      console.error(err);
-    }
-  }
-
 const determinarTipoDispositivo = (ancho) => {
   if (ancho < 720) {
       return (1);
@@ -389,6 +375,24 @@ useEffect(() => {
       setForm("login");
     }
   }, []);
+
+  useEffect(() => {
+    const llamadoInfoUsuario = async () => {
+      const user = Cookies.get("id_user");
+      try{
+        const llamado = await axios.post(`${host}/api/info-usuario`, {
+          id_user: user,
+        });
+        if (llamado.status === 200){
+          console.log(llamado.data.username)
+          setLocalUsername(llamado.data.username);
+        }
+      }catch(err){
+        console.error(err);
+      }
+    }
+    llamadoInfoUsuario();
+  }, [])
 
 
   return (
@@ -579,13 +583,12 @@ useEffect(() => {
           <Route path="/receta/:id" element={<Receta/>} />
           <Route path="/buscar" element={<Buscar host={host} />} />
           <Route path="/perfil/:username" element={<Perfil/>} />
-          <Route path="/formulario-recetas/:localUsername" element={<FormReceta/>} />
+          <Route path='/formulario-recetas/:localUsername' element={<FormReceta nombreUsuario={localUsername}/>} />
 
           {/* NO ESTA AUN */}
-          <Route path={`/mis-recetas/:localUsername`} element={<Perfil />}/>
+          <Route path='/mis-recetas/:localUsername' element={<Perfil nombreUsuario={localUsername}/>}/>
           <Route path="/modificar-receta/:id" element={<Perfil />} />
           <Route path="/eliminar-receta/:id:" element={<Perfil />} />
-          <Route path="/nueva-receta/" element={<FormReceta />} />
           {/* Pagina 404 */}
           <Route path="*" element={<Page404/>} />
         </Routes>
@@ -602,7 +605,7 @@ export default App;
 const UserMenu = ({add_recipe, logout, del_profile}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [movil, setMovil] = useState(false);
-  const [localUsername, setLocalStorage] = useState('');
+  const [localUsername, setLocalUsername] = useState('');
   useEffect(() => {
     const llamadoInfoUsuario = async () => {
       const user = Cookies.get("id_user");
@@ -611,7 +614,8 @@ const UserMenu = ({add_recipe, logout, del_profile}) => {
           id_user: user,
         });
         if (llamado.status === 200){
-          setLocalStorage(llamado.data.username);
+          console.log(llamado.data.username)
+          setLocalUsername(llamado.data.username);
         }
       }catch(err){
         console.error(err);
@@ -677,7 +681,7 @@ const UserMenu = ({add_recipe, logout, del_profile}) => {
         {isOpen && (
           <div className="menu-content">
             <span className="menu-span" >Hola {localUsername}</span>
-            <a href={`/mis-recetas/:${localUsername}`}>Mis recetas</a>
+            <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>
             <button className="btn_del btn_menu" onClick={add_recipe}>Añadir Receta</button>
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
@@ -697,8 +701,8 @@ const UserMenu = ({add_recipe, logout, del_profile}) => {
         {isOpen && (
           <div className="menu-content">
             <span className="menu-span" >Hola {localUsername}</span>
-            <a href={`/mis-recetas/:${localUsername}`}>Mis recetas</a>
-            <a href={`/mis-favoritos/:${localUsername}`}>Favoritos</a>
+            <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>
+            <a href={`/mis-favoritos/${localUsername}`}>Favoritos</a>
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
           </div>
