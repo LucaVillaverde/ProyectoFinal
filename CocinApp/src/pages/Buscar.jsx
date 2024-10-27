@@ -24,6 +24,17 @@ const Buscar = ({ host }) => {
                 .removeChild(metaDescription);
         };
     }, []);
+
+    useEffect(() => {
+        // Al montar, asegurarte de que las categorías están deseleccionadas
+        setSelectedCategories([]);
+
+        return () => {
+            // Opcionalmente puedes limpiar el estado aquí si es necesario
+            setSelectedCategories([]);
+        };
+    }, []);
+    
     useEffect(() => {
         console.log(query);
     }, [query]);
@@ -38,14 +49,39 @@ const Buscar = ({ host }) => {
         console.log("BUSCAR:" + query);
     };
 
-    // Manejar cambios de checkbox
     const handleCheckboxChange = (category) => {
         if (selectedCategories.includes(category)) {
-        setSelectedCategories(selectedCategories.filter(cat => cat !== category));
+            setSelectedCategories(selectedCategories.filter(cat => cat !== category));
         } else {
-        setSelectedCategories([...selectedCategories, category]);
+            setSelectedCategories([...selectedCategories, category]);
         }
     };
+    
+    // Monitorear el cambio de selectedCategories
+    useEffect(() => {
+        if (selectedCategories.length === 0) {
+            console.log(`No hay categorias seleccionadas`);
+            fetchRecetas();
+            return;
+        }else{
+            const fetchRecetasCategorizadas = async () => {
+                try {
+                    const response = await axios.post(`${host}/api/recetas/filtradas`, {
+                        arrayCategorias: selectedCategories, // Se envía en el cuerpo
+                    });
+                    if (response.status === 200) {
+                        setRecetas(response.data.recetas);
+                        setLoading(false);
+                        console.log(response.data.recetas);
+                    }
+                } catch (error) {
+                    console.log(error);
+                }
+            };
+            
+            fetchRecetasCategorizadas();
+        }
+    }, [selectedCategories]);
 
     // RECETAS
     const fetchRecetas = async () => {
@@ -61,7 +97,6 @@ const Buscar = ({ host }) => {
     };
     useEffect(() => {
         fetchRecetas();
-        console.log(recetas);
     }, []);
 
     return (
@@ -102,37 +137,37 @@ const Buscar = ({ host }) => {
                                     <input
                                         type="checkbox"
                                         className="filter-inpt"
-                                        value="carne"
+                                        value="Entrada"
                                         onChange={(e) => handleCheckboxChange(e.target.value)}
                                     />
-                                    carne
+                                    Entrada
                                 </label>
 
                                 <label className="filter">
                                     <input
                                         type="checkbox"
                                         className="filter-inpt"
-                                        value="vegetariana"
+                                        value="Vegetariana"
                                         onChange={(e) => handleCheckboxChange(e.target.value)}
                                     />
-                                    vegetariana
+                                    Vegetariana
                                 </label>
 
                                 <label className="filter">
                                     <input
                                         type="checkbox"
                                         className="filter-inpt"
-                                        value="pescados y mariscos"
+                                        value="Guarnición"
                                         onChange={(e) => handleCheckboxChange(e.target.value)}
                                     />
-                                    Pescados
+                                    Guarnición
                                 </label>
 
                                 <label className="filter">
                                     <input
                                         type="checkbox"
                                         className="filter-inpt"
-                                        value="postre"
+                                        value="Postre"
                                         onChange={(e) => handleCheckboxChange(e.target.value)}
                                     />
                                     Postre
@@ -142,20 +177,20 @@ const Buscar = ({ host }) => {
                                     <input
                                         type="checkbox"
                                         className="filter-inpt"
-                                        value="cat5"
+                                        value="Sopa"
                                         onChange={(e) => handleCheckboxChange(e.target.value)}
                                     />
-                                    Sopas
+                                    Sopa
                                 </label>
 
                                 <label className="filter">
                                     <input
                                         type="checkbox"
-                                        className="filter"
-                                        value="cat6"
+                                        className="filter-inpt"
+                                        value="Saludable"
                                         onChange={(e) => handleCheckboxChange(e.target.value)}
                                     />
-                                    
+                                    Saludable
                                 </label>
                             </div>
                         </div>

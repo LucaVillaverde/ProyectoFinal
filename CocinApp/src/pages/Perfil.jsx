@@ -7,9 +7,9 @@ import "../components/card/card.css";
 
 const Perfil = () => {
   const { localUsername } = useParams();
- // const host = 'http://pruebita.webhop.me:5000';
-   const host = 'http://localhost:5000';
-  // const host = "http://192.168.0.225:5000";
+  // const host = 'http://pruebita.webhop.me:5000';
+  // const host = 'http://localhost:5000';
+  const host = "http://192.168.0.168:5000";
 
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);
@@ -79,7 +79,7 @@ const llamarRecetas = async () => {
 
   const agregarRecipe = async () => {
     try {
-      const response = await axios.post(`${host}/api/receta/nueva`, {
+      const response = await axios.post(`${host}/api/receta-nueva`, {
         username: localUsername,
         recipe_name: "Tarta de Espinacas y Queso Ricotta con Masa Integral Hecha en Casa",
         difficulty: "GORE",

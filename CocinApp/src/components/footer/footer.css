@@ -30,7 +30,7 @@ footer{
     display: block;
     margin-top: 10px;
     font-weight: lighter;
-    color: #464646;
+    color: #000;
 }
 
 @media (min-width:720px) {

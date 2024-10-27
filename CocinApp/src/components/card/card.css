@@ -1,3 +1,12 @@
+.contenedor-tarjetas{
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(1, 1fr); /* Fija el número de columnas */
+    padding: 16px;
+    gap: 50px;
+    justify-items: center;
+}
+
 .card {
     display: flex;
     flex-direction: column;
@@ -5,7 +14,7 @@
     background-color: var(--secondary-color);
     border-radius: 8px;
     box-shadow: 0 4px 6px #0009;
-    margin: 10% 10px; 
+    min-height: 475px;
 }
 .card-content-image {
     width: 100%;
@@ -24,6 +33,7 @@
     margin: auto;
     background-color: #ffffff94;
     box-shadow: 0 0 5px #0009;
+    min-height: 250px;
 }
 
 .title-card {
@@ -39,6 +49,18 @@
     font-size: 18px;
 }
 
+@media (min-width: 375px) {
+    .card{
+        min-height: 515px;
+    }
+}
+
+@media (min-width: 425px) {
+    .card{
+        min-height: 540px;
+    }
+}
+
 @media (min-width: 720px) {
     /* Contenedor padre */
     .contenedor-tarjetas{
@@ -46,6 +68,7 @@
         display: grid;
         grid-template-columns: repeat(2, 1fr); /* Fija el número de columnas */
         padding: 16px;
+        gap: 50px;
         justify-items: center;
     }
 
@@ -56,9 +79,9 @@
 
     /* Tarjetas */
     .card { 
-        max-width: 300px; 
-        min-height: 485px;
-        max-height: 500px;  
+        max-width: 320px; 
+        min-height: 500px;
+        max-height: 540px;  
     }
     .card-content {
         min-height: 260px;
@@ -67,14 +90,13 @@
         margin-top: 13px;
     }
     .title-card{
-        font-size: 1.0em;
-        margin-bottom: 30px;
+        font-size: 1.1em;
     }
     .card-title{
-        font-size: .9em;
+        font-size: 1em;
     }
     .card-subtitle{
-        font-size: .8em;
+        font-size: .9em;
     }
 
 
@@ -84,6 +106,7 @@
     .contenedor-tarjetas{
         grid-template-columns: 1fr 1fr;
         row-gap: 100px;
+        gap: 105px;
     }
 
     .card {
@@ -99,10 +122,16 @@
         padding: 5px 5px;
     }
 }
-@media (min-width:1370px){
+
+@media (min-width: 1230px){
     .contenedor-tarjetas{
         grid-template-columns: repeat(3, 1fr);
-        gap: 70px;
+        gap: 60px;
+    }
+}
+@media (min-width:1370px){
+    .contenedor-tarjetas{
+        gap: 100px;
     }
     .card{
         max-width: 350px;
@@ -112,7 +141,8 @@
 }
 @media (min-width:1552px){
     .contenedor-tarjetas{
-        grid-template-columns: repeat(4, 1fr)
+        grid-template-columns: repeat(4, 1fr);
+        gap: 55px;
     }
     .card{
         max-width: 325px;

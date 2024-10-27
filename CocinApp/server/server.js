@@ -5,9 +5,9 @@ const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
 const PORT = 5000;
-const host = 'http://pruebita.webhop.me';
+// const host = 'http://pruebita.webhop.me';
 // const host = 'http://localhost';
-// const host = "http://192.168.0.225";
+const host = "http://192.168.0.168";
 
 function validarEntrada(texto) {
     const espaciosContinuos = /\s{2,}/.test(texto);
@@ -19,20 +19,22 @@ function validarEntrada(texto) {
 }
 
 
-const allowedOrigins = [`${host}:5173`];
+const allowedOrigins = [`${host}:4173`];
+
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
+    // console.log('Solicitud proveniente del origen:', origin || 'Sin origen (solicitud local o del mismo servidor)');
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);  // Permite solicitudes de orígenes permitidos
     } else {
-      callback(new Error('No permitido por CORS'));
+      callback();  // Bloquea orígenes no permitidos
     }
   },
   optionsSuccessStatus: 200
 };
 
-
-
+// Middleware para aplicar CORS y registrar el origen
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -40,12 +42,13 @@ const db = new sqlite3.Database('./BasedeDatos.db');
 // const db = new sqlite3.Database('./db.db');
 
 cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
-    console.log('Ejecutando tarea programada: establecer cookieToken a 0');
+    console.log('Ejecutando tarea de verificacion');
     db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
         if (err) {
             return console.error('Error al actualizar cookieToken:', err.message);
+        }else{
+            console.log('cookieToken y created_at actualizados a 0');
         }
-        console.log('cookieToken y created_at actualizados a 0');
     });
 });
 
@@ -61,14 +64,20 @@ app.use(function(req, res, next){
     next();
 });
 
-app.get('/api/usuarios', (req, res) => {
-    db.all('SELECT id_user FROM Users', [], (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(rows);
-    });
+app.post('/api/usuarios', (req, res) => {
+    const { id } = req.body;
+    try{
+        db.get('SELECT username FROM Users WHERE id_user = ?', [id], (err, row) => {
+            if(err){
+                return res.status(500).json({ message: "Error interno del servidor" });
+            }
+            if(!row){
+                return res.status(404).json({  })
+            }
+        })
+    }catch(err){
+
+    }
 });
 
 app.post('/api/info-usuario', async (req, res) => {
@@ -152,10 +161,68 @@ app.post('/token-login', (req, res) => {
                 return res.status(400).json({ message: `No se ha encontrado el cookieToken del usuario con el nombre: ${usernameNH}` });
             }
             let tokenDB = row.cookieToken;
-            if (tokenDB != '0'){
-                return res.status(403).json({ message: `El usuario ${usernameNH} no tiene autorización para iniciar sesión (Ya hay alguien con una sesión activa).` });
+            if (tokenDB !== '0'){
+                try{
+                    db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE username = ?', [usernameNH], async (err) => {
+                        if (err) {
+                            return res.status(500).json({ message: 'Error interno del servidor al intentar cambiar los datos de cookieToken y created_at.' });
+                        }
+                        else {
+                            try{
+                                // Generador de token
+                            const generateToken = () => {
+                                const min = 100;
+                                const max = 3000;
+                                let token = '';
+                                for (let i = 0; i < 300; i++) {
+                                    const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+                                    token += randomNumber.toString();
+                                }
+                                return token;
+                            };
+        
+                                    try {
+                                        const tokenNH = generateToken();
+                                        const tokenH = await bcrypt.hash(tokenNH, 10)
+                                        const usernameH = await bcrypt.hash(usernameNH, 10);
+                                        const createdAt = new Date().toISOString();
+        
+                                            db.get('SELECT id_user FROM Users WHERE username = ?', [usernameNH], (err, row) => {
+                                                if (err) {
+                                                    return res.status(500).json({ message: `Error interno del servidor ${usernameNH}.` });
+                                                }
+                                                if (!row) {
+                                                    return res.status(404).json({ message: `No hay datos sobre este usuario: ${usernameNH}.` });
+                                                }
+        
+                                                const id_user = row.id_user;
+                                                db.run('UPDATE Tokens SET cookieToken = ?, created_at = ? WHERE username = ?', [tokenNH, createdAt, usernameNH], function (err) {
+                                                    if (err) {
+                                                        return res.status(500).json({ message: "Error interno del servidor." });
+                                                    }
+                                                    return res.status(201).json({
+                                                        message: "Se ha creado el token de la cookie con éxito.",
+                                                        tokenH: tokenH,
+                                                        usernameH: usernameH,
+                                                        id_user: id_user,
+                                                    });
+                                                });
+                                            });
+                                        } catch (err) {
+                                            return res.status(400).json({ message: "Error en los datos proporcionados." });
+                                        }
+                                }catch (err){
+                                    return res.status(500).json({ 
+                                        message: `Ha ocurrido un error al intentar loguear al usuario ${usernameNH}, error: ${err}`
+                                     })
+                                }
+                        }   
+                    })
+                } catch (err){
+                    return res.status(err);
+                }
             }
-            if (tokenDB = '0'){
+            if (tokenDB === '0'){
                 try{
                         // Generador de token
                     const generateToken = () => {
@@ -262,6 +329,9 @@ app.post('/api/login', (req, res) => {
 
                     if (matchP) {
                         return res.status(200).json({ message: 'Se ha iniciado sesión con exito.' });
+                    }
+                    else {
+                        return res.status(400).json({ message: "Los datos no coinciden con la base de datos." });
                     }
                 }
             });
@@ -551,9 +621,9 @@ app.post('/api/cookie/delete', async (req, res) => {
 
 // ------------------------ API REST (Recetas) -------------------------
 app.get('/api/recetas', (req, res) => {
-    // const getQuery = 'SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT 8'; // DESC para traer las ultimas LIMIT 4 para traer solo 4 si queres traer las primeras (id_recipe mas bajo) entonces en vez de usar "DESC" usas "ASC".
+    const getQuery = 'SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT 8'; // DESC para traer las ultimas LIMIT 4 para traer solo 4 si queres traer las primeras (id_recipe mas bajo) entonces en vez de usar "DESC" usas "ASC".
     const getQuery1 = 'SELECT * FROM Recipe ORDER BY id_recipe DESC';
-    db.all(getQuery1, [], (err, rows) => {
+    db.all(getQuery, [], (err, rows) => {
         if (err) {
             return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
         }
@@ -567,6 +637,37 @@ app.get('/api/recetas', (req, res) => {
         });
     });
 });
+
+app.post('/api/recetas/filtradas', (req, res) => {
+    const arrayCategorias = Array.isArray(req.body.arrayCategorias) ? req.body.arrayCategorias : [req.body.arrayCategorias];
+
+    try {
+        if (!arrayCategorias || arrayCategorias.length === 0) {
+            return res.status(400).json({ message: 'No se han proporcionado categorías' });
+        }
+
+        const placeholders = arrayCategorias.map(() => 'categories LIKE ?').join(' OR ');
+        const query = `SELECT * FROM Recipe WHERE ${placeholders}`;
+
+        const params = arrayCategorias.map(cat => `%${cat}%`); // Prepara los parámetros para el LIKE
+
+        db.all(query, params, (err, rows) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error interno del servidor' });
+            } else if (rows.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron recetas para las categorías seleccionadas' });
+            } else {
+                return res.status(200).json({
+                    message: 'Recetas encontradas exitosamente',
+                    recetas: rows
+                });
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({ message: 'Error inesperado', error: err.message });
+    }
+});
+
 
 app.post('/api/recetas/personales', (req, res) => {
     const { usernameNH } = req.body;
