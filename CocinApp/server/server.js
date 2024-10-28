@@ -8,8 +8,8 @@ const app = express();
 const PORT = 5000;
 const PORT_FRONTEND = 5173
 // HOST
-const host = 'http://pruebita.webhop.me';
-// const host = 'http://localhost';
+// const host = 'http://pruebita.webhop.me';
+const host = 'http://localhost';
 // const host = "http://192.168.0.168";
 
 function validarEntrada(texto) {

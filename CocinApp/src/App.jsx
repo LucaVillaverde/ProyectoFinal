@@ -22,8 +22,8 @@ import FormReceta from "./pages/FormReceta";
 
 
 // HOST intercambiables
-// const host = 'http://localhost:5000';
-const host = 'http://pruebita.webhop.me:5000';
+const host = 'http://localhost:5000';
+// const host = 'http://pruebita.webhop.me:5000';
 // const host = "http://192.168.0.168:5000";
 
 function App() {
@@ -603,7 +603,7 @@ useEffect(() => {
 export default App;
 
 
-const UserMenu = ({add_recipe, logout, del_profile}) => {
+const UserMenu = ({logout, del_profile}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [movil, setMovil] = useState(false);
   const [localUsername, setLocalUsername] = useState('');
@@ -684,7 +684,6 @@ const UserMenu = ({add_recipe, logout, del_profile}) => {
             <span className="menu-span" >Hola {localUsername}</span>
             <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>
             <a href={`/formulario-recetas/${localUsername}`}>Gestionar recetas</a>
-            <button className="btn_del btn_menu" onClick={add_recipe}>Añadir Receta</button>
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
           </div>
