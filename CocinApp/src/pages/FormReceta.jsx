@@ -158,14 +158,14 @@ const FormReceta = ({host}) => {
 
   const llamadaDB =  (e) => {
     e.preventDefault();
-    console.log("hola turu");
+    
   };
 
-
+  // ------------ (intentar usar useRef) --------------
 
   // FORMULARIOS 
   const AddForm = () => (
-    <form onSubmit={manejadorDeEnvio}>
+    <form onSubmit={llamadaDB}>
       <label htmlFor="nombreReceta">Nombre de la Receta:</label>
       <input
       className="inptFormRecipe"
@@ -195,7 +195,7 @@ const FormReceta = ({host}) => {
         id="categories"
         multiple
         value={selectedCategories}
-        onChange={handleCategoryChange}
+        onChange={(e)=>handleCategoryChange()}
       >
         <option value="Entrada">Entrada</option>
         <option value="Sopa">Sopa</option>
@@ -212,7 +212,7 @@ const FormReceta = ({host}) => {
         <strong>Seleccionado</strong>
         {selectedCategories.map((category) => (
           <span key={category} className="chip">
-            {category} <button onClick={() => handleCategoryChange({ target: { value: category } })}>✕</button>
+            {category} <button type="button" onClick={() => handleCategoryChange({ target: { value: category } })}>✕</button>
           </span>
         ))}
       </div>
