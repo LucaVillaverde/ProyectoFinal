@@ -9,6 +9,7 @@
 
 .form-user {
   width: 80%;
+  height: 20px;
   /* height: fit-content; */
   height: max-content;
   margin: 50% auto;
@@ -74,7 +75,7 @@
 .btn_submit{text-align: center; margin: 20px;}
 .btn-form{
   width: 200px;
-  height: 30px;
+  height: 8px;
   margin: auto;
   border: none;
   border-radius: 10px;

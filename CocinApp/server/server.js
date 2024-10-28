@@ -6,7 +6,7 @@ const cron = require('node-cron');
 const app = express();
 // PORTS
 const PORT = 5000;
-const PORT_FRONTEND = 4173
+const PORT_FRONTEND = 5173
 // HOST
 const host = 'http://pruebita.webhop.me';
 // const host = 'http://localhost';
