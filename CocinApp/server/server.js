@@ -695,8 +695,6 @@ app.post('/api/recetas/filtradas', (req, res) => {
 
 
 
-
-
 app.post('/api/recetas/personales', (req, res) => {
     const { usernameNH } = req.body;
 
@@ -765,12 +763,10 @@ app.post("/api/receta-nueva", async (req, res) => {
 });
 
 
-
-
-app.get('/api/receta/:id', (req, res) => {
-    const { id } = req.params; // req.params es un objeto, no una función
+app.get('/api/receta/', (req, res) => {
+    const { id_recipe } = req.params; // req.params es un objeto, no una función
     const getQuery = 'SELECT * FROM Recipe WHERE id_recipe = ?';
-    db.all(getQuery, [id], (err, rows) => {
+    db.all(getQuery, [id_recipe], (err, rows) => {
         if (err) {
             return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
         }

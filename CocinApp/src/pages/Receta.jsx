@@ -3,17 +3,11 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../recipe.css";
 
-const Receta = ({ username }) => {
+const Receta = ({host, nombreUsuario}) => {
     const { id } = useParams();
     const [showMessage, setShowMessage] = useState(false); // Estado para controlar la visibilidad del mensaje
+    const [receta, setReceta] = useState([]);
 
-    useEffect( async () => {
-        try{
-            const llamadaInfo = await axios.post('/api')
-        }catch(err){
-            console.error(err);
-        }
-    }, [])
 
     useEffect(() => {
         const metaDescription = document.createElement('meta');
@@ -27,28 +21,20 @@ const Receta = ({ username }) => {
         };
     }, []);
 
-    if (id !== '') {
-        const recipe = async (e) => {
-            e.preventDefault();
+
+    const recipe2 = async () => {
             try {
-                const response = await axios.get(`${host}/api/receta/${id}`); // Aquí usas el valor real de id
-                if (response.status === 200) {
-                    const receta = response.data.receta;
-                    console.log(receta);
-                }
-            } catch (error) {
-                console.error('Error al obtener la receta:', error);
-                setError(error.message); 
+                const response = await axios.get(`${host}/api/receta`, {
+                    id : id
+                });
+                setReceta(response.data.recetas)
+            } catch (err) {
+                console.log(err);
             }
-        };
     }
     
-
-
-
-
-
     // ACA VA LA CONSULTA DE DB PARA OBTENER LOS DATOS Y RELLENAR EL COMPONENTE
+    useEffect(() => { recipe2(); }, [id]);
     const recipe = {
         id_recipe: "123",
         author: "Luca",
@@ -74,25 +60,20 @@ const Receta = ({ username }) => {
             "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
         // favs: 200,
     };
-    // variables
     const ingredients = recipe.ingredients;
     const steps = recipe.steps;
 
-
-    const clickBtn = () => {
-      if (username === null) {
-        setShowMessage(true); // Muestra el párrafo
-        setTimeout(() => {
-          setShowMessage(false); // Borra el mensaje después de 5 segundos
-        }, 2000);
-      } else {
-        favorite(); // Añade a favoritos si está logueado
-      }
-    };
-
-
-
-
+    // const clickBtn = () => {
+    //   if (username === null) {
+    //     setShowMessage(true); // Muestra el párrafo
+    //     setTimeout(() => {
+    //       setShowMessage(false); // Borra el mensaje después de 5 segundos
+    //     }, 2000);
+    //   } else {
+    //     favorite(); // Añade a favoritos si está logueado
+    //   }
+    // };
+    
     return (
         <div className="content">
             <div className="recipe">
@@ -132,7 +113,7 @@ const Receta = ({ username }) => {
                 </section>
                 {showMessage && <p>Registrese para poder dar like</p>}
                 <div className="btn_recipe">
-                    {username === recipe.author ? (
+                    {nombreUsuario === recipe.author ? (
                         <button>EDITAR</button>
                     ) : (
                         <>

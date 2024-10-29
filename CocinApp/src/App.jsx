@@ -581,7 +581,7 @@ useEffect(() => {
         {/* >-------------------- MAIN PAGE --------------------< */}
         <Routes>
           <Route path="/" element={<Home host={host}/>} />
-          <Route path="/receta/:id" element={<Receta/>} />
+          <Route path="/receta/:id" element={<Receta host={host} nombreUsuario={localUsername}/>} />
           <Route path="/buscar" element={<Buscar host={host} />} />
           <Route path="/perfil/:username" element={<Perfil/>} />
           <Route path='/formulario-recetas/:localUsername' element={<FormReceta host={host}/>} />
