@@ -628,7 +628,7 @@ app.get('/api/recetas', (req, res) => {
         }
         // No necesitas todas estas verificaciones si estás devolviendo todos los datos.
         return res.status(200).json({
-            message: 'Se han encontrado todos los datos de la receta.',
+            message: 'Se han encontrado todos los datos de las recetas.',
             recetas: rows // Devolver todas las recetas
         });
     });
@@ -763,8 +763,8 @@ app.post("/api/receta-nueva", async (req, res) => {
 });
 
 
-app.get('/api/receta/', (req, res) => {
-    const { id_recipe } = req.params; // req.params es un objeto, no una función
+app.post('/api/receta-id', (req, res) => {
+    const { id_recipe } = req.body; // req.params es un objeto, no una función
     const getQuery = 'SELECT * FROM Recipe WHERE id_recipe = ?';
     db.all(getQuery, [id_recipe], (err, rows) => {
         if (err) {

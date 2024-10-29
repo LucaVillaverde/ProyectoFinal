@@ -682,8 +682,8 @@ const UserMenu = ({logout, del_profile}) => {
         {isOpen && (
           <div className="menu-content">
             <span className="menu-span" >Hola {localUsername}</span>
-            <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>
             <a href={`/formulario-recetas/${localUsername}`}>Gestionar recetas</a>
+            <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
           </div>

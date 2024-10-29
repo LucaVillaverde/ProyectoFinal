@@ -24,10 +24,11 @@ const Receta = ({host, nombreUsuario}) => {
 
     const recipe2 = async () => {
             try {
-                const response = await axios.get(`${host}/api/receta`, {
-                    id : id
+                const response = await axios.post(`${host}/api/receta-id`, {
+                    id_recipe : id
                 });
-                setReceta(response.data.recetas)
+                setReceta(response.data.receta);
+                console.log(response.data.receta);
             } catch (err) {
                 console.log(err);
             }
@@ -35,33 +36,33 @@ const Receta = ({host, nombreUsuario}) => {
     
     // ACA VA LA CONSULTA DE DB PARA OBTENER LOS DATOS Y RELLENAR EL COMPONENTE
     useEffect(() => { recipe2(); }, [id]);
-    const recipe = {
-        id_recipe: "123",
-        author: "Luca",
-        recipe_name: "Torta de papa",
-        img: "https://placehold.co/600x400/000000/FFFFFF/png",
-        preparation_time: "120min",
-        dificulty: "FACIL",
-        steps: [
-            "1- pelar papas",
-            "2- Hervir papas",
-            "3- Hacer masa",
-            "3-Unir todo2",
-            "4-Distrutar :)",
-        ],
-        ingredients: [
-            "50x papa",
-            "1kg harina",
-            "200ml agua",
-            "queso",
-            "500g sal",
-        ],
-        description:
-            "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-        // favs: 200,
-    };
-    const ingredients = recipe.ingredients;
-    const steps = recipe.steps;
+    // const recipe = {
+    //     id_recipe: "123",
+    //     author: "Luca",
+    //     recipe_name: "Torta de papa",
+    //     img: "https://placehold.co/600x400/000000/FFFFFF/png",
+    //     preparation_time: "120min",
+    //     dificulty: "FACIL",
+    //     steps: [
+    //         "1- pelar papas",
+    //         "2- Hervir papas",
+    //         "3- Hacer masa",
+    //         "3-Unir todo2",
+    //         "4-Distrutar :)",
+    //     ],
+    //     ingredients: [
+    //         "50x papa",
+    //         "1kg harina",
+    //         "200ml agua",
+    //         "queso",
+    //         "500g sal",
+    //     ],
+    //     description:
+    //         "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
+    //     // favs: 200,
+    // };
+    const ingredients = receta.ingredients;
+    const steps = receta.steps;
 
     // const clickBtn = () => {
     //   if (username === null) {
@@ -77,11 +78,11 @@ const Receta = ({host, nombreUsuario}) => {
     return (
         <div className="content">
             <div className="recipe">
-                <h2 className="recipe-title">{recipe.recipe_name}</h2>
+                <h2 className="recipe-title">{receta.recipe_name}</h2>
                 <section className="recipe-img-cont frame-content">
                     <img
-                        src={recipe.img}
-                        alt={recipe.recipe_name}
+                        src="https://placehold.co/600x400/000000/FFFFFF/png"
+                        alt={receta.recipe_name}
                         className="recipe-img"
                     />
                 </section>
@@ -95,9 +96,9 @@ const Receta = ({host, nombreUsuario}) => {
                 </section>
                 <section className="recipe-data-cont frame-content">
                     <h3 className="subtitle">Tiempo de preparacion:</h3>
-                    <p>{recipe.preparation_time}</p>
+                    <p>{receta.tiempo}</p>
                     <h3 className="subtitle">Dificultad:</h3>
-                    <p>{recipe.dificulty}</p>
+                    <p>{receta.difficulty}</p>
                 </section>
                 <section className="recipe-steps-cont frame-content">
                     <h3 className="subtitle">Pasos:</h3>
@@ -109,11 +110,11 @@ const Receta = ({host, nombreUsuario}) => {
                         ))}
                     </ul>
                     <h3 className="subtitle">Proceso:</h3>
-                    <p className="pasos">{recipe.description}</p>
+                    <p className="pasos">{receta.description}</p>
                 </section>
                 {showMessage && <p>Registrese para poder dar like</p>}
                 <div className="btn_recipe">
-                    {nombreUsuario === recipe.author ? (
+                    {nombreUsuario === receta.username ? (
                         <button>EDITAR</button>
                     ) : (
                         <>

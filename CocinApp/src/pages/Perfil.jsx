@@ -7,8 +7,8 @@ import Cookies from 'js-cookie';
 
 
 const Perfil = () => {
-  const host = 'http://pruebita.webhop.me:5000';
-  // const host = 'http://localhost:5000';
+  // const host = 'http://pruebita.webhop.me:5000';
+  const host = 'http://localhost:5000';
   // const host = "http://192.168.0.168:5000";
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);
@@ -125,12 +125,12 @@ const llamarRecetas = async () => {
     try {
       const response = await axios.post(`${host}/api/receta-nueva`, {
         username: nombreUsuario,
-        recipe_name: "Ensalada Sana",
-        difficulty: "GORE",
-        description: "Unas Papas fritas caseras",
-        ingredients: "50 papas",
-        steps: "Servir las  Papas fritas caseras",
-        categories: "Vegetariana, Saludable, Ensalada",
+        recipe_name: "Ensalada Sana version Helado",
+        difficulty: "Hardcore",
+        description: "Una ensalada sana version helado",
+        ingredients: "50 papas, 1kg de helado",
+        steps: "Servir las Papas fritas caseras, para despues comerlas.",
+        categories: "Saludable, Ensalada",
         tiempo: "2 segundos en servir",
       });
   

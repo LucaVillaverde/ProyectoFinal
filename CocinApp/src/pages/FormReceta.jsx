@@ -3,28 +3,56 @@ import Cookies from "js-cookie";
 import axios from "axios";
 import "../css/form.css";
 
+// Estados
 const FormReceta = ({host}) => {
-  const [selectedCategories, setSelectedCategories] = useState([]);
-  // Estados
+  // const [selectedCategories, setSelectedCategories] = useState([]);
   const [nombreUsuario, setNombreUsuario] = useState("");
   const [activeTab, setActiveTab] = useState("Agregar");
+  const [formData, setFormData] = useState({
+    recipe_name: "",
+    difficulty: "",
+    categories: [],
+    description: "",
+    ingredients: [],
+    steps: [],
+    tiempo: "",
+  });
+  const formDataCategories = formData.categories;
+  const recipe_name = document.getElementById("recipename").value;
+  const difficulty = document.getElementById("difficulty").value;
+  const categories = document.getElementById("categories").value;
+  const description = document.getElementById("description").value;
+  const ingredients = document.getElementById("ingredients").value;
+  const steps = document.getElementById("steps").value;
+  const tiempo = document.getElementById("tiempo").value;
+
   const handleTabClick = (label) => {
     setActiveTab(label);
   };
 
-  const handleCategoryChange = (e) => {
+  const handleChange = (e) => {
     const { value } = e.target;
-  
-    if (selectedCategories.includes(value)) {
-      setSelectedCategories(selectedCategories.filter((category) => category !== value));
+
+    if (e.target.id === "categories"){
+      if (selectedCategories.includes(value)) {
+        setSelectedCategories(selectedCategories.filter((category) => category !== value));
+      } else {
+        if (selectedCategories.length < 4) {
+          setSelectedCategories([...selectedCategories, value]);
+        }else{
+          alert('SOLO 4 CATEGORIAS');
+        }
+      } 
     } else {
-      if (selectedCategories.length < 4) {
-        setSelectedCategories([...selectedCategories, value]);
-      }else{
-        alert('SOLO 4 CATEGORIAS');
-      }
+      setFormData(value)
     }
   };
+
+  const llamadaDB =  (e) => {
+    e.preventDefault();
+    
+  };
+  
   useEffect(() => {
     const id_user = Cookies.get("id_user");
     const obtenerNombre = async () => {
@@ -43,124 +71,6 @@ const FormReceta = ({host}) => {
     obtenerNombre();
   }, []);
 
-  const manejadorDeEnvio = (event) => {
-    event.preventDefault();
-    const formRecipeName = document.getElementById('recipename').value;
-    const formDifficulty = document.getElementById('difficulty').value;
-    const formDescription = document.getElementById('description').value;
-    const formIngredients = document.getElementById('ingredients').value;
-    const formSteps = document.getElementById('steps').value;
-    const formTiempo = document.getElementById('tiempo').value;
-    // const formCategory1 = document.getElementById('recipeCategory1').value;
-    // const formCategory2 = document.getElementById('recipeCategory2').value;
-    // const formCategory3 = document.getElementById('recipeCategory3').value;
-    // const formCategory4 = document.getElementById('recipeCategory4').value;
-    // let arrayCategories;
-    console.log(formRecipeName)
-    console.log(formDifficulty)
-    console.log(formIngredients)
-    console.log(formDescription)
-    console.log(formSteps)
-    console.log(formTiempo)
-    console.log(selectedCategories)
-    // //Falta verificar que de los datos que lleguen (Como categorias) no sean iguales entre si.
-    // if (formCategory2.length !== 0 && formCategory3.length !== 0 && formCategory4.length !== 0){
-    //   //Falta verificar que de los datos que lleguen (Como categorias) no sean iguales entre si.
-    //   arrayCategories = [formCategory1, formCategory2, formCategory3, formCategory4]; 
-    //   console.log(nombreUsuario);
-    //   console.log(formRecipeName);
-    //   console.log(formDifficulty);
-    //   console.log(formDescription);
-    //   console.log(formIngredients);
-    //   console.log(formSteps);
-    //   console.log(formTiempo);
-    //   console.log(arrayCategories);
-    // } else if (formCategory2.length !== 0 && formCategory3.length !== 0 && formCategory4.length === 0){
-    //   //Falta verificar que de los datos que lleguen (Como categorias) no sean iguales entre si.
-    //   arrayCategories = [formCategory1, formCategory2, formCategory3]; 
-    //   console.log(nombreUsuario);
-    //   console.log(formRecipeName);
-    //   console.log(formDifficulty);
-    //   console.log(formDescription);
-    //   console.log(formIngredients);
-    //   console.log(formSteps);
-    //   console.log(formTiempo);
-    //   console.log(arrayCategories);
-    // } else if (formCategory2.length !== 0 && formCategory3.length === 0 && formCategory4.length === 0){
-    //   //Falta verificar que de los datos que lleguen (Como categorias) no sean iguales entre si.
-    //   arrayCategories = [formCategory1, formCategory2]; 
-    //   console.log(nombreUsuario);
-    //   console.log(formRecipeName);
-    //   console.log(formDifficulty);
-    //   console.log(formDescription);
-    //   console.log(formIngredients);
-    //   console.log(formSteps);
-    //   console.log(formTiempo);
-    //   console.log(arrayCategories);
-    // } else if (formCategory2.length === 0 && formCategory3.length === 0 && formCategory4.length === 0){
-    //   //Falta verificar que de los datos que lleguen (Como categorias) no sean iguales entre si.
-    //   arrayCategories = [formCategory1]; 
-    //   console.log(nombreUsuario);
-    //   console.log(formRecipeName);
-    //   console.log(formDifficulty);
-    //   console.log(formDescription);
-    //   console.log(formIngredients);
-    //   console.log(formSteps);
-    //   console.log(formTiempo);
-    //   console.log(arrayCategories);
-    // } else if (formCategory2.length === 0 && formCategory3.length === 0 && formCategory4.length !== 0){
-    //   //Falta verificar que de los datos que lleguen (Como categorias) no sean iguales entre si.
-    //   arrayCategories = [formCategory1, formCategory4];
-    //   console.log(nombreUsuario);
-    //   console.log(formRecipeName);
-    //   console.log(formDifficulty);
-    //   console.log(formDescription);
-    //   console.log(formIngredients);
-    //   console.log(formSteps);
-    //   console.log(formTiempo);
-    //   console.log(arrayCategories);
-    // } else if (formCategory2.length === 0 && formCategory3.length !== 0 && formCategory4.length !== 0){
-    //   //Falta verificar que de los datos que lleguen (Como categorias) no sean iguales entre si.
-    //   arrayCategories = [formCategory1, formCategory3, formCategory4];
-    //   console.log(nombreUsuario);
-    //   console.log(formRecipeName);
-    //   console.log(formDifficulty);
-    //   console.log(formDescription);
-    //   console.log(formIngredients);
-    //   console.log(formSteps);
-    //   console.log(formTiempo);
-    //   console.log(arrayCategories);
-    // } else if (formCategory2.length !== 0 && formCategory3.length !== 0 && formCategory4.length === 0){
-    //   //Falta verificar que de los datos que lleguen (Como categorias) no sean iguales entre si.
-    //   arrayCategories = [formCategory1, formCategory2, formCategory3];
-    //   console.log(nombreUsuario);
-    //   console.log(formRecipeName);
-    //   console.log(formDifficulty);
-    //   console.log(formDescription);
-    //   console.log(formIngredients);
-    //   console.log(formSteps);
-    //   console.log(formTiempo);
-    //   console.log(arrayCategories);
-    // } else if (formCategory2.length !== 0 && formCategory3.length === 0 && formCategory4.length !== 0){
-    //   //Falta verificar que de los datos que lleguen (Como categorias) no sean iguales entre si.
-    //   arrayCategories = [formCategory1, formCategory2, formCategory4];
-    //   console.log(nombreUsuario);
-    //   console.log(formRecipeName);
-    //   console.log(formDifficulty);
-    //   console.log(formDescription);
-    //   console.log(formIngredients);
-    //   console.log(formSteps);
-    //   console.log(formTiempo);
-    //   console.log(arrayCategories);
-    // }
-    setSelectedCategories([])
-  }
-
-  const llamadaDB =  (e) => {
-    e.preventDefault();
-    
-  };
-
   // ------------ (intentar usar useRef) --------------
 
   // FORMULARIOS 
@@ -171,6 +81,7 @@ const FormReceta = ({host}) => {
       className="inptFormRecipe"
         type="text"
         id="recipename"
+        onChange={setFormData.recipe_name(recipename)}
         placeholder="Nombre de receta"
         name="nombreReceta"
         required
@@ -180,6 +91,7 @@ const FormReceta = ({host}) => {
       <select
         name="recipeDiff"
         className="selectRecipe"
+        onChange={setFormData.difficulty(difficulty)}
         id="difficulty"
         required
       >
@@ -194,8 +106,7 @@ const FormReceta = ({host}) => {
       <select
         id="categories"
         multiple
-        value={selectedCategories}
-        onChange={(e)=>handleCategoryChange()}
+        onChange={setFormData.categories(categories)}
       >
         <option value="Entrada">Entrada</option>
         <option value="Sopa">Sopa</option>
@@ -210,9 +121,9 @@ const FormReceta = ({host}) => {
       </select>
       <div className="chips">
         <strong>Seleccionado</strong>
-        {selectedCategories.map((category) => (
+        {formDataCategories.map((category) => (
           <span key={category} className="chip">
-            {category} <button type="button" onClick={() => handleCategoryChange({ target: { value: category } })}>✕</button>
+            {category} <button type="button" onClick={() => handleChange({ target: { value: category } })}>✕</button>
           </span>
         ))}
       </div>
@@ -222,6 +133,7 @@ const FormReceta = ({host}) => {
       className="textAreaDesc"
       type="text"
       id="description"
+      onChange={setFormData.description(description)}
       placeholder="Descripcion..."
       required
       ></textarea>
@@ -232,6 +144,7 @@ const FormReceta = ({host}) => {
     className="inptFormRecipe"
         type="text"
         id="ingredients"
+        onChange={setFormData.ingredients(ingredients)}
         placeholder='Ingredientes separados por ","'
         required
     />
@@ -241,6 +154,7 @@ const FormReceta = ({host}) => {
     className="inptFormRecipe"
         type="text"
         id="steps"
+        onChange={setFormData.steps(steps)}
         placeholder="Pasos de la"
         required
       />
@@ -250,6 +164,7 @@ const FormReceta = ({host}) => {
       className="inptFormRecipe"
         type="text"
         id="tiempo"
+        onChange={setFormData.tiempo(tiempo)}
         placeholder="30 minutos / 1 hora"
         required
       />
