@@ -7,8 +7,8 @@ import Cookies from 'js-cookie';
 
 
 const Perfil = () => {
-  // const host = 'http://pruebita.webhop.me:5000';
-  const host = 'http://localhost:5000';
+  const host = 'http://pruebita.webhop.me:5000';
+  // const host = 'http://localhost:5000';
   // const host = "http://192.168.0.168:5000";
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);

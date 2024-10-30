@@ -22,8 +22,8 @@ import FormReceta from "./pages/FormReceta";
 
 
 // HOST intercambiables
-const host = 'http://localhost:5000';
-// const host = 'http://pruebita.webhop.me:5000';
+// const host = 'http://localhost:5000';
+const host = 'http://pruebita.webhop.me:5000';
 // const host = "http://192.168.0.168:5000";
 
 function App() {
