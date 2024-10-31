@@ -17,14 +17,13 @@ import Buscar from "./pages/Buscar";
 import Perfil from "./pages/Perfil";
 import Receta from "./pages/Receta";
 import Page404 from "./pages/404";
-import FormReceta from "./pages/FormReceta";
+import GestioRecetas from "./pages/GestioRecetas";
 // import UserMenu from "./components/UserMenu/UserMenu";
 
 
 // HOST intercambiables
-// const host = 'http://localhost:5000';
-const host = 'http://pruebita.webhop.me:5000';
-// const host = "http://192.168.0.168:5000";
+const domain = import.meta.env.VITE_HOST_API;
+const host = `${domain}:5000`
 
 function App() {
   // VARIABLES
@@ -44,7 +43,7 @@ function App() {
   const links = [
     { href: "/", label: "INICIO" },
     { href: "/buscar", label: "BUSCAR" },
-    { href: "/receta", label: "TIPOS DE CATEGORIAS" },
+    { href: "/receta", label: "TIENDA" },
   ];
   //LOGICA DE COMPONENTE
   const [visible, setMenuVisible] = useState(false);
@@ -93,9 +92,9 @@ function App() {
 
   const logoutAndClearSession = async (data) => {
     try {
-        const logoutResponse = await axios.post(`${host}/api/logout`, data);
+        const logoutResponse = await axios.post(`/api/logout`, data);
         if (logoutResponse.status === 200) {
-            const deleteCookieResponse = await axios.post(`${host}/api/cookie/delete`, data);
+            const deleteCookieResponse = await axios.post(`/api/cookie/delete`, data);
             if (deleteCookieResponse.status === 200) {
                 clearCookiesAndLogout();
             } else {
@@ -120,7 +119,7 @@ function App() {
         // Si todas las cookies están presentes
         if (tokenNav && usernameNav && idUserNav) {
             try {
-                const cookieTokenResponse = await axios.post(`${host}/api/checkeo`, { tokenNav, usernameNav, idUserNav });
+                const cookieTokenResponse = await axios.post(`/api/checkeo`, { tokenNav, usernameNav, idUserNav });
                 if (cookieTokenResponse.status === 200) {
                     setIsLoggedIn(true);
                 } else {
@@ -162,7 +161,7 @@ function App() {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`${host}/api/register`, {
+      const response = await axios.post(`/api/register`, {
         usernameR,
         passwordR,
         passwordRC,
@@ -172,8 +171,7 @@ function App() {
         setMessage(`Usuario creado ID: ${response.data.userId}`);
         setTimeout(() => setMessage(""), 5000);
         try {
-          const cookieTokenResponse = await axios.post(
-            `${host}/token-register`,
+          const cookieTokenResponse = await axios.post(`/api/token-register`,
             {
               usernameNH: usernameR,
             }
@@ -213,10 +211,10 @@ function App() {
   const login = async (e) => {
     e.preventDefault();
     try {
-        const response = await axios.post(`${host}/api/login`, { username, password });
+        const response = await axios.post(`/api/login`, { username, password });
         if (response.status === 200) {
             try {
-                const cookieTokenResponse = await axios.post(`${host}/token-login`, {
+                const cookieTokenResponse = await axios.post(`/api/token-login`, {
                   usernameNH: username,
                 });
                 if (cookieTokenResponse.status === 201) {
@@ -254,7 +252,7 @@ const logout = async (e) => {
     const idUserNav = Cookies.get("id_user");
     try {
       const response = await axios.post(
-        `${host}/api/logout`,
+        `/api/logout`,
         {
           id_user: idUserNav,
         }
@@ -262,7 +260,7 @@ const logout = async (e) => {
 
       if (response.status === 200) {
         try {
-          const cookieTokenDelete = await axios.post(`${host}/api/cookie/delete`, {
+          const cookieTokenDelete = await axios.post(`/api/cookie/delete`, {
             id_user: idUserNav,
           });
 
@@ -306,7 +304,7 @@ const logout = async (e) => {
     console.log(user);
     
     try {
-        const deleteResponse = await axios.delete(`${host}/api/delete`, {
+        const deleteResponse = await axios.delete(`/api/delete`, {
             data: { user } // Asegúrate de pasar 'user' dentro de 'data'
         });
         if (deleteResponse.status === 200) {
@@ -381,16 +379,18 @@ useEffect(() => {
     const llamadoInfoUsuario = async () => {
       const user = Cookies.get("id_user");
       try{
-        const llamado = await axios.post(`${host}/api/info-usuario`, {
+        const llamado = await axios.post(`/api/info-usuario`, {
           id_user: user,
         });
         if (llamado.status === 200){
           // console.log(llamado.data.username)
           setLocalUsername(llamado.data.username);
         }
-      }catch(err){
-        console.log(err);
+      } catch (err) {
+        console.error("Error en la solicitud:", err.message); // Muestra el mensaje de error
+        console.error("Detalles del error:", err.config); // Muestra detalles de la configuración de Axios
       }
+      
     }
     llamadoInfoUsuario();
   }, [])
@@ -581,10 +581,10 @@ useEffect(() => {
         {/* >-------------------- MAIN PAGE --------------------< */}
         <Routes>
           <Route path="/" element={<Home host={host}/>} />
-          <Route path="/receta/:id" element={<Receta host={host} nombreUsuario={localUsername}/>} />
-          <Route path="/buscar" element={<Buscar host={host} />} />
+          <Route path="/receta/:id" element={<Receta/>} />
+          <Route path="/buscar" element={<Buscar/>} />
           <Route path="/perfil/:username" element={<Perfil/>} />
-          <Route path='/formulario-recetas/:localUsername' element={<FormReceta host={host}/>} />
+          <Route path='/Panel de Recetas/:localUsername' element={<GestioRecetas/>} />
 
           {/* NO ESTA AUN */}
           <Route path='/mis-recetas/:localUsername' element={<Perfil nombreUsuario={localUsername}/>}/>
@@ -611,7 +611,7 @@ const UserMenu = ({logout, del_profile}) => {
     const llamadoInfoUsuario = async () => {
       const user = Cookies.get("id_user");
       try{
-        const llamado = await axios.post(`${host}/api/info-usuario`, {
+        const llamado = await axios.post(`/api/info-usuario`, {
           id_user: user,
         });
         if (llamado.status === 200){
@@ -682,8 +682,8 @@ const UserMenu = ({logout, del_profile}) => {
         {isOpen && (
           <div className="menu-content">
             <span className="menu-span" >Hola {localUsername}</span>
-            <a href={`/formulario-recetas/${localUsername}`}>Gestionar recetas</a>
-            <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>
+            <a href={`/Panel de Recetas/${localUsername}`}>Gestionar recetas</a>
+            {/* <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a> */}
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
           </div>
@@ -702,8 +702,8 @@ const UserMenu = ({logout, del_profile}) => {
         {isOpen && (
           <div className="menu-content">
             <span className="menu-span" >Hola {localUsername}</span>
-            <a href={`/formulario-recetas/${localUsername}`}>Gestionar recetas</a>
-            <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>
+            <a href={`/Panel de Recetas/${localUsername}`}>Gestionar recetas</a>
+            {/* <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a> */}
             <a href={`/mis-favoritos/${localUsername}`}>Favoritos</a>
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>

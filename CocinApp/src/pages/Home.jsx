@@ -3,7 +3,7 @@ import axios from "axios";
 import "../index.css";
 import SimpleCard from "../components/card/SimpleCard.jsx";
 
-const Home = ({host}) => {
+const Home = () => {
     const [recetas, setRecetas] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -22,7 +22,7 @@ const Home = ({host}) => {
 
     const fetchRecetas = async () => {
         try {
-            const response = await axios.get(`${host}/api/recetas`);  
+            const response = await axios.get(`/api/recetas`);  
             setRecetas(response.data.recetas);
             setLoading(false);
             console.log(response.data.recetas);

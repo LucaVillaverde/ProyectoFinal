@@ -4,13 +4,17 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
+require('dotenv').config();
 // PORTS
 const PORT = 5000;
 const PORT_FRONTEND = 5173
 // HOST
-const host = 'http://pruebita.webhop.me';
-// const host = 'http://localhost';
-// const host = "http://192.168.0.168";
+
+//***************************************************************** */
+// ¡¡¡HOST  HOST_FRONTEND(localhost) HOST_FRONTEND2(pruebita) !!!!
+//***************************************************************** */
+const host = process.env.HOST_FRONTEND2;
+
 
 function validarEntrada(texto) {
     const espaciosContinuos = /\s{2,}/.test(texto);
@@ -23,7 +27,6 @@ function validarEntrada(texto) {
 
 
 const allowedOrigins = [`${host}:${PORT_FRONTEND}`];
-
 const corsOptions = {
   origin: (origin, callback) => {
     // console.log('Solicitud proveniente del origen:', origin || 'Sin origen (solicitud local o del mismo servidor)');
@@ -102,7 +105,7 @@ app.post('/api/info-usuario', async (req, res) => {
     }
 })
 
-app.post('/token-register', async (req, res) => {
+app.post('/api/token-register', async (req, res) => {
     const { usernameNH } = req.body;
 
     // Generador de token
@@ -152,7 +155,7 @@ app.post('/token-register', async (req, res) => {
 
 
 
-app.post('/token-login', (req, res) => {
+app.post('/api/token-login', (req, res) => {
     const { usernameNH } = req.body;
 
     try {
@@ -753,10 +756,10 @@ app.post("/api/receta-nueva", async (req, res) => {
                 username, 
                 recipeName: receta.recipeName, 
                 difficulty: receta.difficulty, 
+                categories: receta.categories, 
                 description: receta.description, 
                 ingredients: receta.ingredients, 
                 steps: receta.steps, 
-                categories: receta.categories, 
                 tiempo: receta.tiempo 
             } 
         });
@@ -846,5 +849,5 @@ process.on('SIGINT', () => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor escuchando en http://localhost:${PORT}`);
+    console.log(`Servidor escuchando en ${host}:${PORT}`);
 });

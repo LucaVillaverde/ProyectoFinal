@@ -1,20 +1,4 @@
-.tabs {
-    display: flex;
-    cursor: pointer;
-    width: 20%;
-
-  }
-  .tab-button {
-    padding: 10px;
-    border: none;
-    background: lightgray;
-    margin-right: 5px;
-  }
-  .tab-button.active {
-    background: gray;
-    color: white;
-  }
-  .tab-content {
+  .form-content {
     width: 90%;
     height: auto;
     margin: auto;
@@ -22,6 +6,18 @@
     padding: 15px;
     border-radius: 15px ;
     background-color: var(--primary-color);
+  }
+  #difficulty{
+    width: 40%;
+    background-color: #f8b137;
+  }
+
+  #difficulty option{
+    background-color: var(--secondary-color);
+    color: #000;
+    font-weight: bold;
+    padding: 10px 4px;
+    
   }
 
   #formularioAgregarReceta{
@@ -36,9 +32,14 @@ label{display: block;color: #000; font-weight: bolder; text-transform: uppercase
 .inptFormRecipe{
   display: block;
   width: 100%;
+  background-color: #f8b137;
   height: 30px;
+  border: none;
+  border-bottom: 2px solid #4b4b4b;
   margin-bottom: 12px;
+  outline: none;
 }
+.inptFormRecipe::placeholder{color: #000;}
 .selectRecipe{
   width:100%;
   height: 25px;
@@ -53,16 +54,22 @@ option{
   margin: auto;
   height: 100px;
   resize: none;
+  background-color: #f8b137;
 }
+.textAreaDesc::placeholder{color: #000;}
+
 
 .categorias{
   display: flex;
   justify-content: space-between;
-  margin: 8px 0;
+  margin: 5px 0;
 }
 .categories{
   width: 50%;
   height: 170px;
+  padding: 8px;
+  border: 1.5px solid black;
+  background-color: var(--secondary-color);
 }
 .categories option{
   background-color: var(--secondary-color);
@@ -103,16 +110,28 @@ option{
     width: 200px;
     height: 130px;
   }
+  #difficulty{
+    width: 20%;
+  }
+
   .chips{
     width: 200px;
   }
 }
 
 @media (min-width: 1024px){
-  .tab-content{
+  .form-content{
     width: 70%;
     padding: 20px;
   }
+
+  .inptFormRecipe{
+    /* width: 90%; */
+    margin: auto;
+  }
+  /* label{text-align: center;} */
+
+
   .btnAdd{
     width: 30%;
   }

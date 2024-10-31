@@ -5,7 +5,8 @@ import axios from "axios";
 import "../css/search-page.css";
 import image_404 from '../assets/image_404.png';
 
-const Buscar = ({ host }) => {
+const Buscar = ({  }) => {
+    // const host = import.meta.env.VITE_HOST_API;
     const [query, setQuery] = useState("");
     const [selectedCategories, setSelectedCategories] = useState([]);
     const menuRef = useRef(null);
@@ -53,7 +54,7 @@ const Buscar = ({ host }) => {
         }
 
         try {
-            const response = await axios.post(`${host}/api/recetas/filtradas`, params);
+            const response = await axios.post(`/api/recetas/filtradas`, params);
             if (response.status === 200) {
                 if (response.data.recetas.length === 0) {
                     // No hay recetas, ir a la página 1
