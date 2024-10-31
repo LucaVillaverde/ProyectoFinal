@@ -17,7 +17,7 @@ import Buscar from "./pages/Buscar";
 import Perfil from "./pages/Perfil";
 import Receta from "./pages/Receta";
 import Page404 from "./pages/404";
-import FormReceta from "./pages/FormReceta";
+import GestioRecetas from "./pages/GestioRecetas";
 // import UserMenu from "./components/UserMenu/UserMenu";
 
 
@@ -581,10 +581,10 @@ useEffect(() => {
         {/* >-------------------- MAIN PAGE --------------------< */}
         <Routes>
           <Route path="/" element={<Home host={host}/>} />
-          <Route path="/receta/:id" element={<Receta host={host} nombreUsuario={localUsername}/>} />
-          <Route path="/buscar" element={<Buscar host={host} />} />
+          <Route path="/receta/:id" element={<Receta/>} />
+          <Route path="/buscar" element={<Buscar/>} />
           <Route path="/perfil/:username" element={<Perfil/>} />
-          <Route path='/formulario-recetas/:localUsername' element={<FormReceta host={host}/>} />
+          <Route path='/Panel de Recetas/:localUsername' element={<GestioRecetas/>} />
 
           {/* NO ESTA AUN */}
           <Route path='/mis-recetas/:localUsername' element={<Perfil nombreUsuario={localUsername}/>}/>
@@ -682,8 +682,8 @@ const UserMenu = ({logout, del_profile}) => {
         {isOpen && (
           <div className="menu-content">
             <span className="menu-span" >Hola {localUsername}</span>
-            <a href={`/formulario-recetas/${localUsername}`}>Gestionar recetas</a>
-            <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>
+            <a href={`/Panel de Recetas/${localUsername}`}>Gestionar recetas</a>
+            {/* <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a> */}
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
           </div>
@@ -702,8 +702,8 @@ const UserMenu = ({logout, del_profile}) => {
         {isOpen && (
           <div className="menu-content">
             <span className="menu-span" >Hola {localUsername}</span>
-            <a href={`/formulario-recetas/${localUsername}`}>Gestionar recetas</a>
-            <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>
+            <a href={`/Panel de Recetas/${localUsername}`}>Gestionar recetas</a>
+            {/* <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a> */}
             <a href={`/mis-favoritos/${localUsername}`}>Favoritos</a>
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>

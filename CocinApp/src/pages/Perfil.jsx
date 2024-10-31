@@ -7,7 +7,6 @@ import Cookies from 'js-cookie';
 
 
 const Perfil = () => {
-  const host = import.meta.env.VITE_HOST_API;
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);
   const [nombreUsuario, setNombreUsuario]= useState('');
@@ -16,13 +15,14 @@ const Perfil = () => {
     const id_user = Cookies.get('id_user');
     const obtenerNombre = async () => {
       try{
-        const response = await axios.post(`:5000/api/info-usuario`, {
+        const response = await axios.post(`/api/info-usuario`, {
           id_user,
         });
         if(response.status === 200){
           setNombreUsuario(response.data.username);
           llamado(response.data.username);
         }
+        console.log(nombreUsuario)
       }catch(err){
         console.error(err);
       }
@@ -34,7 +34,7 @@ const Perfil = () => {
 const llamado = (nombre) =>{
     const llamadoPersonal = async () => {
       try {
-        const response = await axios.post(`:5000/api/recetas/personales`, {
+        const response = await axios.post(`/api/recetas/personales`, {
           usernameNH: nombre,
         });
         if (response.status === 200) {
@@ -67,59 +67,9 @@ const llamado = (nombre) =>{
     };
 }, []);
 
-const llamarRecetas = async () => {
-  try {
-      const response = await axios.post(`:5000/api/recetas/personales`, {
-        usernameNH: nombreUsuario,
-      });
-      if (response.status === 200) {
-          setRecetas(response.data.recetas);
-          console.log(response.data.recetas);
-          setInfo(true);
-      } else if (response.status === 404) {
-        setInfo(false);
-        window.alert("No tienes recetas para mostrar.");
-        console.log("No tienes recetas para mostrar.");
-      }
-
-  } catch (error) {
-      console.log(error);
-  }
-};
-
-  const agregarRecipe = async () => {
-    try {
-      const response = await axios.post(`:5000/api/receta-nueva`, {
-        username: nombreUsuario,
-        recipe_name: "Ensalada Sana version Helado",
-        difficulty: "Hardcore",
-        description: "Una ensalada sana version helado",
-        ingredients: "50 papas, 1kg de helado",
-        steps: "Servir las Papas fritas caseras, para despues comerlas.",
-        categories: "Saludable, Ensalada",
-        tiempo: "2 segundos en servir",
-      });
-  
-      if (response.status === 201) {
-        console.log("Se ha creado exitosamente la receta.");
-        llamarRecetas();
-      } else {
-        console.error(response.status)
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-
   return (
     <>
-    <span>USUARIO ID:{nombreUsuario}</span>
-    <br></br>
-    <button onClick={llamarRecetas}>Traer tus recetas</button>
-    <br></br>
-    <button onClick={agregarRecipe}>Agregar Receta</button>
-    <br></br>
+    <span>USUARIO: {nombreUsuario}</span>
       {!info ?(
         <>
         <span>No tienes recetas para mostrar</span>

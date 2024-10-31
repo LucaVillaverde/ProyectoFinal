@@ -1,20 +1,4 @@
-.tabs {
-    display: flex;
-    cursor: pointer;
-    width: 20%;
-
-  }
-  .tab-button {
-    padding: 10px;
-    border: none;
-    background: lightgray;
-    margin-right: 5px;
-  }
-  .tab-button.active {
-    background: gray;
-    color: white;
-  }
-  .tab-content {
+  .form-content {
     width: 90%;
     height: auto;
     margin: auto;
@@ -136,7 +120,7 @@ option{
 }
 
 @media (min-width: 1024px){
-  .tab-content{
+  .form-content{
     width: 70%;
     padding: 20px;
   }
