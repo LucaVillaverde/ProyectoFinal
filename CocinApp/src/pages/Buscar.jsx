@@ -3,22 +3,24 @@ import { resolvePath, useParams } from "react-router-dom";
 import SimpleCard from "../components/card/SimpleCard.jsx";
 import axios from "axios";
 import "../css/search-page.css";
-import image_404 from '../assets/image_404.png'
+import image_404 from '../assets/image_404.png';
 
 const Buscar = ({ host }) => {
     const [query, setQuery] = useState("");
-    const [selectedCategories, setSelectedCategories] = useState([]); 
+    const [selectedCategories, setSelectedCategories] = useState([]);
     const menuRef = useRef(null);
     const [recetas, setRecetas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [noRecetas, setNoRecetas] = useState();
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
-    useEffect(()=>{
-        if(localStorage.getItem("errorRecetas")){
+    useEffect(() => {
+        if (localStorage.getItem("errorRecetas")) {
             console.error(localStorage.getItem("errorRecetas"));
             localStorage.removeItem("errorRecetas");
         }
-    },[])
+    }, []);
 
     useEffect(() => {
         const metaDescription = document.createElement("meta");
@@ -35,177 +37,62 @@ const Buscar = ({ host }) => {
         };
     }, []);
 
+    useEffect(() => {
+        fetchRecetas(currentPage); // Cargar recetas iniciales
+    }, [currentPage]); // Cambia la carga de recetas al cambiar la página
 
-    useEffect(()=>{
-        if (query.length !== 0 && selectedCategories.length === 0){
-            const filtroNombreReceta = async () => {
-                try{
-                    const response = await axios.post(`${host}/api/recetas/filtradas`,{
-                        nombreReceta: query,
-                    })
-        
-                    if (response.status === 200){
-                            setRecetas(response.data.recetas);
-                            setLoading(false);
-                            console.log(response.data.recetas);
-                    }
-                    if (response.status === 404){
-                        window.alert(`No hay Receta con un nombre similar a: ${query}. Se cargaran todas las recetas generales.`)
-                        setQuery("");
-                        fetchRecetas();
-                    }
-                }catch(err){
-                    console.error(err);
-                    window.alert(`No hay Receta con un nombre similar a: ${query}. Se cargaran todas las recetas generales.`)
-                    setQuery("");
-                    fetchRecetas();
+    const fetchRecetas = async (page = 1) => {
+        const params = { page };
+
+        if (query) {
+            params.nombreReceta = query; // Agregar filtro por nombre
+        }
+
+        if (selectedCategories.length > 0) {
+            params.arrayCategorias = selectedCategories; // Agregar filtro por categoría
+        }
+
+        try {
+            const response = await axios.post(`${host}/api/recetas/filtradas`, params);
+            if (response.status === 200) {
+                if (response.data.recetas.length === 0) {
+                    // No hay recetas, ir a la página 1
+                    setRecetas([]);
+                    setTotalPages(1);
+                    setCurrentPage(1);
+                } else {
+                    setRecetas(response.data.recetas);
+                    setTotalPages(response.data.totalPages || 1); // Establecer total de páginas
                 }
+                setLoading(false);
+            } else {
+                setRecetas([]);
+                setTotalPages(1); // Si no hay recetas, establecer totalPages a 1
+                setLoading(false);
+                setCurrentPage(1); // Regresar a la página 1 en caso de error
             }
-            
-            filtroNombreReceta();
-        } else if (query.length === 0 && selectedCategories.length === 0){
-            fetchRecetas();
-        } else if (selectedCategories.length !== 0 && query.length === 0){
-            const fetchRecetasCategorizadas = async () => {
-                const checkboxes = document.querySelectorAll('.filter-inpt')
-                try {
-                    const response = await axios.post(`${host}/api/recetas/filtradas`, {
-                        arrayCategorias: selectedCategories, // Se envía en el cuerpo
-                    });
-                    if (response.status === 200) {
-                        setRecetas(response.data.recetas);
-                        setLoading(false);
-                        console.log(response.data.recetas);
-                    } else {
-                        localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
-                        window.alert('No hay recetas con esas caracteristicas.');
-                        checkboxes.forEach(checkbox => checkbox.checked = false);
-                        setSelectedCategories([]);
-                        fetchRecetas();
-                    }
-                } catch (error) {
-                    localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
-                    checkboxes.forEach(checkbox => checkbox.checked = false);
-                    setSelectedCategories([]);
-                    fetchRecetas();
-                    window.alert('No hay recetas con esas caracteristicas.');
-                    console.log(error);
-                }
-            };
-            fetchRecetasCategorizadas();
-        } else if (query.length !== 0 && selectedCategories.length !== 0){
-            const fetchRecetasNombre_Categoria = async () => {
-                const checkboxes = document.querySelectorAll('.filter-inpt')
-                try {
-                    const response = await axios.post(`${host}/api/recetas/filtradas`, {
-                        arrayCategorias: selectedCategories, // Se envía en el cuerpo
-                        nombreReceta: query,
-                    });
-                    if (response.status === 200) {
-                        setRecetas(response.data.recetas);
-                        setLoading(false);
-                        console.log(response.data.recetas);
-                    } else {
-                        localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
-                        window.alert('No hay recetas con esas caracteristicas.');
-                        checkboxes.forEach(checkbox => checkbox.checked = false);
-                        setQuery('');
-                        setSelectedCategories([]);
-                        fetchRecetas();
-                    }
-                } catch (error) {
-                    localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
-                    checkboxes.forEach(checkbox => checkbox.checked = false);
-                    setQuery('');
-                    setSelectedCategories([]);
-                    fetchRecetas();
-                    window.alert('No hay recetas con esas caracteristicas.');
-                    console.log(error);
-                }
-            };
-            fetchRecetasNombre_Categoria();
+        } catch (error) {
+            console.error(error);
+            setLoading(false);
+            setRecetas([]);
+            setTotalPages(1); // Manejo de error, también establece totalPages a 1
+            setCurrentPage(1); // Regresar a la página 1 en caso de error
         }
-    },[query, selectedCategories])
+    };
 
+    // Cargar recetas al cambiar la consulta o categorías
     useEffect(() => {
-        // Al montar, asegurarte de que las categorías están deseleccionadas
-        setSelectedCategories([]);
-        return () => {
-            // Opcionalmente puedes limpiar el estado aquí si es necesario
-            setSelectedCategories([]);
-        };
-    }, []);
-
-    useEffect(() => {
-        if (query === ''){
-            document.title = `CocinApp : ${query}`;
-        }
-        document.title = `CocinApp : Buscar`;
-    });
+        fetchRecetas(currentPage); // Llamar a fetchRecetas con la página actual
+        window.scrollTo(0, 0); // Desplazar a la parte superior de la página
+    }, [query, selectedCategories, currentPage]); // Dependencias incluyen currentPage
 
     const handleCheckboxChange = (category) => {
-        if (selectedCategories.includes(category)) {
-            setSelectedCategories(selectedCategories.filter(cat => cat !== category));
-        } else {
-            setSelectedCategories([...selectedCategories, category]);
-        }
+        setSelectedCategories((prevCategories) =>
+            prevCategories.includes(category)
+                ? prevCategories.filter((cat) => cat !== category)
+                : [...prevCategories, category]
+        );
     };
-    
-    // Monitorear el cambio de selectedCategories
-    // useEffect(() => {
-    //     if (selectedCategories.length === 0) {
-    //         console.log(`No hay categorias seleccionadas`);
-    //         fetchRecetas();
-    //         return;
-    //     }else{
-    //         const fetchRecetasCategorizadas = async () => {
-    //             try {
-    //                 const response = await axios.post(`${host}/api/recetas/filtradas`, {
-    //                     arrayCategorias: selectedCategories, // Se envía en el cuerpo
-    //                 });
-    //                 if (response.status === 200) {
-    //                     setRecetas(response.data.recetas);
-    //                     setLoading(false);
-    //                     console.log(response.data.recetas);
-    //                 } else {
-    //                     localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
-    //                     location.reload();
-    //                 }
-    //             } catch (error) {
-    //                 localStorage.setItem('errorRecetas', `No habia recetas con ${selectedCategories} como categoria/s.`);
-    //                 location.reload();
-    //                 console.log(error);
-    //             }
-    //         };
-            
-    //         fetchRecetasCategorizadas();
-    //     }
-    // }, [selectedCategories]);
-
-    // BUSQUEDA
-    const search = (e) => {
-        e.preventDefault();
-        console.log("BUSCAR:" + query);
-        document.title = `CocinApp : ${query}`;
-    };
-
-    // RECETAS (desde DB)
-    const fetchRecetas = async () => {
-        try {
-            const response = await axios.get(`${host}/api/recetas`);
-            setRecetas(response.data.recetas);
-            setLoading(false);
-            console.log(response.data.recetas);
-        } catch (error) {
-            console.log(error);
-            setLoading(false);
-        }
-    };
-    // Traer Recetas (actualizando)
-    useEffect(() => {
-        fetchRecetas();
-        setNoRecetas(false);
-    }, []);
 
     return (
         <>
@@ -213,7 +100,7 @@ const Buscar = ({ host }) => {
             <div className="search-cont">
                 <h2 className="search-title">BUSCAR RECETAS</h2>
                 <div className="search-filters">
-                    <form className="search-bar-cont">
+                    <form className="search-bar-cont" onSubmit={(e) => e.preventDefault()}>
                         <div className="search-bar">
                             <input
                                 className="search-inpt"
@@ -238,108 +125,20 @@ const Buscar = ({ host }) => {
                         </div>
                     </form>
                     <div>
-                        <h3>Categorias</h3>
-                        <div className="filters" >
+                        <h3>Categorías</h3>
+                        <div className="filters">
                             <div className="filter-menu" ref={menuRef}>
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Entrada"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Entrada
-                                </label>
-
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Sopa"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Sopa
-                                </label>
-
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Caldo"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Caldo
-                                </label>
-
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Ensalada"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Ensalada
-                                </label>
-
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Plato Principal"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Plato Principal
-                                </label>
-
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Guarnición"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Guarnición
-                                </label>
-
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Postre"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Postre
-                                </label>
-
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Bebida"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Bebida
-                                </label>
-
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Vegetariana"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Vegetariana
-                                </label>
-
-                                <label className="filter">
-                                    <input
-                                        type="checkbox"
-                                        className="filter-inpt"
-                                        value="Saludable"
-                                        onChange={(e) => handleCheckboxChange(e.target.value)}
-                                    />
-                                    Saludable
-                                </label>
+                                {['Entrada', 'Sopa', 'Caldo', 'Ensalada', 'Plato Principal', 'Guarnición', 'Postre', 'Bebida', 'Vegetariana', 'Saludable'].map(category => (
+                                    <label className="filter" key={category}>
+                                        <input
+                                            type="checkbox"
+                                            className="filter-inpt"
+                                            value={category}
+                                            onChange={(e) => handleCheckboxChange(e.target.value)}
+                                        />
+                                        {category}
+                                    </label>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -348,18 +147,9 @@ const Buscar = ({ host }) => {
             <div className="recipe-content">
                 {loading ? (
                     <p>Cargando recetas...</p>
-                ) : noRecetas ? (
-                        <div id="contenedorIMG404">
-                                <div className='container'>
-                                <div className='cont-404'>
-                                    <h2 className='title-404' >PAGINA NO ENCONTRADA ERROR: {error}</h2>
-                                    <img src={image_404} alt="No encontrado" className='image-404'/>
-                                </div>
-                                </div>
-                        </div>
                 ) : (
                     <div className="contenedor-tarjetas">
-                        {recetas.map(
+                        {recetas.length > 0 ? recetas.map(
                             ({
                                 id_recipe,
                                 tiempo,
@@ -377,18 +167,39 @@ const Buscar = ({ host }) => {
                                     <SimpleCard
                                         tiempo={tiempo}
                                         image={
-                                            "https://placehold.co/400x250/000/fff/png"
-                                        } // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
+                                            image || "https://placehold.co/400x250/000/fff/png" // Usar imagen de la DB o una por defecto
+                                        }
                                         title={recipe_name}
-                                        author={id_recipe}
+                                        author={username}
                                         dificulty={difficulty}
                                         category={categories} // Si tienes categorías como un array, deberías ajustarlo
                                     />
                                 </a>
                             )
+                        ) : (
+                            <p>No hay recetas que mostrar.</p>
                         )}
                     </div>
                 )}
+                <div className="contenedorPaginacionBusqueda">
+                <div className="paginacionBusqueda">
+                    <button
+                        className="btn-page"
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1 || totalPages === 0}
+                    >
+                        Anterior
+                    </button>
+                    <span className="pageNum">{currentPage} / {totalPages}</span>
+                    <button
+                        className="btn-page"
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                    >
+                        Siguiente
+                    </button>
+                </div>
+                </div>
             </div>
         </>
     );

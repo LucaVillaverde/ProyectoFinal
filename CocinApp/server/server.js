@@ -617,82 +617,107 @@ app.post('/api/cookie/delete', async (req, res) => {
 
 // ------------------------ API REST (Recetas) -------------------------
 app.get('/api/recetas', (req, res) => {
-    const getQuery = 'SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT 8'; // DESC para traer las ultimas LIMIT 4 para traer solo 4 si queres traer las primeras (id_recipe mas bajo) entonces en vez de usar "DESC" usas "ASC".
-    const getQuery1 = 'SELECT * FROM Recipe ORDER BY id_recipe DESC';
-    db.all(getQuery, [], (err, rows) => {
+    const limit = 8; // Número de recetas por página
+    const page = parseInt(req.query.page) || 1; // Página actual (si no se manda, por defecto será la 1)
+    const offset = (page - 1) * limit; // Calcular el desplazamiento
+
+    // Consulta para obtener las recetas con paginación
+    const getQuery = `SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT ? OFFSET ?`;
+
+    // Consulta para contar el número total de recetas (sin límite ni offset)
+    const countQuery = 'SELECT COUNT(*) as total FROM Recipe';
+
+    // Primero obtener el total de recetas
+    db.get(countQuery, [], (err, countResult) => {
         if (err) {
-            return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
+            return res.status(500).json({ message: 'Error al contar las recetas.' });
         }
-        if (rows.length === 0) {
-            return res.status(404).json({ message: 'No se han encontrado recetas.' });
-        }
-        // No necesitas todas estas verificaciones si estás devolviendo todos los datos.
-        return res.status(200).json({
-            message: 'Se han encontrado todos los datos de las recetas.',
-            recetas: rows // Devolver todas las recetas
+        const totalRecetas = countResult.total;
+        const totalPages = Math.ceil(totalRecetas / limit);
+
+        // Luego obtener las recetas correspondientes a la página
+        db.all(getQuery, [limit, offset], (err, rows) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error al obtener las recetas.' });
+            }
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'No se han encontrado recetas.' });
+            }
+            return res.status(200).json({
+                message: 'Recetas encontradas.',
+                recetas: rows, // Devolver las recetas
+                totalPages: totalPages, // Devolver el total de páginas
+            });
         });
     });
 });
 
 app.post('/api/recetas/filtradas', (req, res) => {
-    // const arrayCategorias = Array.isArray(req.body.arrayCategorias) ? req.body.arrayCategorias : [req.body.arrayCategorias];
-    // const nombreReceta = req.body.nombreReceta;
-    const { nombreReceta, arrayCategorias } = req.body;
+    const limit = 8; // Limitar a 8 recetas por página
+    const page = parseInt(req.body.page) || 1; // Obtener el número de página desde el cuerpo
+    const offset = (page - 1) * limit; // Calcular el offset
 
+    const { nombreReceta, arrayCategorias } = req.body; // Obtener los filtros desde el cuerpo de la solicitud
 
-    // Solo buscar por categorías si hay alguna
-    if (arrayCategorias && arrayCategorias.length > 0 && !nombreReceta) {
+    // Consulta base para contar recetas con filtros
+    let countQuery = 'SELECT COUNT(*) as total FROM Recipe';
+    let whereClauses = [];
+    let params = [];
+
+    if (arrayCategorias && arrayCategorias.length > 0) {
         const placeholders = arrayCategorias.map(() => 'categories LIKE ?').join(' AND ');
-        const query = `SELECT * FROM Recipe WHERE ${placeholders}`;
-        const params = arrayCategorias.map(cat => `%${cat}%`);
-
-        db.all(query, params, (err, rows) => {
-            if (err) {
-                return res.status(500).json({ message: 'Error interno del servidor' });
-            }
-            if (rows.length === 0) {
-                return res.status(404).json({ message: 'No se encontraron recetas para las categorías seleccionadas' });
-            }
-            return res.status(200).json({
-                message: 'Recetas encontradas exitosamente',
-                recetas: rows
-            });
-        });
-    } else if (nombreReceta && !arrayCategorias) { // Buscar solo por nombre
-        const querynombre = 'SELECT * FROM Recipe WHERE LOWER(recipe_name) LIKE LOWER(?)';
-
-        db.all(querynombre, [`%${nombreReceta}%`], (err, rows) => {
-            if (err) {
-                return res.status(500).json({ message: "Ha habido un error al tratar de conseguir la o las recetas mediante el nombre." });
-            }
-            if (rows.length === 0) {
-                return res.status(404).json({ message: 'No se encontraron recetas mediante el nombre.' });
-            }
-            return res.status(200).json({ 
-                message: 'Recetas encontradas exitosamente',
-                recetas: rows
-            });
-        });
-    } else if (nombreReceta && arrayCategorias.length > 0){
-        const placeholders = arrayCategorias.map(() => 'categories LIKE ?').join(' AND ');
-        const query = `SELECT * FROM Recipe WHERE LOWER(recipe_name) LIKE LOWER(?) AND ${placeholders}`;
-        const params = [`%${nombreReceta}%`, ...arrayCategorias.map(cat => `%${cat}%`)];
-
-        db.all(query, params, (err, rows) => {
-            if (err) {
-                return res.status(500).json({ message: 'Error interno del servidor' });
-            }
-            if (rows.length === 0) {
-                return res.status(404).json({ message: 'No se encontraron recetas para las categorías y nombre proporcionados.' });
-            }
-            return res.status(200).json({
-                message: 'Recetas encontradas exitosamente',
-                recetas: rows
-            });
-        });
+        whereClauses.push(`(${placeholders})`);
+        params.push(...arrayCategorias.map(cat => `%${cat}%`));
     }
-});
 
+    if (nombreReceta) {
+        whereClauses.push('LOWER(recipe_name) LIKE LOWER(?)');
+        params.push(`%${nombreReceta}%`);
+    }
+
+    if (whereClauses.length > 0) {
+        countQuery += ' WHERE ' + whereClauses.join(' AND ');
+    }
+
+    // Consulta para obtener las recetas filtradas
+    const baseQuery = 'SELECT * FROM Recipe';
+    let query = baseQuery;
+    
+    if (whereClauses.length > 0) {
+        query += ' WHERE ' + whereClauses.join(' AND ');
+    }
+
+    query += ' ORDER BY id_recipe DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset); // Agregar limit y offset a los parámetros
+
+    // Primero, contar el total de recetas filtradas
+    db.get(countQuery, params.slice(0, params.length - 2), (err, countResult) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error al obtener el total de recetas filtradas.' });
+        }
+
+        const totalRecetas = countResult.total;
+        const totalPages = Math.ceil(totalRecetas / limit);
+
+        // Luego, obtener las recetas correspondientes a la página con filtros
+        db.all(query, params, (err, rows) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error al obtener las recetas filtradas.' });
+            }
+            if (rows.length === 0) {
+                return res.status(404).json({ message: 'No se encontraron recetas para los filtros aplicados.' });
+            }
+
+            return res.status(200).json({
+                message: 'Recetas encontradas exitosamente',
+                recetas: rows,
+                total: totalRecetas, // Devolver el total filtrado
+                totalPages: totalPages, // Devolver el total de páginas
+                currentPage: page // Devolver la página actual
+            });
+        });
+    });
+});
 
 
 app.post('/api/recetas/personales', (req, res) => {
@@ -718,16 +743,30 @@ app.post('/api/recetas/personales', (req, res) => {
 })
 
 app.post("/api/receta-nueva", async (req, res) => {
-    const { username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo } = req.body;
+    const { username, receta } = req.body;
 
-    if (!username || !recipe_name || !difficulty || !description || !ingredients || !steps || !categories || !tiempo) {
-        return res.status(400).json({ message: `No se ha indicado uno o varios parámetros. ${ username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo }` });
+    // Validar si todos los parámetros requeridos están presentes
+    if (!username || !receta.recipeName || !receta.difficulty || !receta.description || !receta.ingredients || !receta.steps || !receta.categories || !receta.tiempo) {
+        return res.status(400).json({ 
+            message: `No se ha indicado uno o varios parámetros.`, 
+            detalles: { 
+                username, 
+                recipeName: receta.recipeName, 
+                difficulty: receta.difficulty, 
+                description: receta.description, 
+                ingredients: receta.ingredients, 
+                steps: receta.steps, 
+                categories: receta.categories, 
+                tiempo: receta.tiempo 
+            } 
+        });
     }
-    
-    try {
-        const categoryArray = categories.split(',').map(cat => cat.trim());
 
+    try {
+        const categoryArray = receta.categories;
         const placeholders = categoryArray.map(() => '?').join(',');
+
+        // Verificar que las categorías existen en la tabla `Categories`
         const checkCategoriesQuery = `SELECT category FROM Categories WHERE category IN (${placeholders})`;
         console.log("Verificando categorías con consulta:", checkCategoriesQuery);
 
@@ -740,27 +779,47 @@ app.post("/api/receta-nueva", async (req, res) => {
 
         const existingCategories = rows.map(row => row.category);
         const missingCategories = categoryArray.filter(cat => !existingCategories.includes(cat));
+
         if (missingCategories.length > 0) {
-            return res.status(400).json({ message: `Una o más categorías no existen: ${missingCategories.join(', ')}` });
+            return res.status(400).json({ 
+                message: `Una o más categorías no existen: ${missingCategories.join(', ')}` 
+            });
         }
 
+        // Insertar la receta con las categorías almacenadas como cadena separada por comas
         const insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
         console.log("Insertando receta con consulta:", insertQuery);
 
-        await new Promise((resolve, reject) => {
-            db.run(insertQuery, [username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo], function(err) {
+        const lastID = await new Promise((resolve, reject) => {
+            db.run(insertQuery, [
+                username, 
+                receta.recipeName, 
+                receta.difficulty, 
+                receta.description, 
+                receta.ingredients, 
+                receta.steps, 
+                categoryArray.join(', '), // Guardar las categorías como una cadena separada por comas
+                receta.tiempo
+            ], function(err) {
                 if (err) reject(err);
                 resolve(this.lastID);
             });
         });
 
-        return res.status(201).json({ message: "Se ha creado la receta." });
+        return res.status(201).json({ 
+            message: "Se ha creado la receta.", 
+            recetaId: lastID 
+        });
 
     } catch (err) {
         console.error("Error en el servidor:", err.message);
-        return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+        return res.status(500).json({ 
+            message: 'Error interno del servidor.', 
+            error: err.message 
+        });
     }
 });
+
 
 
 app.post('/api/receta-id', (req, res) => {

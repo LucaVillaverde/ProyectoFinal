@@ -4,7 +4,7 @@ import axios from "axios";
 import "../css/form.css";
 
 const AddForm = memo(({ formData, handleInputChange, handleCategoryChange, handleRemoveCategory, llamadaDB }) => (
-  <form onSubmit={llamadaDB}>
+  <form id="formularioAgregarReceta" onSubmit={llamadaDB}>
     <label htmlFor="recipeName">Nombre de la Receta:</label>
     <input
       className="inptFormRecipe"
@@ -35,7 +35,7 @@ const AddForm = memo(({ formData, handleInputChange, handleCategoryChange, handl
     <div className="categorias">
       <select
         id="categories"
-        name="categories"
+        className="categories"
         multiple
         onChange={handleCategoryChange}
       >
@@ -104,7 +104,7 @@ const AddForm = memo(({ formData, handleInputChange, handleCategoryChange, handl
       required
     />
     
-    <button type="submit">Enviar</button>
+    <button className="btnAdd" type="submit">Enviar</button>
   </form>
 ));
 
@@ -176,6 +176,18 @@ const FormReceta = ({ host }) => {
 
   const llamadaDB = useCallback((e) => {
     e.preventDefault();
+    const agregarReceta = async()=>{
+      try{
+        const response = await axios.post(`${host}/api/receta-nueva`,{
+          username: nombreUsuario,
+          receta: formData,
+        })
+      }catch(err){
+        console.log(err, "Hola, ha habido un error xd.");
+      }
+    }
+    agregarReceta();
+    console.log(nombreUsuario);
     console.log(formData);
   }, [formData]);
 
