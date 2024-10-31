@@ -16,6 +16,7 @@ import Home from "./pages/Home";
 import Buscar from "./pages/Buscar";
 import Perfil from "./pages/Perfil";
 import Receta from "./pages/Receta";
+import Tienda from "./pages/Tienda";
 import Page404 from "./pages/404";
 import GestioRecetas from "./pages/GestioRecetas";
 // import UserMenu from "./components/UserMenu/UserMenu";
@@ -42,8 +43,8 @@ function App() {
   // PATH
   const links = [
     { href: "/", label: "INICIO" },
-    { href: "/buscar", label: "BUSCAR" },
-    { href: "/receta", label: "TIENDA" },
+    { href: "/Buscar", label: "BUSCAR" },
+    { href: "/tienda", label: "TIENDA" },
   ];
   //LOGICA DE COMPONENTE
   const [visible, setMenuVisible] = useState(false);
@@ -582,12 +583,13 @@ useEffect(() => {
         <Routes>
           <Route path="/" element={<Home host={host}/>} />
           <Route path="/receta/:id" element={<Receta/>} />
-          <Route path="/buscar" element={<Buscar/>} />
+          <Route path="/Buscar" element={<Buscar/>} />
           <Route path="/perfil/:username" element={<Perfil/>} />
           <Route path='/Panel de Recetas/:localUsername' element={<GestioRecetas/>} />
+          <Route path='/mis-recetas/:localUsername' element={<Perfil/>}/>  {/* CAMBIAR */}
+          <Route path='/tienda' element={<Tienda/>}/>
 
           {/* NO ESTA AUN */}
-          <Route path='/mis-recetas/:localUsername' element={<Perfil nombreUsuario={localUsername}/>}/>
           <Route path="/modificar-receta/:id" element={<Perfil />} />
           <Route path="/eliminar-receta/:id:" element={<Perfil />} />
           {/* Pagina 404 */}

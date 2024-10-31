@@ -264,46 +264,45 @@ const GestioRecetas = () => {
                     />
                 </div>
                 <h2 className="title">Mis recetas</h2>
-                <div className="contenedor-tarjetas">
-                    {!info ? (
-                        <>
-                            <span>No tienes recetas para mostrar</span>
-                        </>
-                    ) : (
-                        <>
-                            <div className="contenedor-tarjetas">
-                                {recetas.map(
-                                    ({
-                                        id_recipe,
-                                        tiempo,
-                                        image,
-                                        recipe_name,
-                                        username,
-                                        difficulty,
-                                        categories,
-                                    }) => (
-                                        <a
-                                            className="card"
-                                            href={`/receta/${id_recipe}`}
-                                            key={id_recipe}
-                                        >
-                                            <SimpleCard
-                                                tiempo={tiempo}
-                                                image={
-                                                    "https://placehold.co/400x250/000/fff/png"
-                                                }
-                                                title={recipe_name}
-                                                author={username}
-                                                dificulty={difficulty}
-                                                category={categories}
-                                            />
-                                        </a>
-                                    )
-                                )}
-                            </div>
-                        </>
-                    )}
-                </div>
+
+                {!info ? (
+                    <>
+                        <span>No tienes recetas para mostrar</span>
+                    </>
+                ) : (
+                    <>
+                        <div className="contenedor-tarjetas">
+                            {recetas.map(
+                                ({
+                                    id_recipe,
+                                    tiempo,
+                                    image,
+                                    recipe_name,
+                                    username,
+                                    difficulty,
+                                    categories,
+                                }) => (
+                                    <a
+                                        className="card"
+                                        href={`/receta/${id_recipe}`}
+                                        key={id_recipe}
+                                    >
+                                        <SimpleCard
+                                            tiempo={tiempo}
+                                            image={
+                                                "https://placehold.co/400x250/000/fff/png"
+                                            }
+                                            title={recipe_name}
+                                            author={username}
+                                            dificulty={difficulty}
+                                            category={categories}
+                                        />
+                                    </a>
+                                )
+                            )}
+                        </div>
+                    </>
+                )}
             </div>
         </>
     );
