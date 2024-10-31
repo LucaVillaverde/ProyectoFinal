@@ -24,7 +24,7 @@ const Receta = ({host, nombreUsuario}) => {
 
     const recipe2 = async () => {
             try {
-                const response = await axios.post(`${host}/api/receta-id`, {
+                const response = await axios.post(`/api/receta-id`, {
                     id_recipe : id
                 });
                 setReceta(response.data.receta);

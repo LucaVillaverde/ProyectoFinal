@@ -16,7 +16,7 @@ const Perfil = () => {
     const id_user = Cookies.get('id_user');
     const obtenerNombre = async () => {
       try{
-        const response = await axios.post(`${host}:5000/api/info-usuario`, {
+        const response = await axios.post(`:5000/api/info-usuario`, {
           id_user,
         });
         if(response.status === 200){
@@ -34,7 +34,7 @@ const Perfil = () => {
 const llamado = (nombre) =>{
     const llamadoPersonal = async () => {
       try {
-        const response = await axios.post(`${host}:5000/api/recetas/personales`, {
+        const response = await axios.post(`:5000/api/recetas/personales`, {
           usernameNH: nombre,
         });
         if (response.status === 200) {
@@ -69,7 +69,7 @@ const llamado = (nombre) =>{
 
 const llamarRecetas = async () => {
   try {
-      const response = await axios.post(`${host}:5000/api/recetas/personales`, {
+      const response = await axios.post(`:5000/api/recetas/personales`, {
         usernameNH: nombreUsuario,
       });
       if (response.status === 200) {
@@ -89,7 +89,7 @@ const llamarRecetas = async () => {
 
   const agregarRecipe = async () => {
     try {
-      const response = await axios.post(`${host}:5000/api/receta-nueva`, {
+      const response = await axios.post(`:5000/api/receta-nueva`, {
         username: nombreUsuario,
         recipe_name: "Ensalada Sana version Helado",
         difficulty: "Hardcore",

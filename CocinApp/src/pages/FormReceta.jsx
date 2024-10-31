@@ -113,6 +113,7 @@ const FormReceta = () => {
   const [activeTab, setActiveTab] = useState("Agregar");
   const domain = import.meta.env.VITE_HOST_API2;
   const host = `${domain}:5000`;
+ 
 
   const [formData, setFormData] = useState({
     recipeName: "",
@@ -127,8 +128,10 @@ const FormReceta = () => {
   // Effect para obtener información del usuario
   useEffect(() => {
     const llamadoUsuario = async () => {
+      console.log(host);
       try{
-        const response = await axios.post(`${host}/info-usuario`, {
+        console.log(host);
+        const response = await axios.post('/api/info-usuario', {
           id_user: Cookies.get("id_user"),
         });
         if (response.status === 200) {
@@ -180,10 +183,11 @@ const FormReceta = () => {
     e.preventDefault();
     const agregarReceta = async ()=>{
       try{
-        const response = await axios.post(`${host}/api/receta-nueva`,{
+        const response = await axios.post('/api/receta-nueva',{
           username: nombreUsuario,
           receta: formData,
         })
+        alert(`Se ha agregado la receta ${formData}`)
       }catch(err){
         console.log(err, "Hola, ha habido un error xd.");
       }

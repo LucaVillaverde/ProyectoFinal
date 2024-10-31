@@ -4,14 +4,16 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
-require('dotenv').config({ path: '../.env' });
+require('dotenv').config();
 // PORTS
 const PORT = 5000;
-// const PORT_FRONTEND = 5173
+const PORT_FRONTEND = 5173
 // HOST
 
-// Desde Variable de entorno
-const host = process.env.VITE_HOST_API;
+//***************************************************************** */
+// ¡¡¡HOST  HOST_FRONTEND(localhost) HOST_FRONTEND2(pruebita) !!!!
+//***************************************************************** */
+const host = process.env.HOST_FRONTEND2;
 
 
 function validarEntrada(texto) {
@@ -24,8 +26,7 @@ function validarEntrada(texto) {
 }
 
 
-const allowedOrigins = [`${host}:5173`];
-
+const allowedOrigins = [`${host}:${PORT_FRONTEND}`];
 const corsOptions = {
   origin: (origin, callback) => {
     // console.log('Solicitud proveniente del origen:', origin || 'Sin origen (solicitud local o del mismo servidor)');
@@ -104,7 +105,7 @@ app.post('/api/info-usuario', async (req, res) => {
     }
 })
 
-app.post('/token-register', async (req, res) => {
+app.post('/api/token-register', async (req, res) => {
     const { usernameNH } = req.body;
 
     // Generador de token
@@ -154,7 +155,7 @@ app.post('/token-register', async (req, res) => {
 
 
 
-app.post('/token-login', (req, res) => {
+app.post('/api/token-login', (req, res) => {
     const { usernameNH } = req.body;
 
     try {

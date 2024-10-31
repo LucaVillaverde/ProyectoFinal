@@ -24,7 +24,7 @@ import FormReceta from "./pages/FormReceta";
 // HOST intercambiables
 const domain = import.meta.env.VITE_HOST_API;
 const host = `${domain}:5000`
-console.log(host);
+
 function App() {
   // VARIABLES
   // login
@@ -92,9 +92,9 @@ function App() {
 
   const logoutAndClearSession = async (data) => {
     try {
-        const logoutResponse = await axios.post(`${host}/api/logout`, data);
+        const logoutResponse = await axios.post(`/api/logout`, data);
         if (logoutResponse.status === 200) {
-            const deleteCookieResponse = await axios.post(`${host}/api/cookie/delete`, data);
+            const deleteCookieResponse = await axios.post(`/api/cookie/delete`, data);
             if (deleteCookieResponse.status === 200) {
                 clearCookiesAndLogout();
             } else {
@@ -119,7 +119,7 @@ function App() {
         // Si todas las cookies están presentes
         if (tokenNav && usernameNav && idUserNav) {
             try {
-                const cookieTokenResponse = await axios.post(`${host}/api/checkeo`, { tokenNav, usernameNav, idUserNav });
+                const cookieTokenResponse = await axios.post(`/api/checkeo`, { tokenNav, usernameNav, idUserNav });
                 if (cookieTokenResponse.status === 200) {
                     setIsLoggedIn(true);
                 } else {
@@ -161,7 +161,7 @@ function App() {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`${host}/api/register`, {
+      const response = await axios.post(`/api/register`, {
         usernameR,
         passwordR,
         passwordRC,
@@ -171,8 +171,7 @@ function App() {
         setMessage(`Usuario creado ID: ${response.data.userId}`);
         setTimeout(() => setMessage(""), 5000);
         try {
-          const cookieTokenResponse = await axios.post(
-            `${host}/token-register`,
+          const cookieTokenResponse = await axios.post(`/api/token-register`,
             {
               usernameNH: usernameR,
             }
@@ -212,10 +211,10 @@ function App() {
   const login = async (e) => {
     e.preventDefault();
     try {
-        const response = await axios.post(`${host}/api/login`, { username, password });
+        const response = await axios.post(`/api/login`, { username, password });
         if (response.status === 200) {
             try {
-                const cookieTokenResponse = await axios.post(`${host}/token-login`, {
+                const cookieTokenResponse = await axios.post(`/api/token-login`, {
                   usernameNH: username,
                 });
                 if (cookieTokenResponse.status === 201) {
@@ -253,7 +252,7 @@ const logout = async (e) => {
     const idUserNav = Cookies.get("id_user");
     try {
       const response = await axios.post(
-        `${host}/api/logout`,
+        `/api/logout`,
         {
           id_user: idUserNav,
         }
@@ -261,7 +260,7 @@ const logout = async (e) => {
 
       if (response.status === 200) {
         try {
-          const cookieTokenDelete = await axios.post(`${host}/api/cookie/delete`, {
+          const cookieTokenDelete = await axios.post(`/api/cookie/delete`, {
             id_user: idUserNav,
           });
 
@@ -305,7 +304,7 @@ const logout = async (e) => {
     console.log(user);
     
     try {
-        const deleteResponse = await axios.delete(`${host}/api/delete`, {
+        const deleteResponse = await axios.delete(`/api/delete`, {
             data: { user } // Asegúrate de pasar 'user' dentro de 'data'
         });
         if (deleteResponse.status === 200) {
@@ -380,8 +379,7 @@ useEffect(() => {
     const llamadoInfoUsuario = async () => {
       const user = Cookies.get("id_user");
       try{
-        console.log('en try:' + host);
-        const llamado = await axios.post(`${host}/api/info-usuario`, {
+        const llamado = await axios.post(`/api/info-usuario`, {
           id_user: user,
         });
         if (llamado.status === 200){
@@ -613,7 +611,7 @@ const UserMenu = ({logout, del_profile}) => {
     const llamadoInfoUsuario = async () => {
       const user = Cookies.get("id_user");
       try{
-        const llamado = await axios.post(`${host}/api/info-usuario`, {
+        const llamado = await axios.post(`/api/info-usuario`, {
           id_user: user,
         });
         if (llamado.status === 200){
