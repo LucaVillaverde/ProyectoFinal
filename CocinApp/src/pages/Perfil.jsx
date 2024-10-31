@@ -7,9 +7,7 @@ import Cookies from 'js-cookie';
 
 
 const Perfil = () => {
-  const host = 'http://pruebita.webhop.me:5000';
-  // const host = 'http://localhost:5000';
-  // const host = "http://192.168.0.168:5000";
+  const host = import.meta.env.VITE_HOST_API;
   const [recetas, setRecetas] = useState([]);
   const [info, setInfo] = useState(false);
   const [nombreUsuario, setNombreUsuario]= useState('');
@@ -18,7 +16,7 @@ const Perfil = () => {
     const id_user = Cookies.get('id_user');
     const obtenerNombre = async () => {
       try{
-        const response = await axios.post(`${host}/api/info-usuario`, {
+        const response = await axios.post(`${host}:5000/api/info-usuario`, {
           id_user,
         });
         if(response.status === 200){
@@ -36,7 +34,7 @@ const Perfil = () => {
 const llamado = (nombre) =>{
     const llamadoPersonal = async () => {
       try {
-        const response = await axios.post(`${host}/api/recetas/personales`, {
+        const response = await axios.post(`${host}:5000/api/recetas/personales`, {
           usernameNH: nombre,
         });
         if (response.status === 200) {
@@ -57,38 +55,6 @@ const llamado = (nombre) =>{
       llamadoPersonal();
 }
 
-
-//   useEffect(() => {
-//     const intervalId = setInterval(() => {
-//       const llamadoPersonal = async () => {
-//         try {
-//           const response = await axios.post(`${host}/api/recetas/personales`, {
-//             usernameNH: nombreUsuario,
-//           });
-//           if (response.status === 200) {
-//               setRecetas(response.data.recetas);
-//               console.log(response.data.recetas);
-//               setInfo(true);
-//           } else if (response.status === 404) {
-//             setInfo(false);
-//             window.alert("No tienes recetas para mostrar.");
-//             console.log("No tienes recetas para mostrar.");
-//           }
-    
-//       } catch (error) {
-//           console.log(error);
-//       }
-  
-//       }
-//         llamadoPersonal();
-//     }, 5000); // 60000 milisegundos = 1 minuto
-
-//     // Limpiar el intervalo cuando el componente se desmonta
-//     return () => clearInterval(intervalId);
-// }, [nombreUsuario]);
-
- 
-
   useEffect(() => {
     const metaDescription = document.createElement('meta');
     document.title = "CocinApp: Perfil";
@@ -103,7 +69,7 @@ const llamado = (nombre) =>{
 
 const llamarRecetas = async () => {
   try {
-      const response = await axios.post(`${host}/api/recetas/personales`, {
+      const response = await axios.post(`${host}:5000/api/recetas/personales`, {
         usernameNH: nombreUsuario,
       });
       if (response.status === 200) {
@@ -123,7 +89,7 @@ const llamarRecetas = async () => {
 
   const agregarRecipe = async () => {
     try {
-      const response = await axios.post(`${host}/api/receta-nueva`, {
+      const response = await axios.post(`${host}:5000/api/receta-nueva`, {
         username: nombreUsuario,
         recipe_name: "Ensalada Sana version Helado",
         difficulty: "Hardcore",
@@ -144,17 +110,6 @@ const llamarRecetas = async () => {
       console.error(err);
     }
   }
-
-//   if (nombreUsuario !== '') {
-//         try {
-//             const response = await axios.get(`${host}/api/mis-recetas/${nombreUsuario}`); // Aquí usas el valor real de username
-//             if (response.status === 200) {
-//             }
-//         } catch (error) {
-//             console.error('Error al obtener la receta:', error);
-//             setError(error.message); 
-//         }
-// }
 
 
   return (

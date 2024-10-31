@@ -108,9 +108,11 @@ const AddForm = memo(({ formData, handleInputChange, handleCategoryChange, handl
   </form>
 ));
 
-const FormReceta = ({ host }) => {
+const FormReceta = () => {
   const [nombreUsuario, setNombreUsuario] = useState("");
   const [activeTab, setActiveTab] = useState("Agregar");
+  const domain = import.meta.env.VITE_HOST_API2;
+  const host = `${domain}:5000`;
 
   const [formData, setFormData] = useState({
     recipeName: "",
@@ -125,8 +127,8 @@ const FormReceta = ({ host }) => {
   // Effect para obtener información del usuario
   useEffect(() => {
     const llamadoUsuario = async () => {
-      try {
-        const response = await axios.post('http://pruebita.webhop.me:5000/api/info-usuario', {
+      try{
+        const response = await axios.post(`${host}/info-usuario`, {
           id_user: Cookies.get("id_user"),
         });
         if (response.status === 200) {
@@ -176,7 +178,7 @@ const FormReceta = ({ host }) => {
 
   const llamadaDB = useCallback((e) => {
     e.preventDefault();
-    const agregarReceta = async()=>{
+    const agregarReceta = async ()=>{
       try{
         const response = await axios.post(`${host}/api/receta-nueva`,{
           username: nombreUsuario,

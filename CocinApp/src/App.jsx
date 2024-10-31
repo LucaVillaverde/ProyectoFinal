@@ -22,10 +22,9 @@ import FormReceta from "./pages/FormReceta";
 
 
 // HOST intercambiables
-// const host = 'http://localhost:5000';
-const host = 'http://pruebita.webhop.me:5000';
-// const host = "http://192.168.0.168:5000";
-
+const domain = import.meta.env.VITE_HOST_API;
+const host = `${domain}:5000`
+console.log(host);
 function App() {
   // VARIABLES
   // login
@@ -44,7 +43,7 @@ function App() {
   const links = [
     { href: "/", label: "INICIO" },
     { href: "/buscar", label: "BUSCAR" },
-    { href: "/receta", label: "TIPOS DE CATEGORIAS" },
+    { href: "/receta", label: "TIENDA" },
   ];
   //LOGICA DE COMPONENTE
   const [visible, setMenuVisible] = useState(false);
@@ -381,6 +380,7 @@ useEffect(() => {
     const llamadoInfoUsuario = async () => {
       const user = Cookies.get("id_user");
       try{
+        console.log('en try:' + host);
         const llamado = await axios.post(`${host}/api/info-usuario`, {
           id_user: user,
         });
@@ -388,9 +388,11 @@ useEffect(() => {
           // console.log(llamado.data.username)
           setLocalUsername(llamado.data.username);
         }
-      }catch(err){
-        console.log(err);
+      } catch (err) {
+        console.error("Error en la solicitud:", err.message); // Muestra el mensaje de error
+        console.error("Detalles del error:", err.config); // Muestra detalles de la configuración de Axios
       }
+      
     }
     llamadoInfoUsuario();
   }, [])

@@ -4,13 +4,15 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const app = express();
+require('dotenv').config({ path: '../.env' });
 // PORTS
 const PORT = 5000;
-const PORT_FRONTEND = 5173
+// const PORT_FRONTEND = 5173
 // HOST
-const host = 'http://pruebita.webhop.me';
-// const host = 'http://localhost';
-// const host = "http://192.168.0.168";
+
+// Desde Variable de entorno
+const host = process.env.VITE_HOST_API;
+
 
 function validarEntrada(texto) {
     const espaciosContinuos = /\s{2,}/.test(texto);
@@ -22,7 +24,7 @@ function validarEntrada(texto) {
 }
 
 
-const allowedOrigins = [`${host}:${PORT_FRONTEND}`];
+const allowedOrigins = [`${host}:5173`];
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -753,10 +755,10 @@ app.post("/api/receta-nueva", async (req, res) => {
                 username, 
                 recipeName: receta.recipeName, 
                 difficulty: receta.difficulty, 
+                categories: receta.categories, 
                 description: receta.description, 
                 ingredients: receta.ingredients, 
                 steps: receta.steps, 
-                categories: receta.categories, 
                 tiempo: receta.tiempo 
             } 
         });
@@ -846,5 +848,5 @@ process.on('SIGINT', () => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor escuchando en http://localhost:${PORT}`);
+    console.log(`Servidor escuchando en ${host}:${PORT}`);
 });
