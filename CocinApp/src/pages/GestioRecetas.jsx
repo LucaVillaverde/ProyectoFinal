@@ -216,14 +216,14 @@ const GestioRecetas = () => {
                         username: nombreUsuario,
                         receta: formData,
                     });
-                    alert(`Se ha agregado la receta ${formData.recipeName}`);
+                    if (response.status === 201){
+                        agregarReceta();
+                        llamado();
+                    }
                 } catch (err) {
                     console.log(err, "Hola, ha habido un error xd.");
                 }
             };
-            agregarReceta();
-            console.log(nombreUsuario);
-            console.log(formData);
         },
         [formData]
     );

@@ -302,23 +302,32 @@ const logout = async (e) => {
   const deleteUser = async (e) => {
     e.preventDefault();
     const user = Cookies.get("id_user");
-    console.log(user);
+
+    const contraUser = prompt("Confirme su contraseña");
     
-    try {
-        const deleteResponse = await axios.delete(`/api/delete`, {
-            data: { user } // Asegúrate de pasar 'user' dentro de 'data'
-        });
-        if (deleteResponse.status === 200) {
-            setIsLoggedIn(false);
-            Cookies.remove('token');
-            Cookies.remove("username");
-            Cookies.remove("id_user");
-            location.reload();
-        }
-    } catch (err) {
-        console.error(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
-        setMessage(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
-        // Asegúrate de eliminar las cookies incluso si hay un error
+    if (contraUser){
+      const confirmacion = window.confirm("¿Estas seguro de borrar tu cuenta?");
+      if(confirmacion){
+        try {
+          const deleteResponse = await axios.post(`/api/verifpassword`, {
+              id_user: user,
+              contraUser,
+          });
+          if (deleteResponse.status === 200) {
+              setIsLoggedIn(false);
+              Cookies.remove('token');
+              Cookies.remove("username");
+              Cookies.remove("id_user");
+              location.reload();
+          }
+      } catch (err) {
+          console.error(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
+          setMessage(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
+          // Asegúrate de eliminar las cookies incluso si hay un error
+      }
+      } else {
+        location.reload();
+      }
     }
 };
 
@@ -386,10 +395,11 @@ useEffect(() => {
         if (llamado.status === 200){
           // console.log(llamado.data.username)
           setLocalUsername(llamado.data.username);
+        }if (llamado.status === 401){
+          console.log(`${llamado.status}, No estas logueado.`);
         }
       } catch (err) {
-        console.error("Error en la solicitud:", err.message); // Muestra el mensaje de error
-        console.error("Detalles del error:", err.config); // Muestra detalles de la configuración de Axios
+        console.log("Error en la solicitud.", err.message); // Muestra el mensaje de error
       }
       
     }
