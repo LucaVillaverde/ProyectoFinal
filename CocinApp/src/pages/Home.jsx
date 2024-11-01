@@ -6,6 +6,7 @@ import SimpleCard from "../components/card/SimpleCard.jsx";
 const Home = () => {
     const [recetas, setRecetas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [tipoDispositivo, setTipoDispositivo] = useState(undefined);
 
     useEffect(() => {
         const metaDescription = document.createElement('meta');
@@ -18,30 +19,42 @@ const Home = () => {
             document.getElementsByTagName('head')[0].removeChild(metaDescription);
         };
     }, []);
-    useEffect(()=>{
-        const determinarAncho = (ancho) => {
-            if (1230 < ancho && ancho < 1552){
-                return (1);
-            } else {
-                return (0);
-            }
-        }
+
+    
+    useEffect(() => {
+        const determinarAncho = (ancho) => (1230 < ancho && ancho < 1552) ? 1 : 0;
+    
         const verificarAncho = () => {
             const ancho = window.innerWidth;
+            console.log(`Ancho de la ventana: ${ancho}`);
+            
             const anchoBoolean = determinarAncho(ancho);
-            if (anchoBoolean === 1){
-                fetchRecetas(anchoBoolean)
-            }else{
+            console.log(`Valor de anchoBoolean: ${anchoBoolean}`);
+    
+            if (tipoDispositivo === undefined) {
+                setTipoDispositivo(anchoBoolean);
                 fetchRecetas(anchoBoolean);
+            } else if (tipoDispositivo !== anchoBoolean) {
+                setTipoDispositivo(anchoBoolean);
+                fetchRecetas(anchoBoolean);
+            } else {
+                console.log(`No se hizo la petición. anchoBoolean: ${anchoBoolean}, tipoDispositivo: ${tipoDispositivo}`);
             }
-        }
+        };
+    
         verificarAncho();
-
-    },[])
+        window.addEventListener('resize', verificarAncho);
+    
+        return () => {
+            window.removeEventListener('resize', verificarAncho);
+        };
+    }, [tipoDispositivo]); // Asegúrate de que tipoDispositivo esté en las dependencias
+    
+    
+    
 
 
     const fetchRecetas = async (anchoBoolean) => {
-        console.log(anchoBoolean);
         try {
             const response = await axios.post(`/api/recetas`, 
                 {
@@ -50,7 +63,6 @@ const Home = () => {
             );  
             setRecetas(response.data.recetas);
             setLoading(false);
-            console.log(response.data.recetas);
             
         } catch (error) {
             //console.error('Error fetching the recetas:', error);

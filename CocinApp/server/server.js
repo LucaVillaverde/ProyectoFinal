@@ -75,11 +75,11 @@ app.post('/api/usuarios', (req, res) => {
                 return res.status(500).json({ message: "Error interno del servidor" });
             }
             if(!row){
-                return res.status(404).json({  })
+                return res.status(404).json({ message: "No se han encontrado los usuarios" })
             }
         })
     }catch(err){
-
+        return res.status()
     }
 });
 
@@ -88,7 +88,7 @@ app.post('/api/verifpassword', (req, res) => {
 
     // Validar la entrada
     if (!id_user || !contraUser) {
-        return res.status(400).json({ message: "Por favor proporciona un id_user y una contraseña." });
+        return res.status(400).json({ message: "Falta proporcionar datos" });
     }
 
     console.log(id_user, contraUser);
@@ -639,6 +639,8 @@ app.post('/api/cookie/delete', async (req, res) => {
 app.post('/api/recetas', (req, res) => {
     
     const { anchoBoolean } = req.body;
+
+    console.log(`Se hizo la peticion a /api/recetas con anchoBoolean como: ${anchoBoolean}.`);
     if (anchoBoolean === 1){
         const limit = 9; // Número de recetas por página
             // Consulta para obtener las recetas con paginación
