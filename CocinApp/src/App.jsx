@@ -77,7 +77,7 @@ function App() {
     const form = document.getElementById("form_login");
     if (form) {
       if (estado) {
-        form.style.display = "block";
+        form.style.display = "flex";
       } else {
         form.style.display = "none";
       }
@@ -419,7 +419,7 @@ useEffect(() => {
                         </button>
                     </div>
                 </div>
-                <div className="form-content">
+                <div className="form-user-content">
                     <div className="form">
                         <h2 className="form-title">
                             {form === "login" ? "Login" : "Registro"}
