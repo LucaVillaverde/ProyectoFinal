@@ -18,11 +18,36 @@ const Home = () => {
             document.getElementsByTagName('head')[0].removeChild(metaDescription);
         };
     }, []);
+    useEffect(()=>{
+        const determinarAncho = (ancho) => {
+            if (1230 < ancho && ancho < 1552){
+                return (1);
+            } else {
+                return (0);
+            }
+        }
+        const verificarAncho = () => {
+            const ancho = window.innerWidth;
+            const anchoBoolean = determinarAncho(ancho);
+            if (anchoBoolean === 1){
+                fetchRecetas(anchoBoolean)
+            }else{
+                fetchRecetas(anchoBoolean);
+            }
+        }
+        verificarAncho();
+
+    },[])
 
 
-    const fetchRecetas = async () => {
+    const fetchRecetas = async (anchoBoolean) => {
+        console.log(anchoBoolean);
         try {
-            const response = await axios.get(`/api/recetas`);  
+            const response = await axios.post(`/api/recetas`, 
+                {
+                    anchoBoolean,
+                }
+            );  
             setRecetas(response.data.recetas);
             setLoading(false);
             console.log(response.data.recetas);
@@ -35,11 +60,6 @@ const Home = () => {
     };
     
 
-    // useEffect para ejecutar la función una vez al cargar el componente
-    useEffect(() => {
-        fetchRecetas();
-        console.log(recetas)
-    }, []);
 
 
     

@@ -83,10 +83,52 @@ app.post('/api/usuarios', (req, res) => {
     }
 });
 
+app.post('/api/verifpassword', (req, res) => {
+    const { id_user, contraUser } = req.body;
+
+    // Validar la entrada
+    if (!id_user || !contraUser) {
+        return res.status(400).json({ message: "Por favor proporciona un id_user y una contraseña." });
+    }
+
+    console.log(id_user, contraUser);
+
+    db.get('SELECT password FROM Users WHERE id_user = ?', [id_user], async (err, row) => {
+        if (err) {
+            return res.status(500).json({ message: "Error interno del server al querer obtener el dato del usuario." });
+        }
+        if (!row) {
+            return res.status(404).json({ message: "No se ha encontrado el dato del usuario." });
+        }
+
+        const match = await bcrypt.compare(contraUser, row.password);
+        if (match) {
+            const deleteQueryUsersTable = 'DELETE FROM Users WHERE id_user = ?';
+            const deleteQueryTokensTable = 'DELETE FROM Tokens WHERE id_user = ?';
+
+            db.run(deleteQueryTokensTable, [id_user], (err) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Error interno del server al eliminar el token.' });
+                }
+
+                db.run(deleteQueryUsersTable, [id_user], (err) => {
+                    if (err) {
+                        return res.status(500).json({ message: "Error interno del server al eliminar al usuario." });
+                    }
+                    return res.status(200).json({ message: "Usuario eliminado con éxito de la tabla Users y Tokens." });
+                });
+            });
+        } else {
+            return res.status(401).json({ message: "Contraseña incorrecta." });
+        }
+    });
+});
+
+
 app.post('/api/info-usuario', async (req, res) => {
     const { id_user } = req.body;
     if (!id_user){
-        return res.status(400).json({ message: "no hay id_user indicado,"});
+        return res.status(401).json({ message: "no hay id_user indicado,"});
     }else {
         try{
             db.get('SELECT username FROM Users WHERE id_user = ?', [id_user], (err, row) => {
@@ -286,31 +328,6 @@ app.post('/api/token-login', (req, res) => {
     }
     }
 );
-
-
-
-
-app.get('/api/categorias', (req, res) => {
-    const query = 'SELECT category FROM Categories'; // Ajuste en el nombre de la tabla y columna
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ message: 'Error al obtener las categorías.' });
-        }
-        if (rows.length === 0) {
-            return res.status(404).json({ message: 'No se han encontrado categorías.' });
-        }
-        // Unificar todas las categorías en un solo array
-        let allCategories = [];
-        rows.forEach(row => {
-            const categories = row.category.split(','); // Ajuste en el nombre de la columna
-            allCategories = allCategories.concat(categories.map(cat => cat.trim())); // Limpiar espacios
-        });
-        // Eliminar duplicados y devolver la respuesta
-        const uniqueCategories = [...new Set(allCategories)];
-        res.status(200).json({ categories: uniqueCategories });
-    });
-});
-
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
@@ -619,51 +636,71 @@ app.post('/api/cookie/delete', async (req, res) => {
 
 
 // ------------------------ API REST (Recetas) -------------------------
-app.get('/api/recetas', (req, res) => {
-    const limit = 8; // Número de recetas por página
-    const page = parseInt(req.query.page) || 1; // Página actual (si no se manda, por defecto será la 1)
-    const offset = (page - 1) * limit; // Calcular el desplazamiento
-
-    // Consulta para obtener las recetas con paginación
-    const getQuery = `SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT ? OFFSET ?`;
+app.post('/api/recetas', (req, res) => {
+    
+    const { anchoBoolean } = req.body;
+    if (anchoBoolean === 1){
+        const limit = 9; // Número de recetas por página
+            // Consulta para obtener las recetas con paginación
+        const getQuery = `SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT ?`;
 
     // Consulta para contar el número total de recetas (sin límite ni offset)
-    const countQuery = 'SELECT COUNT(*) as total FROM Recipe';
+    // const countQuery = 'SELECT COUNT(*) as total FROM Recipe';
 
-    // Primero obtener el total de recetas
-    db.get(countQuery, [], (err, countResult) => {
-        if (err) {
-            return res.status(500).json({ message: 'Error al contar las recetas.' });
-        }
-        const totalRecetas = countResult.total;
-        const totalPages = Math.ceil(totalRecetas / limit);
-
-        // Luego obtener las recetas correspondientes a la página
-        db.all(getQuery, [limit, offset], (err, rows) => {
-            if (err) {
-                return res.status(500).json({ message: 'Error al obtener las recetas.' });
-            }
-            if (rows.length === 0) {
-                return res.status(404).json({ message: 'No se han encontrado recetas.' });
-            }
+    db.all(getQuery, [limit], (err, rows) => {
+        if (err){
+            return res.status(500).json({
+                message: "Ha ocurrido un error interno del servidor al intentar conseguir las recetas.",
+                error: err,
+            })
+        } else if (!rows){
+            return res.status(404).json({
+                message: "No se han encontrado las recetas.",
+                error: err,
+            })
+        } else {
             return res.status(200).json({
-                message: 'Recetas encontradas.',
-                recetas: rows, // Devolver las recetas
-                totalPages: totalPages, // Devolver el total de páginas
-            });
-        });
-    });
+                message: "Se han encontrado las recetas en la base de datos.",
+                recetas: rows,
+            })
+        }
+    })
+    } if (anchoBoolean === 0) {
+        const limit = 8; // Número de recetas por página
+            // Consulta para obtener las recetas con paginación
+        const getQuery = `SELECT * FROM Recipe ORDER BY id_recipe DESC LIMIT ?`;
+
+        db.all(getQuery, [limit], (err, rows) => {
+            if(err){
+                return res.status(500).json({
+                    message: "Ha ocurrido un error interno del servidor al intentar conseguir las recetas.",
+                    error: err,
+                })
+            } else if (!rows){
+                return res.status(404).json({
+                    message: "No se han encontrado las recetas en la base de datos.",
+                    error: err,
+                })
+            } else {
+                return res.status(200).json({
+                    message: "Se han encontrado las recetas en la base de datos.",
+                    recetas: rows,
+                })
+            }
+        })
+    }
 });
 
 app.post('/api/recetas/filtradas', (req, res) => {
-    const limit = 8; // Limitar a 8 recetas por página
-    const page = parseInt(req.body.page) || 1; // Obtener el número de página desde el cuerpo
-    const offset = (page - 1) * limit; // Calcular el offset
+    const { pageNumber, anchoBooleanF, nombreReceta, arrayCategorias } = req.body;
+    console.log(anchoBooleanF);
+    const page = parseInt(pageNumber) || 1;
+    const limit = anchoBooleanF === 1 ? 9 : 8; // Definir límite según anchoBooleanF
+    const offset = (page - 1) * limit;
 
-    const { nombreReceta, arrayCategorias } = req.body; // Obtener los filtros desde el cuerpo de la solicitud
-
-    // Consulta base para contar recetas con filtros
+    // Construcción de consultas y parámetros
     let countQuery = 'SELECT COUNT(*) as total FROM Recipe';
+    let query = 'SELECT * FROM Recipe';
     let whereClauses = [];
     let params = [];
 
@@ -680,47 +717,39 @@ app.post('/api/recetas/filtradas', (req, res) => {
 
     if (whereClauses.length > 0) {
         countQuery += ' WHERE ' + whereClauses.join(' AND ');
-    }
-
-    // Consulta para obtener las recetas filtradas
-    const baseQuery = 'SELECT * FROM Recipe';
-    let query = baseQuery;
-    
-    if (whereClauses.length > 0) {
         query += ' WHERE ' + whereClauses.join(' AND ');
     }
 
     query += ' ORDER BY id_recipe DESC LIMIT ? OFFSET ?';
-    params.push(limit, offset); // Agregar limit y offset a los parámetros
+    params.push(limit, offset);
 
-    // Primero, contar el total de recetas filtradas
+    // Ejecutar consulta de conteo
     db.get(countQuery, params.slice(0, params.length - 2), (err, countResult) => {
         if (err) {
-            return res.status(500).json({ message: 'Error al obtener el total de recetas filtradas.' });
+            return res.status(500).json({ message: 'Error al obtener el total de recetas filtradas.', error: err.message });
         }
-
         const totalRecetas = countResult.total;
         const totalPages = Math.ceil(totalRecetas / limit);
 
-        // Luego, obtener las recetas correspondientes a la página con filtros
+        // Ejecutar consulta de recetas filtradas
         db.all(query, params, (err, rows) => {
             if (err) {
-                return res.status(500).json({ message: 'Error al obtener las recetas filtradas.' });
+                return res.status(500).json({ message: 'Error al obtener las recetas filtradas.', error: err.message });
             }
             if (rows.length === 0) {
                 return res.status(404).json({ message: 'No se encontraron recetas para los filtros aplicados.' });
             }
-
             return res.status(200).json({
                 message: 'Recetas encontradas exitosamente',
                 recetas: rows,
-                total: totalRecetas, // Devolver el total filtrado
-                totalPages: totalPages, // Devolver el total de páginas
-                currentPage: page // Devolver la página actual
+                total: totalRecetas,
+                totalPages: totalPages,
+                currentPage: page
             });
         });
     });
 });
+
 
 
 app.post('/api/recetas/personales', (req, res) => {

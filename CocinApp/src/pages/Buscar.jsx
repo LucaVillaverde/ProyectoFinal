@@ -1,91 +1,50 @@
-import React, { useEffect, useState, useRef } from "react";
-import { resolvePath, useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import SimpleCard from "../components/card/SimpleCard.jsx";
 import axios from "axios";
 import "../css/search-page.css";
-import image_404 from '../assets/image_404.png';
 
-const Buscar = ({  }) => {
-    // const host = import.meta.env.VITE_HOST_API;
+const Buscar = () => {
     const [query, setQuery] = useState("");
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const menuRef = useRef(null);
     const [recetas, setRecetas] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [noRecetas, setNoRecetas] = useState();
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
 
     useEffect(() => {
-        if (localStorage.getItem("errorRecetas")) {
-            console.error(localStorage.getItem("errorRecetas"));
-            localStorage.removeItem("errorRecetas");
-        }
-    }, []);
-
-    useEffect(() => {
-        const metaDescription = document.createElement("meta");
-        document.title = `CocinApp : Buscar`;
-        metaDescription.name = "description";
-        metaDescription.content =
-            "Pagina buscar de CocinApp, donde puedes encontrar recetas.";
-        document.getElementsByTagName("head")[0].appendChild(metaDescription);
-
-        return () => {
-            document
-                .getElementsByTagName("head")[0]
-                .removeChild(metaDescription);
-        };
-    }, []);
-
-    useEffect(() => {
-        fetchRecetas(currentPage); // Cargar recetas iniciales
-    }, [currentPage]); // Cambia la carga de recetas al cambiar la página
+        fetchRecetas(currentPage);
+    }, [currentPage, query, selectedCategories]);
 
     const fetchRecetas = async (page = 1) => {
-        const params = { page };
-
-        if (query) {
-            params.nombreReceta = query; // Agregar filtro por nombre
-        }
-
-        if (selectedCategories.length > 0) {
-            params.arrayCategorias = selectedCategories; // Agregar filtro por categoría
-        }
+        const params = {
+            pageNumber: page,
+            nombreReceta: query,
+            arrayCategorias: selectedCategories,
+        };
 
         try {
             const response = await axios.post(`/api/recetas/filtradas`, params);
             if (response.status === 200) {
-                if (response.data.recetas.length === 0) {
-                    // No hay recetas, ir a la página 1
-                    setRecetas([]);
-                    setTotalPages(1);
-                    setCurrentPage(1);
-                } else {
-                    setRecetas(response.data.recetas);
-                    setTotalPages(response.data.totalPages || 1); // Establecer total de páginas
-                }
+                const { recetas, totalPages } = response.data;
+                setRecetas(recetas);
+                setTotalPages(totalPages);
                 setLoading(false);
+                window.scrollTo({ top: 0, behavior: 'smooth' }); // Desplazamiento suave
             } else {
-                setRecetas([]);
-                setTotalPages(1); // Si no hay recetas, establecer totalPages a 1
-                setLoading(false);
-                setCurrentPage(1); // Regresar a la página 1 en caso de error
+                handleNoRecetas();
             }
         } catch (error) {
             console.error(error);
-            setLoading(false);
-            setRecetas([]);
-            setTotalPages(1); // Manejo de error, también establece totalPages a 1
-            setCurrentPage(1); // Regresar a la página 1 en caso de error
+            handleNoRecetas();
         }
     };
 
-    // Cargar recetas al cambiar la consulta o categorías
-    useEffect(() => {
-        fetchRecetas(currentPage); // Llamar a fetchRecetas con la página actual
-        window.scrollTo(0, 0); // Desplazar a la parte superior de la página
-    }, [query, selectedCategories, currentPage]); // Dependencias incluyen currentPage
+    const handleNoRecetas = () => {
+        setRecetas([]);
+        setTotalPages(1);
+        setCurrentPage(1);
+        setLoading(false);
+    };
 
     const handleCheckboxChange = (category) => {
         setSelectedCategories((prevCategories) =>
@@ -95,9 +54,16 @@ const Buscar = ({  }) => {
         );
     };
 
+    const handlePreviousPage = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    };
+
     return (
         <>
-            {/* BARRA PARA BUSCAR RECETAS */}
             <div className="search-cont">
                 <h2 className="search-title">BUSCAR RECETAS</h2>
                 <div className="search-filters">
@@ -111,7 +77,7 @@ const Buscar = ({  }) => {
                                 placeholder="Buscar..."
                             />
                             <button title="Botón para buscar recetas" className="search-btn" type="submit">
-                                <svg
+                            <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="1em"
                                     height="1em"
@@ -128,14 +94,15 @@ const Buscar = ({  }) => {
                     <div>
                         <h3>Categorías</h3>
                         <div className="filters">
-                            <div className="filter-menu" ref={menuRef}>
+                            <div className="filter-menu">
                                 {['Entrada', 'Sopa', 'Caldo', 'Ensalada', 'Plato Principal', 'Guarnición', 'Postre', 'Bebida', 'Vegetariana', 'Saludable'].map(category => (
                                     <label className="filter" key={category}>
                                         <input
                                             type="checkbox"
                                             className="filter-inpt"
                                             value={category}
-                                            onChange={(e) => handleCheckboxChange(e.target.value)}
+                                            checked={selectedCategories.includes(category)}
+                                            onChange={() => handleCheckboxChange(category)}
                                         />
                                         {category}
                                     </label>
@@ -143,6 +110,25 @@ const Buscar = ({  }) => {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div className="contenedorPaginacionBusqueda">
+                <div className="paginacionBusqueda">
+                    <button
+                        className="btn-page"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1 || totalPages === 0}
+                    >
+                        Anterior
+                    </button>
+                    <span className="pageNum">{currentPage} / {totalPages}</span>
+                    <button
+                        className="btn-page"
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                    >
+                        Siguiente
+                    </button>
                 </div>
             </div>
             <div className="recipe-content">
@@ -168,12 +154,12 @@ const Buscar = ({  }) => {
                                     <SimpleCard
                                         tiempo={tiempo}
                                         image={
-                                            image || "https://placehold.co/400x250/000/fff/png" // Usar imagen de la DB o una por defecto
+                                            image || "https://placehold.co/400x250/000/fff/png"
                                         }
                                         title={recipe_name}
                                         author={username}
                                         dificulty={difficulty}
-                                        category={categories} // Si tienes categorías como un array, deberías ajustarlo
+                                        category={categories}
                                     />
                                 </a>
                             )
@@ -182,11 +168,12 @@ const Buscar = ({  }) => {
                         )}
                     </div>
                 )}
-                <div className="contenedorPaginacionBusqueda">
+            </div>
+            <div className="contenedorPaginacionBusqueda">
                 <div className="paginacionBusqueda">
                     <button
                         className="btn-page"
-                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        onClick={handlePreviousPage}
                         disabled={currentPage === 1 || totalPages === 0}
                     >
                         Anterior
@@ -194,12 +181,11 @@ const Buscar = ({  }) => {
                     <span className="pageNum">{currentPage} / {totalPages}</span>
                     <button
                         className="btn-page"
-                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        onClick={handleNextPage}
                         disabled={currentPage === totalPages || totalPages === 0}
                     >
                         Siguiente
                     </button>
-                </div>
                 </div>
             </div>
         </>
