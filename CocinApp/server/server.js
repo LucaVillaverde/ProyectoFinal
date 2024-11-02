@@ -640,7 +640,6 @@ app.post('/api/recetas', (req, res) => {
     
     const { anchoBoolean } = req.body;
 
-    console.log(`Se hizo la peticion a /api/recetas con anchoBoolean como: ${anchoBoolean}.`);
     if (anchoBoolean === 1){
         const limit = 9; // Número de recetas por página
             // Consulta para obtener las recetas con paginación
@@ -694,10 +693,9 @@ app.post('/api/recetas', (req, res) => {
 });
 
 app.post('/api/recetas/filtradas', (req, res) => {
-    const { pageNumber, anchoBooleanF, nombreReceta, arrayCategorias } = req.body;
-    console.log(anchoBooleanF);
+    const { pageNumber, anchoBoolean, nombreReceta, arrayCategorias } = req.body;
     const page = parseInt(pageNumber) || 1;
-    const limit = anchoBooleanF === 1 ? 9 : 8; // Definir límite según anchoBooleanF
+    const limit = anchoBoolean === 1 ? 9 : 8; // Definir límite según anchoBooleanF
     const offset = (page - 1) * limit;
 
     // Construcción de consultas y parámetros

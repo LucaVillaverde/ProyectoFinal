@@ -1,5 +1,9 @@
-.backgroundForm { 
+.displayNone{
   display: none;
+}
+
+.backgroundForm { 
+  display: flex;
   justify-content: center;
   align-items: center;
   position: fixed;

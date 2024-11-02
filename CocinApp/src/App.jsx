@@ -48,7 +48,7 @@ function App() {
   ];
   //LOGICA DE COMPONENTE
   const [visible, setMenuVisible] = useState(false);
-  const [form, setForm] = useState(false);
+  const [form, setForm] = useState('login');
   const [estado, setEstado] = useState(false);
   const [localUsername, setLocalUsername] = useState('');
 
@@ -69,20 +69,6 @@ function App() {
     };
   }, []);
   
-  // Login / Register
-  useEffect(() => {
-    // Esperar hasta que el componente esté montado
-    if (!document.getElementById("form_login")) return;
-  
-    const form = document.getElementById("form_login");
-    if (form) {
-      if (estado) {
-        form.style.display = "flex";
-      } else {
-        form.style.display = "none";
-      }
-    }
-  }, [estado]);
 
     const clearCookiesAndLogout = () => {
       Cookies.remove("token");
@@ -361,29 +347,35 @@ useEffect(() => {
   };
 }, []);
 
-const showForm =(form)=>{
-  setForm(form);
-  setEstado(true);
-};
+// const showForm =(formTipo)=>{
+//   setForm(formTipo);
+//   const formularioLogin = document.getElementById('form_login');
+//   formularioLogin === "displayNone" ?? "backgroundForm";
+// };
 
-// NEW LOGIN (FUNCIONES)
-const closeForm = () => {
-    setEstado(false);
-};
-const changeForm =() => {
-    if (form === "login") {
-        setForm("register");
-    } else {
-        setForm("login");
-    }
-};
-useEffect(() => {
-    if (form === "login") {
-      setForm("register");
-    } else {
-      setForm("login");
-    }
-  }, []);
+// // NEW LOGIN (FUNCIONES)
+// const closeForm = () => {
+//     const formularioLogin = document.getElementById('form_login');
+//     formularioLogin === "backgroundForm" ?? "displayNone";
+// };
+// const changeForm =() => {
+//     if (form === "login") {
+//         setForm("register");
+//     } else {
+//         setForm("login");
+//     }
+// };
+// useEffect(() => {
+//     if (form === "login") {
+//       setForm("register");
+//     } else {
+//       setForm("login");
+//     }
+//   }, []);
+
+  const showForm = () =>{
+    
+  }
 
   useEffect(() => {
     const llamadoInfoUsuario = async () => {
@@ -412,8 +404,7 @@ useEffect(() => {
       <>
         {/* >-------------------- Login-Register --------------------< */}
         <div
-            className="backgroundForm"
-            style={{ display: estado ? "none" : "flex" }}
+            className="displayNone"
             id="form_login"
         >
             <div className="form-user">
@@ -520,7 +511,7 @@ useEffect(() => {
                 </>
               ) : (
                 <>
-                  <button className="btn_user" onClick={() => setEstado(true)}>Ingreso / Registro</button>
+                  <button className="btn_user" onClick={() => setEstado(true)}>INGRESO / REGISTRO</button>
                 </>
               )}
             </div>
@@ -572,8 +563,8 @@ useEffect(() => {
               ) : (
                 <>
                   <div className="btn_user-move">
-                  <button className="btn_user" onClick={() => showForm('login')}>Ingreso</button>
-                  <button className="btn_user" onClick={() => showForm('registro')}>Registro</button>
+                  <button className="btn_user" onClick={() => showForm('login')}>INGRESO</button>
+                  <button className="btn_user" onClick={() => showForm('registro')}>REGISTRO</button>
                   </div>
                 </>
               )}

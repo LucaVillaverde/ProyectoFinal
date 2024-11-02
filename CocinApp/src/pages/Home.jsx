@@ -22,14 +22,12 @@ const Home = () => {
 
     
     useEffect(() => {
-        const determinarAncho = (ancho) => (1230 < ancho && ancho < 1552) ? 1 : 0;
+        const determinarAncho = (ancho) => (1230 <= ancho && ancho <= 1552) ? 1 : 0;
     
         const verificarAncho = () => {
             const ancho = window.innerWidth;
-            console.log(`Ancho de la ventana: ${ancho}`);
             
             const anchoBoolean = determinarAncho(ancho);
-            console.log(`Valor de anchoBoolean: ${anchoBoolean}`);
     
             if (tipoDispositivo === undefined) {
                 setTipoDispositivo(anchoBoolean);
@@ -37,8 +35,6 @@ const Home = () => {
             } else if (tipoDispositivo !== anchoBoolean) {
                 setTipoDispositivo(anchoBoolean);
                 fetchRecetas(anchoBoolean);
-            } else {
-                console.log(`No se hizo la petición. anchoBoolean: ${anchoBoolean}, tipoDispositivo: ${tipoDispositivo}`);
             }
         };
     

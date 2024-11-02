@@ -10,18 +10,56 @@ const Buscar = () => {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [tipoDispositivo, setTipoDispositivo] = useState();
 
     useEffect(() => {
-        fetchRecetas(currentPage);
-    }, [currentPage, query, selectedCategories]);
+        const metaDescription = document.createElement('meta');
+        document.title = "CocinApp: Busqueda";
+        metaDescription.name = "description";
+        metaDescription.content = "Pagina para buscar recetas de CocinApp, donde tienes todas tus recetas simplificadas ."
+        document.getElementsByTagName('head')[0].appendChild(metaDescription);
+        
+        return () => {
+            document.getElementsByTagName('head')[0].removeChild(metaDescription);
+        };
+    }, []);
 
-    const fetchRecetas = async (page = 1) => {
+    useEffect(()=>{
+        const determinarAncho = (ancho) => (1230 <= ancho && ancho <= 1552) ? 1 : 0;
+    
+        const verificarAncho = () => {
+            const ancho = window.innerWidth;
+            
+            const anchoBoolean = determinarAncho(ancho);
+    
+            if (tipoDispositivo === undefined) {
+                setTipoDispositivo(anchoBoolean);
+            } else if (tipoDispositivo !== anchoBoolean) {
+                setTipoDispositivo(anchoBoolean);
+            }
+        };
+
+        verificarAncho();
+
+        window.addEventListener('resize', verificarAncho);
+    
+        return () => {
+            window.removeEventListener('resize', verificarAncho);
+        };
+    },[tipoDispositivo])
+
+    useEffect(() => {
+        fetchRecetas(currentPage, tipoDispositivo)
+    }, [currentPage, query, selectedCategories, tipoDispositivo]);
+
+    const fetchRecetas = async (page, ancho) => {
         const params = {
             pageNumber: page,
             nombreReceta: query,
             arrayCategorias: selectedCategories,
+            anchoBoolean: ancho,
         };
-
+    
         try {
             const response = await axios.post(`/api/recetas/filtradas`, params);
             if (response.status === 200) {
@@ -29,7 +67,11 @@ const Buscar = () => {
                 setRecetas(recetas);
                 setTotalPages(totalPages);
                 setLoading(false);
-                window.scrollTo({ top: 0, behavior: 'smooth' }); // Desplazamiento suave
+    
+                // Espera un breve momento antes de hacer scroll para suavizar el cambio
+                setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 130); // 100 ms de retraso
             } else {
                 handleNoRecetas();
             }
