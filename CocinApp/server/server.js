@@ -3,7 +3,9 @@ const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const cron = require('node-cron');
+const cookieParser = require('cookie-parser');
 const app = express();
+app.use(cookieParser());
 require('dotenv').config();
 // PORTS
 const PORT = 5000;
@@ -84,20 +86,22 @@ app.post('/api/usuarios', (req, res) => {
 });
 
 app.post('/api/verifpassword', (req, res) => {
-    const { id_user, contraUser } = req.body;
-
+    const { contraUser } = req.body;
+    const id_user = req.cookies.id_user;
     // Validar la entrada
     if (!id_user || !contraUser) {
         return res.status(400).json({ message: "Falta proporcionar datos" });
     }
 
-    console.log(id_user, contraUser);
 
     db.get('SELECT password FROM Users WHERE id_user = ?', [id_user], async (err, row) => {
         if (err) {
             return res.status(500).json({ message: "Error interno del server al querer obtener el dato del usuario." });
         }
         if (!row) {
+            res.clearCookie('id_user');
+            res.clearCookie('username');
+            res.clearCookie('token');
             return res.status(404).json({ message: "No se ha encontrado el dato del usuario." });
         }
 
@@ -115,6 +119,9 @@ app.post('/api/verifpassword', (req, res) => {
                     if (err) {
                         return res.status(500).json({ message: "Error interno del server al eliminar al usuario." });
                     }
+                    res.clearCookie("id_user");
+                    res.clearCookie("username");
+                    res.clearCookie("token");
                     return res.status(200).json({ message: "Usuario eliminado con éxito de la tabla Users y Tokens." });
                 });
             });
@@ -125,8 +132,8 @@ app.post('/api/verifpassword', (req, res) => {
 });
 
 
-app.post('/api/info-usuario', async (req, res) => {
-    const { id_user } = req.body;
+app.get('/api/info-usuario', async (req, res) => {
+    const id_user = req.cookies.id_user;
     if (!id_user){
         return res.status(401).json({ message: "no hay id_user indicado,"});
     }else {
@@ -181,12 +188,10 @@ app.post('/api/token-register', async (req, res) => {
                 if (err) {
                     return res.status(500).json({ message: "Error interno del servidor al intentar colocar los datos del registro (Tokens)." });
                 }
-                return res.status(201).json({
-                    message: "Se han colocado los datos exitosamente (Tokens).",
-                    tokenH,
-                    usernameH,
-                    id_user,
-                });
+                res.cookie("token", tokenH, { httpOnly: true, expires: new Date(Date.now() + 86400000) });
+                res.cookie("username", usernameH, { httpOnly: true, expires: new Date(Date.now() + 86400000) });
+                res.cookie("id_user", id_user, { httpOnly: true, expires: new Date(Date.now() + 86400000) });
+                return res.status(201).json({ message: "Se ha creado el token de la cookie con éxito." });
             });
         });
     } catch (err) {
@@ -197,137 +202,71 @@ app.post('/api/token-register', async (req, res) => {
 
 
 
-app.post('/api/token-login', (req, res) => {
+app.post('/api/token-login', async (req, res) => {
     const { usernameNH } = req.body;
 
     try {
+        // Verificamos el valor de cookieToken en la base de datos
         db.get('SELECT cookieToken FROM Tokens WHERE username = ?', [usernameNH], async (err, row) => {
             if (err) {
-                return res.status(500).json({ message: `Error interno del servidor al verificar el valor de cookieToken en la tabla Tokens en base al usuario: ${usernameNH}.` });
+                return res.status(500).json({ message: `Error interno del servidor al verificar el valor de cookieToken para el usuario: ${usernameNH}.` });
             }
-            if (!row){
-                return res.status(400).json({ message: `No se ha encontrado el cookieToken del usuario con el nombre: ${usernameNH}` });
+            if (!row) {
+                return res.status(400).json({ message: `No se ha encontrado el cookieToken del usuario: ${usernameNH}` });
             }
-            let tokenDB = row.cookieToken;
-            if (tokenDB !== '0'){
-                try{
-                    db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE username = ?', [usernameNH], async (err) => {
-                        if (err) {
-                            return res.status(500).json({ message: 'Error interno del servidor al intentar cambiar los datos de cookieToken y created_at.' });
-                        }
-                        else {
-                            try{
-                                // Generador de token
-                            const generateToken = () => {
-                                const min = 100;
-                                const max = 3000;
-                                let token = '';
-                                for (let i = 0; i < 300; i++) {
-                                    const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-                                    token += randomNumber.toString();
-                                }
-                                return token;
-                            };
-        
-                                    try {
-                                        const tokenNH = generateToken();
-                                        const tokenH = await bcrypt.hash(tokenNH, 10)
-                                        const usernameH = await bcrypt.hash(usernameNH, 10);
-                                        const createdAt = new Date().toISOString();
-        
-                                            db.get('SELECT id_user FROM Users WHERE username = ?', [usernameNH], (err, row) => {
-                                                if (err) {
-                                                    return res.status(500).json({ message: `Error interno del servidor ${usernameNH}.` });
-                                                }
-                                                if (!row) {
-                                                    return res.status(404).json({ message: `No hay datos sobre este usuario: ${usernameNH}.` });
-                                                }
-        
-                                                const id_user = row.id_user;
-                                                db.run('UPDATE Tokens SET cookieToken = ?, created_at = ? WHERE username = ?', [tokenNH, createdAt, usernameNH], function (err) {
-                                                    if (err) {
-                                                        return res.status(500).json({ message: "Error interno del servidor." });
-                                                    }
-                                                    return res.status(201).json({
-                                                        message: "Se ha creado el token de la cookie con éxito.",
-                                                        tokenH: tokenH,
-                                                        usernameH: usernameH,
-                                                        id_user: id_user,
-                                                    });
-                                                });
-                                            });
-                                        } catch (err) {
-                                            return res.status(400).json({ message: "Error en los datos proporcionados." });
-                                        }
-                                }catch (err){
-                                    return res.status(500).json({ 
-                                        message: `Ha ocurrido un error al intentar loguear al usuario ${usernameNH}, error: ${err}`
-                                     })
-                                }
-                        }   
-                    })
-                } catch (err){
-                    return res.status(err);
-                }
-            }
-            if (tokenDB === '0'){
-                try{
-                        // Generador de token
-                    const generateToken = () => {
-                        const min = 100;
-                        const max = 3000;
-                        let token = '';
-                        for (let i = 0; i < 300; i++) {
-                            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-                            token += randomNumber.toString();
-                        }
-                        return token;
-                    };
 
-                            try {
-                                const tokenNH = generateToken();
-                                const tokenH = await bcrypt.hash(tokenNH, 10)
-                                const usernameH = await bcrypt.hash(usernameNH, 10);
-                                const createdAt = new Date().toISOString();
+            const tokenDB = row.cookieToken;
 
-                                    db.get('SELECT id_user FROM Users WHERE username = ?', [usernameNH], (err, row) => {
-                                        if (err) {
-                                            return res.status(500).json({ message: `Error interno del servidor ${usernameNH}.` });
-                                        }
-                                        if (!row) {
-                                            return res.status(404).json({ message: `No hay datos sobre este usuario: ${usernameNH}.` });
-                                        }
-
-                                        const id_user = row.id_user;
-                                        db.run('UPDATE Tokens SET cookieToken = ?, created_at = ? WHERE username = ?', [tokenNH, createdAt, usernameNH], function (err) {
-                                            if (err) {
-                                                return res.status(500).json({ message: "Error interno del servidor." });
-                                            }
-                                            return res.status(201).json({
-                                                message: "Se ha creado el token de la cookie con éxito.",
-                                                tokenH,
-                                                usernameH,
-                                                id_user: id_user,
-                                            });
-                                        });
-                                    });
-                                } catch (err) {
-                                    return res.status(400).json({ message: "Error en los datos proporcionados." });
-                                }
-                        }catch (err){
-                            return res.status(500).json({ 
-                                message: `Ha ocurrido un error al intentar loguear al usuario ${usernameNH}, error: ${err}`
-                             })
-                        }
+            // Verificamos si el cookieToken es '0'
+            if (tokenDB === '0') {
+                // Generar un nuevo token
+                const generateToken = () => {
+                    let token = '';
+                    for (let i = 0; i < 300; i++) {
+                        const randomNumber = Math.floor(Math.random() * (3000 - 100 + 1)) + 100;
+                        token += randomNumber.toString();
                     }
-                })
+                    return token;
+                };
+
+                const tokenNH = generateToken();
+                const tokenH = await bcrypt.hash(tokenNH, 10);
+                const usernameH = await bcrypt.hash(usernameNH, 10);
+                const createdAt = new Date().toISOString();
+
+                // Buscamos el id_user para almacenar junto al token
+                db.get('SELECT id_user FROM Users WHERE username = ?', [usernameNH], (err, userRow) => {
+                    if (err) {
+                        return res.status(500).json({ message: `Error interno del servidor al buscar el usuario ${usernameNH}.` });
+                    }
+                    if (!userRow) {
+                        return res.status(404).json({ message: `No hay datos sobre este usuario: ${usernameNH}.` });
+                    }
+
+                    const id_user = userRow.id_user;
+
+                    // Actualizamos el token y la fecha de creación
+                    db.run('UPDATE Tokens SET cookieToken = ?, created_at = ? WHERE username = ?', [tokenNH, createdAt, usernameNH], function (err) {
+                        if (err) {
+                            return res.status(500).json({ message: "Error interno del servidor al actualizar el token." });
+                        }
+                        // Establecemos las cookies
+                        res.cookie("token", tokenH, { httpOnly: true, expires: new Date(Date.now() + 86400000) });
+                        res.cookie("username", usernameH, { httpOnly: true, expires: new Date(Date.now() + 86400000) });
+                        res.cookie("id_user", id_user, { httpOnly: true, expires: new Date(Date.now() + 86400000) });
+                        return res.status(201).json({ message: "Se ha creado el token de la cookie con éxito." });
+                    });
+                });
+            } else {
+                // Si cookieToken no es '0', no se permite el inicio de sesión
+                return res.status(403).json({ message: "No se puede iniciar sesión, el token ya está en uso." });
+            }
+        });
     } catch (err) {
-        return res.status(500).json({ 
-            message: `Ha ocurrido un error al intentar loguear al usuario ${usernameNH}, error: ${err}`
-         })
+        return res.status(500).json({ message: `Ha ocurrido un error al intentar loguear al usuario ${usernameNH}, error: ${err}` });
     }
-    }
-);
+});
+
 
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
@@ -422,7 +361,7 @@ app.post('/api/register', (req, res) => {
 
 
 app.post('/api/logout', async (req, res) => {
-    const { id_user, usernameNav, tokenNav } = req.body;
+    const id_user = req.cookies.id_user;
 
     if (id_user) {
         try {
@@ -430,66 +369,19 @@ app.post('/api/logout', async (req, res) => {
                 if (err) {
                     return res.status(500).json({ message: 'Error al cerrar sesión.' });
                 }
+                res.clearCookie('id_user');
+                res.clearCookie('username');
+                res.clearCookie('token');
                 return res.status(200).json({ message: 'Sesión cerrada correctamente.' });
             });
         } catch (err) {
             return res.status(500).json({ message: 'Error al borrar el token de la Base de Datos.' });
         }
-    } else if (usernameNav) {
-        try {
-            db.all('SELECT username FROM Tokens', async (err, rows) => {
-                if (err) {
-                    return res.status(500).json({ message: "Error interno del servidor al obtener los usuarios." });
-                }
-
-                // Iteramos sobre los resultados y comparamos el hash
-                let userFound = false;
-                for (const row of rows) {
-                    const matchU = await bcrypt.compare(row.username, usernameNav);
-                    if (matchU) {
-                        userFound = true;
-                        // Actualizamos la base de datos para ese usuario
-                        db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE username = ?', [row.username], (err) => {
-                            if (err) {
-                                return res.status(500).json({ message: "Error al actualizar cookieToken y created_at." });
-                            }
-                            return res.status(200).json({ message: "Sesión cerrada correctamente." });
-                        });
-                        break; // Salimos del bucle si encontramos el usuario
-                    }
-                }
-
-                if (!userFound) {
-                    return res.status(404).json({ message: "Usuario no encontrado." });
-                }
-            });
-        } catch (err) {
-            return res.status(500).json({ message: "Error al intentar obtener los datos.", error: err.message });
-        }
-    } else if (tokenNav){
-        try{
-            db.all('SELECT cookieToken FROM Tokens', async (err, rows) => {
-                if (err){
-                    return res.status(500).json({ message: "Error interno del servidor al querer obtener las cookies de la base de datos." });
-                }
-                let cookieFound = false;
-                for (const row of rows) {
-                    const matchC = await bcrypt.compare(row.cookieToken, tokenNav);
-                    if (matchC){
-                        cookieFound = true;
-                        db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE cookieToken = ?', [row.cookieToken], (err) => {
-                            if (err) {
-                                return res.status(500).json({ message: "Error al actualizar cookieToken y created_at." });
-                            }
-                            return res.status(200).json({ message: "Sesión cerrada correctamente." });
-                        });
-                        break; // Salimos del bucle si encontramos el usuario
-                    }
-                }
-            })
-        } catch (err) {
-            return res.status(err);
-        }
+    } else {
+        res.clearCookie('id_user');
+        res.clearCookie('username');
+        res.clearCookie('token');
+        return res.status(400).json({ message: "No se recibio un idUser." });
     }
 });
 
@@ -524,23 +416,45 @@ app.delete('/api/delete', (req, res) => {
 
 
 app.post('/api/checkeo', async (req, res) => {
-    const { tokenNav, usernameNav, idUserNav } = req.body;
+
+    // Obtener las cookies
+    const tokenNav = req.cookies.token;
+    const usernameNav = req.cookies.username;
+    const idUserNav = req.cookies.id_user;
+
+    // Verificar que las cookies no están vacías
+    if (!tokenNav || !usernameNav || !idUserNav) {
+        console.log('Faltan cookies de autenticación.'); // Log de error
+        res.clearCookie('id_user');
+        res.clearCookie('username');
+        res.clearCookie('token');
+        return res.status(401).json({ message: 'No hay cookies de autenticación.' });
+    }
+
     const tiempoActual = new Date().toISOString();
+    console.log('Tiempo actual:', tiempoActual); // Log del tiempo actual
 
     try {
+        // Consultar la base de datos para obtener el token y el nombre de usuario
         db.get('SELECT cookieToken, username, created_at FROM Tokens WHERE id_user = ?', [idUserNav], async function (err, row) {
             if (err) {
                 console.error('Error de base de datos:', err);
                 return res.status(500).json({ message: 'Error interno del servidor.' });
             }
             if (!row) {
+                res.clearCookie('id_user');
+                res.clearCookie('username');
+                res.clearCookie('token');
                 return res.status(404).json({ message: 'No se han encontrado los datos.' });
             }
 
-            const matchT = await bcrypt.compare(row.cookieToken, tokenNav); // Usar tokenNav y row.cookieToken
-            const usernameMatch = await bcrypt.compare(row.username, usernameNav); // Usar usernameNav y row.username
+            // Comparar el token y el nombre de usuario
+            const matchT = await bcrypt.compare(row.cookieToken, tokenNav);
+            const usernameMatch = await bcrypt.compare(row.username, usernameNav);
 
             const createdAt = row.created_at;
+
+            // Función para verificar si el token ha expirado (más de 24 horas)
             const tiempo = (createdAt, tiempoActual) => {
                 const createdDate = new Date(createdAt);
                 const currentDate = new Date(tiempoActual);
@@ -548,87 +462,63 @@ app.post('/api/checkeo', async (req, res) => {
                 return (currentDate - createdDate) >= UnDiaMilisegundos;
             };
 
+            // Verificar si el token ha expirado
             if (tiempo(createdAt, tiempoActual)) {
-                db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0, WHERE id_user = ?', [idUserNav], function (err) {
+                console.log('Token expirado, actualizando estado.'); // Log de token expirado
+                db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE id_user = ?', [idUserNav], function (err) {
                     if (err) {
+                        console.error('Error al actualizar el estado del cookieToken:', err);
                         return res.status(500).json({ message: "Error interno del servidor al actualizar el estado del cookieToken." });
                     }
-                    else {
-                        return res.status(err).json({ message: err.message });
-                    }
+                    res.clearCookie('id_user');
+                    res.clearCookie('username');
+                    res.clearCookie('token');
+                    return res.status(200).json({ message: 'Token expirado y actualizado.' });
                 });
             } else {
                 if (matchT && usernameMatch) {
                     return res.status(200).json({ message: 'Los tokens coinciden.' });
                 } else {
+                    res.clearCookie('id_user');
+                    res.clearCookie('username');
+                    res.clearCookie('token');
                     return res.status(401).json({ message: 'Los tokens no coinciden.' });
                 }
             }
         });
     } catch (err) {
-        console.error('Error interno del servidor:', err);
+        res.clearCookie('id_user');
+        res.clearCookie('username');
+        res.clearCookie('token');
         return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
     }
 });
 
 
-
 app.post('/api/cookie/delete', async (req, res) => {
-    const { id_user, usernameNav } = req.body;
+    const id_user = req.cookies.id_user;
 
-    if (id_user !== undefined) {
+    if (id_user) {
         try {
             db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE id_user = ?', [id_user], (err) => {
                 if (err) {
                     console.error('Error al cerrar sesión:', err);
                     return res.status(500).json({ message: 'Error al cerrar sesión.' });
                 }
+                res.clearCookie("id_user");
+                res.clearCookie("username");
+                res.clearCookie("token");
                 return res.status(200).json({ message: 'Sesión cerrada correctamente.' });
             });
         } catch (err) {
             console.error('Error al borrar el token de la Base de Datos:', err);
             return res.status(500).json({ message: 'Error al borrar el token de la Base de Datos.' });
         }
-    } else if (usernameNav !== undefined) {
-        try {
-            db.all('SELECT username FROM Tokens', async (err, rows) => {
-                if (err) {
-                    console.error('Error al obtener todos los usuarios:', err);
-                    return res.status(500).json({ message: "Error interno del servidor al obtener todos los usuarios." });
-                }
-
-                let userFound = false;
-                for (const row of rows) {
-                    let matchU = await bcrypt.compare(row.username, usernameNav);
-                    if (matchU) {
-                        userFound = true;
-                        let usernameNH = row.username;
-                        try {
-                            db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE username = ?', [usernameNH], (err) => {
-                                if (err) {
-                                    console.error('Error al intentar actualizar cookieToken y created_at:', err);
-                                    return res.status(500).json({ message: "Error interno del servidor al intentar actualizar cookieToken y created_at." });
-                                }
-                                return res.status(200).json({ message: "Se han actualizado los datos correctamente." });
-                            });
-                        } catch (err) {
-                            console.error('Error al intentar actualizar los datos:', err);
-                            return res.status(500).json({ message: "Error al intentar actualizar los datos.", error: err.message });
-                        }
-                        break;
-                    }
-                }
-                if (!userFound) {
-
-                    return res.status(404).json({ message: "Usuario no encontrado." });
-                }
-            });
-        } catch (err) {
-            console.error('Error al intentar obtener los datos:', err);
-            return res.status(500).json({ message: "Error al intentar obtener los datos.", error: err.message });
-        }
     } else {
-        return res.status(400).json({ message: "No se proporcionó ni id_user ni usernameNav." });
+        res.clearCookie('id_user');
+        res.clearCookie('username');
+        res.clearCookie('token');
+        return res.status(400).json({ message: "No se proporcionó un id_user." });
     }
 });
 

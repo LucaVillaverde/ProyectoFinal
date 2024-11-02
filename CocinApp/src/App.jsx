@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import Cookies from "js-cookie";
 import "./components/LoginRegister/style.css";
 import "./components/header/header.css";
 import Footer from "./components/footer/Footer";
@@ -68,81 +67,26 @@ function App() {
       window.removeEventListener("resize", handleResize); //Quitar el evento
     };
   }, []);
-  
 
-    const clearCookiesAndLogout = () => {
-      Cookies.remove("token");
-      Cookies.remove("username");
-      Cookies.remove("id_user");
-      setIsLoggedIn(false);
+useEffect(() => {
+  const checkLoginStatus = async () => {
+      try {
+          const cookieTokenResponse = await axios.post(`/api/checkeo`, {}, { withCredentials: true }); // Asegúrate de incluir withCredentials
+          if (cookieTokenResponse.status === 200) {
+              setIsLoggedIn(true);
+          } else {
+              console.error('Error al verificar las credenciales:', cookieTokenResponse.data.message);
+              setIsLoggedIn(false); 
+          }
+      } catch (err) {
+          console.error('Error al verificar credenciales:', err);
+          setIsLoggedIn(false); 
+      }
   };
 
-  const logoutAndClearSession = async (data) => {
-    try {
-        const logoutResponse = await axios.post(`/api/logout`, data);
-        if (logoutResponse.status === 200) {
-            const deleteCookieResponse = await axios.post(`/api/cookie/delete`, data);
-            if (deleteCookieResponse.status === 200) {
-                clearCookiesAndLogout();
-            } else {
-                console.error('Error al eliminar la cookie:', deleteCookieResponse.data.message);
-            }
-        } else {
-            console.error('Error al cerrar sesión:', logoutResponse.data.message);
-            clearCookiesAndLogout();
-        }
-    } catch (err) {
-        console.error('Error en el proceso de cierre de sesión:', err);
-        clearCookiesAndLogout();
-    }
-};
-
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-        const tokenNav = Cookies.get("token");
-        const usernameNav = Cookies.get("username");
-        const idUserNav = Cookies.get("id_user");
-
-        // Si todas las cookies están presentes
-        if (tokenNav && usernameNav && idUserNav) {
-            try {
-                const cookieTokenResponse = await axios.post(`/api/checkeo`, { tokenNav, usernameNav, idUserNav });
-                if (cookieTokenResponse.status === 200) {
-                    setIsLoggedIn(true);
-                } else {
-                    console.error('Error al verificar las credenciales:', cookieTokenResponse.data.message);
-                    clearCookiesAndLogout();
-                }
-            } catch (err) {
-                console.error('Error al verificar credenciales:', err);
-                clearCookiesAndLogout();
-            }
-        }
-        // Si falta el token pero el id_user está presente
-        else if (!tokenNav && idUserNav) {
-            await logoutAndClearSession({ id_user: idUserNav });
-        }
-        // Si el id_user falta, pero el username y token están presentes
-        else if (!idUserNav && usernameNav && tokenNav) {
-            console.log("Falta id_user, eliminando cookies.");
-            await logoutAndClearSession({ usernameNav });
-        }
-        // Si el id_user falta pero el username está presente
-        else if (!idUserNav && usernameNav) {
-            await logoutAndClearSession({ usernameNav });
-        }
-        // Si el id_user y username faltan pero token está presente
-        else if (!idUserNav && !usernameNav && tokenNav) {
-            await logoutAndClearSession({ tokenNav });
-        }
-        // Si el id_user está presente pero falta usernameNav
-        else if (idUserNav && tokenNav && !usernameNav) {
-            await logoutAndClearSession({ id_user: idUserNav });
-        }
-    };
-
-    checkLoginStatus();
+  checkLoginStatus();
 }, []);
+
 
   const signUp = async (e) => {
     e.preventDefault();
@@ -164,18 +108,8 @@ function App() {
             }
           );
           if (cookieTokenResponse.status === 201) {
-            const { tokenH, usernameH, id_user } = cookieTokenResponse.data; // Declarar esta variable para obtener el token creado.
-
-            if (tokenH && usernameH && id_user) {
-              // Uso de operador && para mayor claridad
-              Cookies.set("token", tokenH, { expires: 1 }); // Configurar la cookie con el token
-              Cookies.set("username", usernameH), { expires: 1 };
-              Cookies.set("id_user", id_user);
-              setIsLoggedIn(true);
-            } else {
-              console.error("Token o nombre no encontrados en la respuesta.");
-
-            }
+            setIsLoggedIn(true);
+            location.reload();
           } else {
             console.error("Error al generar el token:", cookieTokenResponse.data.message);
           }
@@ -198,88 +132,58 @@ function App() {
   const login = async (e) => {
     e.preventDefault();
     try {
+        // Intentar iniciar sesión
         const response = await axios.post(`/api/login`, { username, password });
         if (response.status === 200) {
+            // Si el login fue exitoso, intenta generar el token
             try {
                 const cookieTokenResponse = await axios.post(`/api/token-login`, {
-                  usernameNH: username,
+                    usernameNH: username,
                 });
                 if (cookieTokenResponse.status === 201) {
-                    const { tokenH, usernameH, id_user } = cookieTokenResponse.data; // Asegúrate de obtener el token
-                    // console.log(`El nombre de usuario es: ${nombre}`);
-                    // console.log(`El token del usuario es: ${token}`);
-                    // console.log(`El id del usuario es: ${id_user}`)
-                    if (tokenH && usernameH && id_user) {
-                            Cookies.set("token", tokenH, { expires: 1}); // Configurar la cookie con el token
-                            Cookies.set("username", usernameH, { expires: 1});
-                            Cookies.set("id_user", id_user);
-                            setIsLoggedIn(true);
-                            setMessage(`Bienvenido/a ${username}!`);
-                            location.reload()
-                        } else {
-                          console.error('Error no hay datos', 404);
-                        }
-                    } else {
-                      console.error('Error al generar el token:', cookieTokenResponse.data.message);
-                      setMessage("Error al generar el token.");
-                  }
-                } catch (err) {
-                  console.error(err);
+                    setIsLoggedIn(true);
+                    location.reload();
+                    // Aquí podrías actualizar el estado sin recargar la página
+                } else if (cookieTokenResponse.status === 403) {
+                    setIsLoggedIn(false);
                 }
+            } catch (err) {
+                setIsLoggedIn(false);
             }
         }
-     catch (error) {
+    } catch (error) {
         console.error('Error en el login:', error);
         setMessage(error.response ? error.response.data.message : "Error de conexión");
         setTimeout(() => setMessage(""), 5000);
     }
 };
+
+
 const logout = async (e) => {
     e.preventDefault();
-    const idUserNav = Cookies.get("id_user");
     try {
-      const response = await axios.post(
-        `/api/logout`,
-        {
-          id_user: idUserNav,
-        }
-      );
-
+      const response = await axios.post(`/api/logout`, {});
       if (response.status === 200) {
         try {
-          const cookieTokenDelete = await axios.post(`/api/cookie/delete`, {
-            id_user: idUserNav,
-          });
+          const cookieTokenDelete = await axios.post(`/api/cookie/delete`, {});
 
           if (cookieTokenDelete.status === 200) {
             console.error(200);
             console.log("La cuenta se ha cerrado exitosamente.");
-            Cookies.remove("username");
-            Cookies.remove('token');
-            Cookies.remove('id_user');
             setIsLoggedIn(false);
             <Navigate to={'/'}/>
           }
         } catch (err) {
           console.error(err);
-          Cookies.remove("username");
-          Cookies.remove('token');
-          Cookies.remove('id_user');
           setIsLoggedIn(false);
         }
 
       } else {
         console.error(response.status);
-        Cookies.remove("username");
-        Cookies.remove('token');
-        Cookies.remove('id_user');
         setIsLoggedIn(false);
       }
     } catch (err) {
       console.error(err);
-      Cookies.remove("username");
-      Cookies.remove('token');
-      Cookies.remove('id_user');
       setIsLoggedIn(false);
     }
   };
@@ -287,30 +191,23 @@ const logout = async (e) => {
 
   const deleteUser = async (e) => {
     e.preventDefault();
-    const user = Cookies.get("id_user");
-
     const contraUser = prompt("Confirme su contraseña");
     
     if (contraUser){
       const confirmacion = window.confirm("¿Estas seguro de borrar tu cuenta?");
       if(confirmacion){
-        try {
-          const deleteResponse = await axios.post(`/api/verifpassword`, {
-              id_user: user,
-              contraUser,
-          });
-          if (deleteResponse.status === 200) {
-              setIsLoggedIn(false);
-              Cookies.remove('token');
-              Cookies.remove("username");
-              Cookies.remove("id_user");
-              location.reload();
+          try {
+            const deleteResponse = await axios.post(`/api/verifpassword`, {
+                contraUser,
+            });
+            if (deleteResponse.status === 200) {
+                setIsLoggedIn(false);
+                location.reload();
+            }
+          } catch (err) {
+              console.error(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
+              setMessage(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
           }
-      } catch (err) {
-          console.error(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
-          setMessage(err.response ? err.response.data.message : 'Error desconocido al eliminar el usuario.');
-          // Asegúrate de eliminar las cookies incluso si hay un error
-      }
       } else {
         location.reload();
       }
@@ -347,43 +244,35 @@ useEffect(() => {
   };
 }, []);
 
-// const showForm =(formTipo)=>{
-//   setForm(formTipo);
-//   const formularioLogin = document.getElementById('form_login');
-//   formularioLogin === "displayNone" ?? "backgroundForm";
-// };
 
-// // NEW LOGIN (FUNCIONES)
-// const closeForm = () => {
-//     const formularioLogin = document.getElementById('form_login');
-//     formularioLogin === "backgroundForm" ?? "displayNone";
-// };
-// const changeForm =() => {
-//     if (form === "login") {
-//         setForm("register");
-//     } else {
-//         setForm("login");
-//     }
-// };
-// useEffect(() => {
-//     if (form === "login") {
-//       setForm("register");
-//     } else {
-//       setForm("login");
-//     }
-//   }, []);
 
-  const showForm = () =>{
-    
+  const changeForm = () =>{
+    if (form === "login") {
+      setForm("register");
+    } else {
+      setForm("login");
+    }
+  }
+
+  const showForm = (tipo) =>{
+    setForm(tipo);
+    const formulario = document.getElementById("form_login");
+    if (formulario.className === "displayNone"){
+      formulario.className = "backgroundForm";
+    } else {
+      formulario.className = "displayNone";
+    }
+  }
+
+  const closeForm = () =>{
+    const formulario = document.getElementById('form_login');
+    formulario.className = "displayNone";
   }
 
   useEffect(() => {
     const llamadoInfoUsuario = async () => {
-      const user = Cookies.get("id_user");
       try{
-        const llamado = await axios.post(`/api/info-usuario`, {
-          id_user: user,
-        });
+        const llamado = await axios.get(`/api/info-usuario`);
         if (llamado.status === 200){
           // console.log(llamado.data.username)
           setLocalUsername(llamado.data.username);
@@ -511,7 +400,7 @@ useEffect(() => {
                 </>
               ) : (
                 <>
-                  <button className="btn_user" onClick={() => setEstado(true)}>INGRESO / REGISTRO</button>
+                  <button className="btn_user" onClick={() => showForm("login")}>INGRESO / REGISTRO</button>
                 </>
               )}
             </div>
@@ -612,11 +501,8 @@ const UserMenu = ({logout, del_profile}) => {
   const [localUsername, setLocalUsername] = useState('');
   useEffect(() => {
     const llamadoInfoUsuario = async () => {
-      const user = Cookies.get("id_user");
       try{
-        const llamado = await axios.post(`/api/info-usuario`, {
-          id_user: user,
-        });
+        const llamado = await axios.get(`/api/info-usuario`,)
         if (llamado.status === 200){
           // console.log(llamado.data.username)
           setLocalUsername(llamado.data.username);
@@ -686,7 +572,7 @@ const UserMenu = ({logout, del_profile}) => {
           <div className="menu-content">
             <span className="menu-span" >Hola {localUsername}</span>
             <a href={`/Panel de Recetas/${localUsername}`}>Gestionar recetas</a>
-            {/* <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a> */}
+            {/* <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a>  en gestionar recetas ya se muestra tambien las recetas del usuario*/}
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
           </div>
@@ -706,8 +592,8 @@ const UserMenu = ({logout, del_profile}) => {
           <div className="menu-content">
             <span className="menu-span" >Hola {localUsername}</span>
             <a href={`/Panel de Recetas/${localUsername}`}>Gestionar recetas</a>
-            {/* <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a> */}
-            <a href={`/mis-favoritos/${localUsername}`}>Favoritos</a>
+            {/* <a href={`/mis-recetas/${localUsername}`}>Mis recetas</a> en gestionar recetas ya se muestra tambien las recetas del usuario*/}
+            {/* <a href={`/mis-favoritos/${localUsername}`}>Favoritos</a>  aun no tiene uso alguno*/}
             <button className="btn_del btn_menu" onClick={del_profile}>Borrar cuenta</button>
             <button className="btn_close btn_menu" onClick={logout}>Cerrar sesión</button>
           </div>

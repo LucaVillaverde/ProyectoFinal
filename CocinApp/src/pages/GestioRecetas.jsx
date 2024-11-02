@@ -40,39 +40,34 @@ const AddForm = memo(
                 <option value="Difícil">Difícil</option>
             </select>
 
-            <label htmlFor="categories">Categoria (4 max):</label>
+            <label>Categoria (4 max):</label>
             <div className="categorias">
-                <select
-                    id="categories"
-                    className="categories"
-                    multiple
-                    onChange={handleCategoryChange}
-                >
-                    <option value="Entrada">Entrada</option>
-                    <option value="Sopa">Sopa</option>
-                    <option value="Caldo">Caldo</option>
-                    <option value="Ensalada">Ensalada</option>
-                    <option value="Plato Principal">Plato Principal</option>
-                    <option value="Guarnición">Guarnición</option>
-                    <option value="Postre">Postre</option>
-                    <option value="Bebida">Bebida</option>
-                    <option value="Vegetariana">Vegetariana</option>
-                    <option value="Saludable">Saludable</option>
-                </select>
-                <div className="chips">
-                    <strong>Seleccionado</strong>
-                    {formData.categories.map((category) => (
-                        <span key={category} className="chip">
-                            {category}{" "}
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveCategory(category)}
-                            >
-                                ✕
-                            </button>
-                        </span>
-                    ))}
-                </div>
+                {["Entrada", "Sopa", "Caldo", "Ensalada", "Plato Principal", "Guarnición", "Postre", "Bebida", "Vegetariana", "Saludable"].map((category) => (
+                    <label key={category} className="checkbox-label">
+                        <input
+                            type="checkbox"
+                            checked={formData.categories.includes(category)}
+                            onChange={() => handleCategoryChange(category)}
+                        />
+                        {category}
+                    </label>
+                ))}
+            </div>
+            <div className="chipsContainer">
+            <div className="chips">
+                <strong>Seleccionado</strong>
+                {formData.categories.map((category) => (
+                    <span key={category} className="chip">
+                        {category}{" "}
+                        <button
+                            type="button"
+                            onClick={() => handleRemoveCategory(category)}
+                        >
+                            ✕
+                        </button>
+                    </span>
+                ))}
+            </div>
             </div>
 
             <label htmlFor="description">Descripción de la Receta:</label>
@@ -129,10 +124,9 @@ const GestioRecetas = () => {
     const [nombreUsuario, setNombreUsuario] = useState("");
     const [info, setInfo] = useState(false);
     const [recetas, setRecetas] = useState([]);
-    // const [info, setInfo] = useState(false);
     const domain = import.meta.env.VITE_HOST_API2;
     const host = `${domain}:5000`;
-    // VARIABLES DE FORMULARIO
+    
     const [formData, setFormData] = useState({
         recipeName: "",
         difficulty: "",
@@ -143,28 +137,20 @@ const GestioRecetas = () => {
         tiempo: "",
     });
 
-    // Effect para obtener información del usuario
     useEffect(() => {
         const llamadoUsuario = async () => {
             try {
-                const response = await axios.post("/api/info-usuario", {
-                    id_user: Cookies.get("id_user"),
-                });
+                const response = await axios.get("/api/info-usuario");
                 if (response.status === 200) {
                     setNombreUsuario(response.data.username);
                     llamado(response.data.username);
                 }
             } catch (err) {
-                console.log(err, "hola");
+                console.log(err);
             }
         };
         llamadoUsuario();
     }, []);
-
-    // Effect para imprimir el nombre del usuario
-    useEffect(() => {
-        console.log(nombreUsuario);
-    }, [nombreUsuario]);
 
     const handleInputChange = useCallback((e) => {
         const { id, value } = e.target;
@@ -177,55 +163,43 @@ const GestioRecetas = () => {
     const handleRemoveCategory = useCallback((categoryToRemove) => {
         setFormData((prevData) => ({
             ...prevData,
-            categories: prevData.categories.filter(
-                (category) => category !== categoryToRemove
-            ),
+            categories: prevData.categories.filter(category => category !== categoryToRemove),
         }));
     }, []);
 
-    const handleCategoryChange = useCallback(
-        (e) => {
-            const selectedValues = Array.from(
-                e.target.selectedOptions,
-                (option) => option.value
-            );
+    const handleCategoryChange = useCallback((category) => {
+        setFormData((prevData) => {
+            const isSelected = prevData.categories.includes(category);
+            const updatedCategories = isSelected
+                ? prevData.categories.filter((c) => c !== category)
+                : [...prevData.categories, category];
 
-            // Comprobar si el número total de categorías seleccionadas no excede 4
-            if (selectedValues.length + formData.categories.length <= 4) {
-                // Actualizar las categorías
-                setFormData((prevData) => ({
-                    ...prevData,
-                    categories: [
-                        ...new Set([...prevData.categories, ...selectedValues]),
-                    ], // Unir y eliminar duplicados
-                }));
+            if (updatedCategories.length <= 4) {
+                return { ...prevData, categories: updatedCategories };
             } else {
                 alert("Solo puedes seleccionar hasta 4 categorías.");
+                return prevData;
+            }
+        });
+    }, []);
+
+    const addRecipe = useCallback(
+        async (e) => {
+            e.preventDefault();
+            try {
+                const response = await axios.post("/api/receta-nueva", {
+                    username: nombreUsuario,
+                    receta: formData,
+                });
+                if (response.status === 201) {
+                    llamado(nombreUsuario); 
+                    alert("Receta añadida exitosamente.");
+                }
+            } catch (err) {
+                console.log("Error al agregar receta:", err);
             }
         },
-        [formData.categories.length]
-    );
-
-    // FUNCIONES
-    const addRecipe = useCallback(
-        (e) => {
-            e.preventDefault();
-            const agregarReceta = async () => {
-                try {
-                    const response = await axios.post("/api/receta-nueva", {
-                        username: nombreUsuario,
-                        receta: formData,
-                    });
-                    if (response.status === 201){
-                        agregarReceta();
-                        llamado();
-                    }
-                } catch (err) {
-                    console.log(err, "Hola, ha habido un error xd.");
-                }
-            };
-        },
-        [formData]
+        [formData, nombreUsuario]
     );
 
     const llamado = (nombre) => {
@@ -236,12 +210,10 @@ const GestioRecetas = () => {
                 });
                 if (response.status === 200) {
                     setRecetas(response.data.recetas);
-                    console.log(response.data.recetas);
                     setInfo(true);
                 } else if (response.status === 404) {
                     setInfo(false);
-                    window.alert("No tienes recetas para mostrar.");
-                    console.log("No tienes recetas para mostrar.");
+                    alert("No tienes recetas para mostrar.");
                 }
             } catch (error) {
                 console.log(error);
@@ -263,46 +235,6 @@ const GestioRecetas = () => {
                         llamadaDB={addRecipe}
                     />
                 </div>
-                <h2 className="title">Mis recetas</h2>
-
-                {!info ? (
-                    <>
-                        <span>No tienes recetas para mostrar</span>
-                    </>
-                ) : (
-                    <>
-                        <div className="contenedor-tarjetas">
-                            {recetas.map(
-                                ({
-                                    id_recipe,
-                                    tiempo,
-                                    image,
-                                    recipe_name,
-                                    username,
-                                    difficulty,
-                                    categories,
-                                }) => (
-                                    <a
-                                        className="card"
-                                        href={`/receta/${id_recipe}`}
-                                        key={id_recipe}
-                                    >
-                                        <SimpleCard
-                                            tiempo={tiempo}
-                                            image={
-                                                "https://placehold.co/400x250/000/fff/png"
-                                            }
-                                            title={recipe_name}
-                                            author={username}
-                                            dificulty={difficulty}
-                                            category={categories}
-                                        />
-                                    </a>
-                                )
-                            )}
-                        </div>
-                    </>
-                )}
             </div>
         </>
     );

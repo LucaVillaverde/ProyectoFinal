@@ -60,10 +60,26 @@ option{
 .textAreaDesc::placeholder{color: #000;}
 
 
-.categorias{
-  display: flex;
-  justify-content: space-between;
+
+
+.categorias {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Cambia según el número de columnas que desees */
+  row-gap: 10px;
   margin: 5px 0;
+}
+
+.checkbox-label {
+  display: flex; /* Usar flex para centrar el contenido */
+  align-items: center; /* Centrar verticalmente el contenido */
+  justify-content: center; /* Centrar horizontalmente el contenido si es necesario */
+  font-size: 10px;
+}
+
+.checkbox-label input {
+  width: 20px; /* Ajusta el tamaño del checkbox */
+  height: 20px;
+  margin-right: 8px; /* Espacio entre el checkbox y el texto */
 }
 .categories{
   width: 50%;
@@ -83,14 +99,24 @@ option{
   background-color: #ffcb72;
 }
 
+.chipsContainer{
+  margin: 5% 0;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+}
+
 .chips{
   background-color: var(--secondary-color);
-  width: 40%;
+  width: 100%;
   height: auto;
   text-align: center;
 }
 .chip{
   display: block;
+  margin: 3% 0;
 }
 .btnAdd{
   width: 50%;
@@ -102,10 +128,23 @@ option{
   box-shadow: 2px 2px 1px #414141;
 }
 
+@media (min-width: 375px){
+  .checkbox-label {
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 425px){
+  .checkbox-label {
+    font-size: 15px;
+  }
+}
+
 @media (min-width: 700px){
   .categorias{
-    display: flex;
-    justify-content: space-around;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 30px;
   }
   .categories{
     width: 200px;
@@ -116,7 +155,7 @@ option{
   }
 
   .chips{
-    width: 200px;
+    width: 50%;
   }
 }
 
@@ -132,15 +171,19 @@ option{
   }
   /* label{text-align: center;} */
 
+  .categorias{
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    row-gap: 30px;
+  }
 
   .btnAdd{
     width: 30%;
   }
   .categories{
     width: 30%;
-    text-align:center;
+
   }
   .chips{
-    width: 40%;
+    width: 50%;
   }
 }
