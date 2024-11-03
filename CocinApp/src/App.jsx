@@ -47,17 +47,6 @@ function App() {
         }
     };
     useEffect(() => {
-        const handleResize = () => {
-            setMenuVisible(false);
-        };
-        //Listen para verificar cambio de pantalla (Resize)
-        window.addEventListener("resize", handleResize);
-        return () => {
-            window.removeEventListener("resize", handleResize); //Quitar el evento
-        };
-    }, []);
-
-    useEffect(() => {
         const checkLoginStatus = async () => {
             try {
                 const cookieTokenResponse = await axios.post(

@@ -13,7 +13,7 @@ const AddForm = memo(
         llamadaDB,
     }) => (
         <form id="formularioAgregarReceta" onSubmit={llamadaDB}>
-            <label htmlFor="recipeName">Nombre de la Receta:</label>
+            <label className='lbl-title-form' htmlFor="recipeName">Nombre de la Receta:</label>
             <input
                 className="inptFormRecipe"
                 type="text"
@@ -24,7 +24,7 @@ const AddForm = memo(
                 required
             />
 
-            <label htmlFor="difficulty">Dificultad:</label>
+            <label className='lbl-title-form' htmlFor="difficulty">Dificultad:</label>
             <select
                 name="recipeDiff"
                 className="selectRecipe"
@@ -39,7 +39,7 @@ const AddForm = memo(
                 <option value="Difícil">Difícil</option>
             </select>
 
-            <label>Categoria (4 max):</label>
+            <label className='lbl-title-form'>Categoria (4 max):</label>
             <div className="categorias">
                 {["Entrada", "Sopa", "Caldo", "Ensalada", "Plato Principal", "Guarnición", "Postre", "Bebida", "Vegetariana", "Saludable"].map((category) => (
                     <label key={category} className="checkbox-label">
@@ -52,24 +52,8 @@ const AddForm = memo(
                     </label>
                 ))}
             </div>
-            <div className="chipsContainer">
-            <div className="chips">
-                <strong>Seleccionado</strong>
-                {formData.categories.map((category) => (
-                    <span key={category} className="chip">
-                        {category}{" "}
-                        <button
-                            type="button"
-                            onClick={() => handleRemoveCategory(category)}
-                        >
-                            ✕
-                        </button>
-                    </span>
-                ))}
-            </div>
-            </div>
 
-            <label htmlFor="description">Descripción de la Receta:</label>
+            <label className='lbl-title-form' htmlFor="description">Descripción de la Receta:</label>
             <textarea
                 className="textAreaDesc"
                 id="description"
@@ -79,7 +63,7 @@ const AddForm = memo(
                 required
             ></textarea>
 
-            <label htmlFor="ingredients">Ingredientes de la Receta:</label>
+            <label className='lbl-title-form' htmlFor="ingredients">Ingredientes de la Receta:</label>
             <input
                 className="inptFormRecipe"
                 type="text"
@@ -90,7 +74,7 @@ const AddForm = memo(
                 required
             />
 
-            <label htmlFor="steps">Pasos para la elaboración:</label>
+            <label className='lbl-title-form' htmlFor="steps">Pasos para la elaboración:</label>
             <input
                 className="inptFormRecipe"
                 type="text"
@@ -101,7 +85,7 @@ const AddForm = memo(
                 required
             />
 
-            <label htmlFor="tiempo">Tiempo de preparación:</label>
+            <label className='lbl-title-form' htmlFor="tiempo">Tiempo de preparación:</label>
             <input
                 className="inptFormRecipe"
                 type="text"

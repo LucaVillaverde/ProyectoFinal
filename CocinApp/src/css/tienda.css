@@ -1,6 +1,11 @@
+.container{
+    width: 100vw;
+    height: 100px;
+}
+
 .cont-soon{
     width: 90vw;
-    height: 60vh;
+    height: auto;
     margin: auto;
     margin-top: 40px;
     justify-content: space-between;
@@ -12,4 +17,12 @@
     max-width: 600px;
 }
 
+.soon-text{
+    text-align: center;
+    font-weight: bold;
+}
 
+
+@media (min-widh:760px){
+
+}

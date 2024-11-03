@@ -7,8 +7,8 @@ import logoimg from "../../assets/logo1.png";
 import logoPerfilM from "../../assets/LogoPerfilMovil.jpg";
 import logoPerfilP from "../../assets/LogoPerfilPC.jpg";
 
-const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm,visible, localUsername}) => {
-
+const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm, localUsername}) => {
+    const [visible, setMenuVisible] = useState(false);
     // PATH
     const links = [
         { href: "/", label: "INICIO" },
@@ -84,7 +84,7 @@ const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm,visible, localUsername}
         }
     };
     const showMenu= ()=>{
-        setMenuVisible(!Visible);
+        setMenuVisible(!visible);
     }
 
 
