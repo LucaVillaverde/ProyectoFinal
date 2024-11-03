@@ -5,9 +5,6 @@
     margin-top: 40px;
     justify-content: space-between;
     text-align: center;
-    background-image: url('../assets/underconstruction.gif');
-    background-repeat: no-repeat;
-    background-position: bottom;
 }
 .image-soon{
     width: 100%;
@@ -15,33 +12,4 @@
     max-width: 600px;
 }
 
-.soon-text{
-    text-align: center;
-    font-size: 1em;
-    font-weight: bold;
-}
 
-
-@media (min-width:768px){
-    .cont-soon{
-        background-image: url('../assets/contrucion.gif');
-        background-size: cover;
-        height: 80vh;
-        padding: 20px;
-        margin: 10px auto;
-    }
-    .soon-text:first-child{
-        position: relative;
-        top: 20%;
-        font-size: 1.5em;
-        padding: 10px;
-        color: #fff;
-
-        background-color: rgba(0, 0, 0, 0.87);
-    }
-}
-@media (min-width:1440px){
-    .soon-text:nth-child(3){
-        font-size: 1.8em;
-    }
-}

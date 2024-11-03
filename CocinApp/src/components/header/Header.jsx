@@ -87,6 +87,7 @@ const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm,visible, localUsername}
         setMenuVisible(!Visible);
     }
 
+
     return (
             movil ? (
                 <>
@@ -95,13 +96,13 @@ const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm,visible, localUsername}
                             <div className="seccion">
                                 {isLoggedIn ? (
                                     <UserMenu
-                                        username={username}
+                                        username={localUsername}
                                         logout={(e) => logout(e)}
                                         del_profile={(e) => deleteUser(e)}
                                         movil={movil}
                                     />
                                 ) : (
-                                    <button className="btn_user" onClick={() => showForm("login")}>
+                                    <button className="btn_user" onClick={()=>showForm("registro")}>
                                         INGRESO / REGISTRO
                                     </button>
                                 )}
@@ -155,10 +156,10 @@ const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm,visible, localUsername}
                                     />
                                 ) : (
                                     <div className="btn_user-move">
-                                        <button className="btn_user" onClick={() => showForm("login")}>
+                                        <button className="btn_user" onClick={()=>showForm("login")}>
                                             INGRESO
                                         </button>
-                                        <button className="btn_user" onClick={() => showForm("registro")}>
+                                        <button className="btn_user" onClick={()=>showForm("registro")}>
                                             REGISTRO
                                         </button>
                                     </div>
