@@ -1,78 +1,24 @@
-import { React, useState, useEffect } from "react";
+import {React, useState} from "react";
 import "./style.css";
-import Cookies from "js-cookie";
-import axios  from 'axios';
+// import Cookies from "js-cookie";
+import axios from "axios";
 
-const LoginRegister = ({estado, setEstado, texto}) => {
-// VARIABLES
-    // login
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    //Register
-    const [usernameR, setUsernameR] = useState('');
-    const [passwordR, setPasswordR] = useState('');
-    const [passwordRC, setPasswordRC] = useState('');
-    // OTROS
-    // const [message, setMessage] = useState('');
-    const [isLoggedIn , setIsLoggedIn] = useState(false);
-    const [message, setMessage] = useState('');
+const LoginRegister = ({form,setForm,setIsLoggedIn}) => {
+    // Variables
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [usernameR, setUsernameR] = useState("");
+    const [passwordR, setPasswordR] = useState("");
+    const [passwordRC, setPasswordRC] = useState("");
+    const [message, setMessage] = useState("");
 
 
-    useEffect(() => {
-        const form = document.getElementById('form_login');
-        if (form) {
-          if (estado) {
-            // Ocultar el formulario y deshabilitar el scroll
-            form.style.display = 'none';
-            document.body.style.overflow = 'hidden';  // Deshabilitar scroll
-          } else {
-            // Mostrar el formulario y habilitar el scroll
-            form.style.display = 'block';
-            document.body.style.overflow = 'auto';  // Volver a habilitar scroll
-          }
-        }
-        return () => {
-            document.body.style.overflow = 'auto';
-        };
-        }, [!estado]);  
-
-
-    function isLoggedInApp(token, storedUsername){
-        const checkLoginStatus = async () => {            
-            if (token && storedUsername) {
-                try {
-                    const response = await axios.post('http://pruebita.webhop.me:5000/api/checkeo', {
-                        storedUsername,
-                        dato1: 0,
-                        dato2: 1,
-                    });
-    
-                    if (response.status === 200) {
-                        setIsLoggedIn(true);
-                        setUsername(storedUsername);
-                    } else {
-                        setIsLoggedIn(false);
-                        localStorage.removeItem('username');
-                        Cookies.remove('token');
-                    }
-                } catch (error) {
-                    console.error('Error al verificar el estado de la sesión:', error);
-                    setIsLoggedIn(false);
-                    localStorage.removeItem('username');
-                    Cookies.remove('token');
-                }
-            } else {
-                setIsLoggedIn(false);
-            }
-        };
-
-        checkLoginStatus();
-    }
-
+    // Funciones para registro y login
     const signUp = async (e) => {
         e.preventDefault();
+
         try {
-            const response = await axios.post('http://pruebita.webhop.me:5000/api/register', {
+            const response = await axios.post(`/api/register`, {
                 usernameR,
                 passwordR,
                 passwordRC,
@@ -80,118 +26,190 @@ const LoginRegister = ({estado, setEstado, texto}) => {
 
             if (response.status === 201) {
                 setMessage(`Usuario creado ID: ${response.data.userId}`);
-                setTimeout(() => setMessage(''), 5000);
+                setTimeout(() => setMessage(""), 5000);
+                try {
+                    const cookieTokenResponse = await axios.post(
+                        `/api/token-register`,
+                        {
+                            usernameNH: usernameR,
+                        }
+                    );
+                    if (cookieTokenResponse.status === 201) {
+                        setIsLoggedIn(true);
+                        location.reload();
+                    } else {
+                        console.error(
+                            "Error al generar el token:",
+                            cookieTokenResponse.data.message
+                        );
+                    }
+                } catch (err) {
+                    console.error(err);
+                    console.error("Error al obtener el token:", err);
+                }
             }
         } catch (err) {
-            setMessage(err.response ? err.response.data.message : 'Error al crear la cuenta.');
-            setTimeout(() => setMessage(''), 5000);
+            setMessage(
+                err.response
+                    ? err.response.data.message
+                    : "Error al crear la cuenta."
+            );
+            setTimeout(() => setMessage(""), 5000);
+            console.log(err);
+            console.error(err);
         }
-    }
+    };
 
     const login = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://pruebita.webhop.me:5000/api/login',{
+            // Intentar iniciar sesión
+            const response = await axios.post(`/api/login`, {
                 username,
                 password,
             });
-
             if (response.status === 200) {
-                console.log(response.status)
-                Cookies.set('token', response.data.token, {expires : 1});
-                localStorage.setItem('username', username);
-                setIsLoggedIn(true);
-                setMessage(`Bienvenido/a ${username}!`);
-                setTimeout(() => setMessage(''), 5000);
-            }else{
-                setMessage(`Credeciales incorrectas.`);
-                setTimeout(() => setMessage(''), 5000);
+                // Si el login fue exitoso, intenta generar el token
+                try {
+                    const cookieTokenResponse = await axios.post(
+                        `/api/token-login`,
+                        {
+                            usernameNH: username,
+                        }
+                    );
+                    if (cookieTokenResponse.status === 201) {
+                        setIsLoggedIn(true);
+                        location.reload();
+                        // Aquí podrías actualizar el estado sin recargar la página
+                    } else if (cookieTokenResponse.status === 403) {
+                        setIsLoggedIn(false);
+                    }
+                } catch (err) {
+                    setIsLoggedIn(false);
+                }
             }
         } catch (error) {
-            setMessage(error.response ? error.response.data.message : 'Error de conexion');
-            setTimeout(() => setMessage(''), 5000);
+            console.error("Error en el login:", error);
+            setMessage(
+                error.response
+                    ? error.response.data.message
+                    : "Error de conexión"
+            );
+            setTimeout(() => setMessage(""), 5000);
         }
-    }
+    };
+
+    // Funciones del menu
+    const closeForm = () => {
+        const formulario = document.getElementById("form_login");
+        formulario.className = "displayNone";
+    };
+
+    const changeForm = () => {
+        if (form === "login") {
+            console.log('cambio a registro')
+            setForm("register");
+        } else {
+            console.log('cambio a login')
+            setForm("login");
+        }
+    };
 
 
 
     return (
-        <div className="backgroundForm " style={{ display: estado ? 'block' : 'none'}} id="form_login">
-            <div className="wrapper">
-                <div className="card-switch">
-                    <label className="switch">
-                        <input type="checkbox" className="toggle" />
-                        <span className="slider" />
-                        <span className="card-side" />
-                        <div className="flip-card__inner">
-                            <div className="flip-card__front">
-                                <div className="btn_close_menu">
-                                <button className="formClose" onClick={() => setEstado(false)}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="black" d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12z"/></svg>
-                                </button>
-                                </div>
-                                <div className="title">LOGIN</div>
-                                <form className="flip-card__form" onSubmit={login}>
-                                <input
-                                    className="flip-card__input"
-                                    placeholder="Usuario"
-                                    type="text"
-                                    autoComplete="username"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    required
-                                />
-                                <input
-                                        className="flip-card__input"
+        <div className="displayNone" id="form_login">
+            <div className="form-user">
+                <div className="form-head">
+                    <div className="form-change bts">
+                        <button className="form-btnChange" onClick={changeForm}>
+                            {form === "login" ? "Registro" : "Login"}
+                        </button>
+                    </div>
+                    <div className="form-close bts">
+                        <button className="form-btnClose" onClick={closeForm}>
+                            X
+                        </button>
+                    </div>
+                </div>
+                <div className="form-user-content">
+                    <div className="form">
+                        <h2 className="form-title">
+                            {form === "login" ? "Login" : "Registro"}
+                        </h2>
+                        <form onSubmit={form === "login" ? login : signUp}>
+                            {form === "login" ? (
+                                <>
+                                    <input
+                                        className="form-input"
+                                        placeholder="Usuario"
+                                        type="text"
+                                        autoComplete="username"
+                                        value={username}
+                                        onChange={(e) =>
+                                            setUsername(e.target.value)
+                                        }
+                                        required
+                                    />
+                                    <input
+                                        className="form-input"
                                         placeholder="Contraseña"
                                         type="password"
                                         autoComplete="current-password"
                                         value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
+                                        onChange={(e) =>
+                                            setPassword(e.target.value)
+                                        }
                                         required
-                                />
-                                    <button className="flip-card__btn" type="submit">
-                                        Iniciar sesion
-                                    </button>
-                                </form>
-                                <p className="message_form">{texto}</p>
-                            </div>
-                            <div className="flip-card__back" onSubmit={signUp}>
-                                <div className="title">REGISTRARSE</div>
-                                <form className="flip-card__form" action="">
+                                    />
+                                </>
+                            ) : (
+                                <>
                                     <input
-                                    className="flip-card__input"
-                                    placeholder="Usuario"
-                                    type="text"
-                                    autoComplete="username"
-                                    value={usernameR}
-                                    onChange={(e) => setUsernameR(e.target.value)}
-                                    required
+                                        className="form-input"
+                                        placeholder="Usuario"
+                                        type="text"
+                                        autoComplete="username"
+                                        value={usernameR}
+                                        onChange={(e) =>
+                                            setUsernameR(e.target.value)
+                                        }
+                                        required
                                     />
                                     <input
-                                        className="flip-card__input"
+                                        className="form-input"
                                         placeholder="Contraseña"
-                                        type="current-password"
+                                        type="password"
+                                        autoComplete="new-password"
                                         value={passwordR}
-                                        onChange={(e) => setPasswordR(e.target.value)}
+                                        onChange={(e) =>
+                                            setPasswordR(e.target.value)
+                                        }
                                         required
                                     />
                                     <input
-                                        className="flip-card__input"
-                                        placeholder="Contraseña"
-                                        type="current-password"
+                                        className="form-input"
+                                        placeholder="Confirmar Contraseña"
+                                        type="password"
+                                        autoComplete="new-password"
                                         value={passwordRC}
-                                        onChange={(e) => setPasswordRC(e.target.value)}
+                                        onChange={(e) =>
+                                            setPasswordRC(e.target.value)
+                                        }
                                         required
                                     />
-                                    <button className="flip-card__btn">
-                                        Confirm!
-                                    </button>
-                                </form>
-                                <p className="message_form">{message}</p>
+                                </>
+                            )}
+                            <div className="btn_submit">
+                                <button className="btn-form" type="submit">
+                                    {form === "login"
+                                        ? "Iniciar sesión"
+                                        : "Registrarse"}
+                                </button>
                             </div>
-                        </div>
-                    </label>
+                        </form>
+                        <span>{message}</span>
+                    </div>
                 </div>
             </div>
         </div>
