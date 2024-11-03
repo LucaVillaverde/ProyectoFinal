@@ -1,8 +1,10 @@
 .cont-alert {
-    display: flex;
+    display: grid;
+    grid-template-columns: 16% 84%;
     width: 100%;
     color: #000;
     font-weight: bold;
+    justify-items: center;
 }
 
 .cont-notificaciones{
@@ -16,6 +18,14 @@
     z-index: 99999;
 }
 
+#alertWarning, #alertOk, #alertDanger{
+    width: 24px;
+    height: 24px;
+    align-self: center;
+    justify-self: start;
+    margin-left: 10px;
+}
+
 .noficaciones{
     display: flex;
     height: auto;
@@ -25,6 +35,21 @@
     flex-direction: column;
 }
 
-.green{  background-color: #b8ff47e1; }
-.yellow{ background-color: #ffed47e1;}
-.red{ background-color: #ff4747e1;}
+.parrafoMensaje{
+    width: 100%;
+    text-align: end;
+    margin-right: 8%;
+}
+
+.green{
+    background-color: #b8ff47e1;
+    border-left: 12px solid green;
+}
+.yellow{
+    background-color: #ffed47e1;
+    border-left: 12px solid yellow;
+}
+.red{
+    background-color: #ff4747e1;
+    border-left: 12px solid red;
+}

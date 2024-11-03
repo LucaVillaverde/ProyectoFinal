@@ -69,7 +69,7 @@ const AddForm = memo(
                 type="text"
                 id="ingredients"
                 placeholder='Ingredientes separados por ","'
-                value={formData.ingredients}
+                value={formData.ingredients.primero}
                 onChange={handleInputChange}
                 required
             />
@@ -80,7 +80,7 @@ const AddForm = memo(
                 type="text"
                 id="steps"
                 placeholder="Pasos de la receta"
-                value={formData.steps}
+                value={formData.steps.primero}
                 onChange={handleInputChange}
                 required
             />
@@ -90,7 +90,7 @@ const AddForm = memo(
                 className="inptFormRecipe"
                 type="text"
                 id="tiempo"
-                placeholder="30 minutos / 1 hora"
+                placeholder="30 minutos / 30 min o 1 hora / 2 horas"
                 value={formData.tiempo}
                 onChange={handleInputChange}
                 required
@@ -131,8 +131,8 @@ const GestioRecetas = () => {
         difficulty: "",
         categories: [],
         description: "",
-        ingredients: "",
-        steps: "",
+        ingredients: {primero: "Primer ingrediente"},
+        steps: {primero: "Primer paso"},
         tiempo: "",
     });
 
@@ -189,6 +189,7 @@ const GestioRecetas = () => {
 
     const handleInputChange = useCallback((e) => {
         const { id, value } = e.target;
+
         setFormData((prevData) => ({
             ...prevData,
             [id]: value,
@@ -221,6 +222,11 @@ const GestioRecetas = () => {
     const addRecipe = useCallback(
         async (e) => {
             e.preventDefault();
+            const tiempoRegex = /^(?:1\s?(minuto|hora)|[2-9]\d*\s?(minutos|min|horas|hs))$/i;
+            if (!tiempoRegex.test(formData.tiempo)){
+                console.log("Por favor, ingresa un tiempo válido, como '30 minutos', '30 Min', '1 hora' o '2 horas'.");
+                return;
+            }
             try {
                 const response = await axios.post("/api/receta-nueva", {
                     username: nombreUsuario,

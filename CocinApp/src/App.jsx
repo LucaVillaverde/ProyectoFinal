@@ -116,18 +116,18 @@ function App() {
         <Router>
             <div className="cont-notificaciones">
                 <div className="noficaciones">
-                <Message
+                {/* <Message
                     type={'successful'}
                     message={'Se añadio la receta '}
                 />
                 <Message
                     type={'warning'}
-                    message={'CUIDADO'}
+                    message={'ATENCIÓN / WARNING'}
                 />
                 <Message
                     type={'danger'}
                     message={'CUIDADO HELP'}
-                />
+                /> */}
                 </div>
             </div>
             <>

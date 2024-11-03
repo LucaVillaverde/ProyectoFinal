@@ -40,8 +40,13 @@
 .title-card {
     font-family: Verdana, sans-serif;
     text-align: center;
-    font-size: 17px ;
+    font-size: 17px;
+    white-space: normal; /* Permite que el texto se ajuste en varias líneas */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto; /* Agrega guiones automáticamente si la palabra es larga */
 }
+
 .card-title {
     font-weight: bolder;
     font-size: 17px;

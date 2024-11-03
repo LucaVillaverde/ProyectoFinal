@@ -11,19 +11,19 @@ const Message = ({ message, type }) => {
         <>
             {type === 'successful' ?(
               <div id="alertContainer" className="cont-alert green">
-                <img src={imgOK} alt={message} />
-                <p>{message}</p>
+                <img id="alertOk" src={imgOK} alt={message} />
+                <p className="parrafoMensaje">{message}</p>
               </div>
             ):type === 'warning' ? (
               <div id="alertContainer" className="cont-alert yellow">
-                <img src={imgWarning} alt={message} />
-                <p>{message}</p>
+                <img id="alertWarning" src={imgWarning} alt={message} />
+                <p className="parrafoMensaje">{message}</p>
               </div>
             )
             : (
               <div id="alertContainer" className="cont-alert red">
-                <img src={imgDanger} alt={message} />
-                <p>{message}</p>
+                <img id="alertDanger" src={imgDanger} alt={message} />
+                <p className="parrafoMensaje">{message}</p>
               </div>
             )}
         </>
