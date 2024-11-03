@@ -83,6 +83,9 @@ const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm,visible, localUsername}
             }
         }
     };
+    const showMenu= ()=>{
+        setMenuVisible(!Visible);
+    }
 
     return (
             movil ? (
@@ -188,6 +191,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
             setIsOpen(false);
         }
     };
+ 
     return (
         <div>
             {movil ? (
