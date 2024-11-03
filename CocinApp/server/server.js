@@ -57,6 +57,16 @@ cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
     });
 });
 
+// if ('serviceWorker' in navigator) {
+//     navigator.serviceWorker.register('/service-worker.js')
+//     .then(registration => {
+//         console.log('Service Worker registrado con éxito:', registration);
+//     })
+//     .catch(error => {
+//         console.error('Error al registrar el Service Worker:', error);
+//     });
+// }
+
 app.use(function(req, res, next){
     const redirectURL = '/'; // Ruta a la que deseas redirigir
 
@@ -432,7 +442,6 @@ app.post('/api/checkeo', async (req, res) => {
     }
 
     const tiempoActual = new Date().toISOString();
-    console.log('Tiempo actual:', tiempoActual); // Log del tiempo actual
 
     try {
         // Consultar la base de datos para obtener el token y el nombre de usuario
@@ -643,11 +652,23 @@ app.post('/api/recetas/filtradas', (req, res) => {
 
 
 app.post('/api/recetas/personales', (req, res) => {
-    const { usernameNH } = req.body;
+    const { usernameNH, page, ancho } = req.body;
+    const pageNumber = parseInt(page) || 1;
+    const limit = ancho === 1 ? 9 : 8;
+    const offset = (pageNumber - 1) * limit;
 
-    const getQuery = 'SELECT * FROM Recipe WHERE username = ? ORDER BY id_recipe DESC';
-    try{
-        db.all(getQuery, [usernameNH], (err, rows) => {
+    // Consulta para contar las recetas
+    const countQuery = 'SELECT COUNT(*) AS total FROM Recipe WHERE username = ?';
+    db.get(countQuery, [usernameNH], (err, countResult) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error al contar las recetas.' });
+        }
+
+        const totalRecetas = countResult.total;
+
+        // Consulta para obtener las recetas
+        const getQuery = 'SELECT * FROM Recipe WHERE username = ? ORDER BY id_recipe DESC LIMIT ? OFFSET ?';
+        db.all(getQuery, [usernameNH, limit, offset], (err, rows) => {
             if (err) {
                 return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
             }
@@ -657,12 +678,12 @@ app.post('/api/recetas/personales', (req, res) => {
             return res.status(200).json({
                 message: 'Se han encontrado todos los datos de la receta.',
                 recetas: rows,
+                totalPages: Math.ceil(totalRecetas / limit), // Total de páginas
             });
-        })
-    }catch (err){
-        return res.status(err);
-    }
-})
+        });
+    });
+});
+
 
 app.post("/api/receta-nueva", async (req, res) => {
     const { username, receta } = req.body;
@@ -745,18 +766,29 @@ app.post("/api/receta-nueva", async (req, res) => {
 
 
 app.post('/api/receta-id', (req, res) => {
-    const { id_recipe } = req.body; // req.params es un objeto, no una función
+    const { id_recipe } = req.body;
+
+    // Verifica si el `id_recipe` está presente
+    if (!id_recipe) {
+        console.log("El campo id_recipe no fue enviado en la solicitud");
+        return res.status(400).json({ message: 'El id de la receta es necesario.' });
+    }
+
     const getQuery = 'SELECT * FROM Recipe WHERE id_recipe = ?';
+
     db.all(getQuery, [id_recipe], (err, rows) => {
         if (err) {
+            console.error('Error en la consulta de la base de datos:', err);
             return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
         }
+
         if (rows.length === 0) {
             return res.status(404).json({ message: 'No se han encontrado recetas.' });
         }
+
         return res.status(200).json({
             message: 'Se han encontrado todos los datos de la receta.',
-            receta: rows
+            receta: rows[0]
         });
     });
 });
@@ -766,6 +798,7 @@ process.on('SIGINT', () => {
     db.close();
     process.exit(0);
 });
+
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor escuchando en ${host}:${PORT}`);

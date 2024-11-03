@@ -1,5 +1,4 @@
 import React, { useEffect, useState, memo, useCallback } from "react";
-import Cookies from "js-cookie";
 import axios from "axios";
 import "../css/form.css";
 import "../components/card/card.css";
@@ -121,9 +120,25 @@ const AddForm = memo(
 );
 
 const GestioRecetas = () => {
+    useEffect(() => {
+        const metaDescription = document.createElement('meta');
+        document.title = "CocinApp: Gestionar Recetas";
+        metaDescription.name = "description";
+        metaDescription.content = "Apartado de gestion de recetas y muestreo de tus recetas."
+        document.getElementsByTagName('head')[0].appendChild(metaDescription);
+        
+        return () => {
+            document.getElementsByTagName('head')[0].removeChild(metaDescription);
+        };
+    }, []);
+
     const [nombreUsuario, setNombreUsuario] = useState("");
     const [info, setInfo] = useState(false);
     const [recetas, setRecetas] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [tipoDispositivo, setTipoDispositivo] = useState();
+
     const domain = import.meta.env.VITE_HOST_API2;
     const host = `${domain}:5000`;
     
@@ -137,13 +152,46 @@ const GestioRecetas = () => {
         tiempo: "",
     });
 
+    const determinarAncho = (ancho) => (1230 <= ancho && ancho <= 1552) ? 1 : 0;
+    
+    const verificarAncho = () => {
+        const ancho = window.innerWidth;
+        
+        const anchoBoolean = determinarAncho(ancho);
+
+        if (tipoDispositivo === undefined) {
+            setTipoDispositivo(anchoBoolean);
+            llamado(nombreUsuario, currentPage, tipoDispositivo);
+        } else if (tipoDispositivo !== anchoBoolean) {
+            setTipoDispositivo(anchoBoolean);
+            llamado(nombreUsuario, currentPage, tipoDispositivo);
+        }
+    };
+
+    useEffect(()=>{
+
+        verificarAncho();
+
+        window.addEventListener('resize', verificarAncho);
+    
+        return () => {
+            window.removeEventListener('resize', verificarAncho);
+        };
+    },[tipoDispositivo])
+
+    useEffect(() => {
+        llamado(nombreUsuario, currentPage, tipoDispositivo)
+    }, [currentPage, tipoDispositivo]);
+
     useEffect(() => {
         const llamadoUsuario = async () => {
             try {
                 const response = await axios.get("/api/info-usuario");
                 if (response.status === 200) {
                     setNombreUsuario(response.data.username);
-                    llamado(response.data.username);
+                    const anchoBoolean = determinarAncho(window.innerWidth);
+                    setTipoDispositivo(anchoBoolean);
+                    llamado(response.data.username, currentPage, anchoBoolean);
                 }
             } catch (err) {
                 console.log(err);
@@ -202,14 +250,17 @@ const GestioRecetas = () => {
         [formData, nombreUsuario]
     );
 
-    const llamado = (nombre) => {
+    const llamado = (nombre, page, ancho) => {
         const llamadoPersonal = async () => {
             try {
                 const response = await axios.post(`/api/recetas/personales`, {
                     usernameNH: nombre,
+                    page: page, // Cambiado de pageNumber a page
+                    ancho: ancho, // Cambiado de anchoboolean a ancho
                 });
                 if (response.status === 200) {
                     setRecetas(response.data.recetas);
+                    setTotalPages(response.data.totalPages); // Agregado para manejar las páginas
                     setInfo(true);
                 } else if (response.status === 404) {
                     setInfo(false);
@@ -221,9 +272,18 @@ const GestioRecetas = () => {
         };
         llamadoPersonal();
     };
+    
+
+    const handlePreviousPage = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 1));
+    };
+
+    const handleNextPage = () => {
+        setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    };
 
     return (
-        <>
+        <div>
             <div>
                 <h2 className="title">Agregar recetas</h2>
                 <div className="form-content">
@@ -237,7 +297,49 @@ const GestioRecetas = () => {
                 </div>
                 
             </div>
+    {!info ?(
+        <>
+        <span>No tienes recetas para mostrar</span>
         </>
+      ) : (
+        <div className="contenedorRecetas">
+        <h2 className="title">Mis Recetas</h2>
+        <div className='contenedor-tarjetas'>
+        {recetas.map(({ id_recipe, tiempo, image, recipe_name, username, difficulty, categories }) => (
+                          <a className="card" href={`/receta/${id_recipe}`} key={id_recipe}>
+                              <SimpleCard
+                                  tiempo={tiempo}
+                                  image={"https://placehold.co/400x250/000/fff/png"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
+                                  title={recipe_name}
+                                  author={username}
+                                  dificulty={difficulty}
+                                  category={categories}  // Si tienes categorías como un array, deberías ajustarlo
+                              />
+                          </a>
+                      ))}
+        </div>
+        </div>
+      )}
+      <div className="contenedorPaginacionBusqueda">
+                <div className="paginacionBusqueda">
+                    <button
+                        className="btn-page"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1 || totalPages === 0}
+                    >
+                        Anterior
+                    </button>
+                    <span className="pageNum">{currentPage} / {totalPages}</span>
+                    <button
+                        className="btn-page"
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                    >
+                        Siguiente
+                    </button>
+                </div>
+            </div>
+        </div>
     );
 };
 

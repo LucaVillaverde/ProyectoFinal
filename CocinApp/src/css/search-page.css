@@ -76,8 +76,8 @@
 
 /* RECETAS */
 .recipe-content{
-    width: 100vw;
-    height: 100%;
+    width: 100%;
+    height: 4182px;
 }
 
 .contenedorPaginacionBusqueda{
@@ -110,7 +110,22 @@
     font-size: 1.6em;
 }
 
+@media (min-width: 375px){
+    .recipe-content{
+        height: 4502px;
+    }
+}
+
+@media (min-width: 425px){
+    .recipe-content{
+        height: 4702px;
+    }
+}
+
 @media (min-width: 768px){
+    .recipe-content{
+        height: 2182px;
+    }
     .search-bar{
         width: 80%;
         height: 65px;
@@ -136,6 +151,9 @@
 
 
 @media (min-width: 1024px){
+    .recipe-content{
+        height: 2179px;
+    }
     .paginacionBusqueda{
         width: 50%;
     }
@@ -148,6 +166,9 @@
 }
 
 @media (min-width: 1440px){
+    .recipe-content{
+        height: 1617px;
+    }
     .paginacionBusqueda{
         width: 40%;
     }
@@ -158,6 +179,9 @@
 }
 
 @media (min-width: 2540px){
+    .recipe-content{
+        height: 1095.5px;
+    }
     .paginacionBusqueda{
         width: 30%;
     }
