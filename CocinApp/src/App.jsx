@@ -225,7 +225,7 @@ function App() {
                                     {isLoggedIn ? (
                                         <>
                                             <UserMenu
-                                                username={username}
+                                                username={localUsername}
                                                 logout={(e) => logout(e)}
                                                 del_profile={(e) =>
                                                     deleteUser(e)

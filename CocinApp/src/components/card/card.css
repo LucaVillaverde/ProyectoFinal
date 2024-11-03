@@ -68,7 +68,7 @@
         margin: auto;
         /* display: grid; */
         grid-template-columns: repeat(2, 1fr); /* Fija el número de columnas */
-        padding: 0 1% 16px 0;
+        /* padding: 0 1% 16px 0; */
         gap: 50px;
         justify-items: center;
     }

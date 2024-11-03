@@ -4,6 +4,7 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const cookieParser = require('cookie-parser');
+const http2 = require('http2');
 const app = express();
 app.use(cookieParser());
 require('dotenv').config();
@@ -16,6 +17,7 @@ const PORT_FRONTEND = 5173
 // ¡¡¡HOST  HOST_FRONTEND(localhost) HOST_FRONTEND2(pruebita) !!!!
 //***************************************************************** */
 const host = process.env.HOST_FRONTEND2;
+const server = http2.createServer(app);
 
 
 function validarEntrada(texto) {
@@ -793,6 +795,6 @@ process.on('SIGINT', () => {
     process.exit(0);
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor escuchando en ${host}:${PORT}`);
 });
