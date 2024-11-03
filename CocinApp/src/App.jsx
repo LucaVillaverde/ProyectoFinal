@@ -18,6 +18,7 @@ import GestioRecetas from "./pages/GestioRecetas";
 import "./css/app.css";
 import "./components/Header/header.css";
 import Header from "./components/Header/Header";
+import Message from "./components/Message/Message";
 // import "./components/LoginRegister/style.css";
 
 function App() {
@@ -26,7 +27,6 @@ function App() {
     const [movil, setMovil] = useState(false);
     const [tabletOrdenador, setTabletOrdenador] = useState(false);
     //LOGICA DE COMPONENTE
-    const [visible, setMenuVisible] = useState(false);
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
 
@@ -48,17 +48,6 @@ function App() {
         }
     };
     
-    useEffect(() => {
-        const handleResize = () => {
-            setMenuVisible(false);
-        };
-        //Listen para verificar cambio de pantalla (Resize)
-        window.addEventListener("resize", handleResize);
-        return () => {
-            window.removeEventListener("resize", handleResize); //Quitar el evento
-        };
-    }, []);
-
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
@@ -125,13 +114,28 @@ function App() {
     }, []);
     return (
         <Router>
+            <div className="cont-notificaciones">
+                <div className="noficaciones">
+                <Message
+                    type={'successful'}
+                    message={'Se añadio la receta '}
+                />
+                <Message
+                    type={'warning'}
+                    message={'CUIDADO'}
+                />
+                <Message
+                    type={'danger'}
+                    message={'CUIDADO HELP'}
+                />
+                </div>
+            </div>
             <>
                 {/* >-------------------- Login-Register --------------------< */}
                 <LoginRegister
                     form={form}
                     setForm={setForm}
                     setIsLoggedIn={setIsLoggedIn}
-                    visible={visible}
                 />
                 {/* >-------------------- HEADER --------------------< */}
                 <Header

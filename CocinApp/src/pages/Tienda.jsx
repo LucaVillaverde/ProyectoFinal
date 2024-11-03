@@ -17,14 +17,13 @@ const Tienda = () => {
 }, []);
 
   return (
-    <div className='container'>
+      <>
         <h2 className='title'>La tienda de CocinApp</h2>
         <div className='cont-soon'>
             <img src={image_soon} alt="proximamente" className='image-soon'/>
         </div>
         <p className='soon-text'>Proximamente tienda de CocinApp</p>
-        <a href="/" className='btn_home'>Volver al inicio</a>
-    </div>
+      </>
   )
 }
 

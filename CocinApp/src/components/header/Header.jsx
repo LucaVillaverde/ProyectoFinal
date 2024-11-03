@@ -1,14 +1,14 @@
-import { React, useState, useEffect } from "react";
+import { React, useState} from "react";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
-import Cookies from "js-cookie";
 import "./header.css";
 import logoimg from "../../assets/logo1.png";
+import "../../assets/btn_burgerIcon.png"
 import logoPerfilM from "../../assets/LogoPerfilMovil.jpg";
 import logoPerfilP from "../../assets/LogoPerfilPC.jpg";
 
-const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm,visible, localUsername}) => {
-
+const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm, localUsername}) => {
+    const [visible, setMenuVisible] = useState(false);
     // PATH
     const links = [
         { href: "/", label: "INICIO" },
@@ -84,7 +84,7 @@ const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm,visible, localUsername}
         }
     };
     const showMenu= ()=>{
-        setMenuVisible(!Visible);
+        setMenuVisible(!visible);
     }
 
 
@@ -102,7 +102,7 @@ const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm,visible, localUsername}
                                         movil={movil}
                                     />
                                 ) : (
-                                    <button className="btn_user" onClick={()=>showForm("registro")}>
+                                    <button className="btn_user" onClick={()=>showForm("login")}>
                                         INGRESO / REGISTRO
                                     </button>
                                 )}

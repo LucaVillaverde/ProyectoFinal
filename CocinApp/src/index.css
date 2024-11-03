@@ -2,6 +2,7 @@ h2.title{
     text-align: center;
     font-family: var(--font-title);
     text-decoration: underline;
+    font-size: 2em;
 }
 
 .content{
