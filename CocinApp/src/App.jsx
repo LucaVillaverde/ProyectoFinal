@@ -18,6 +18,7 @@ import GestioRecetas from "./pages/GestioRecetas";
 import "./css/app.css";
 import "./components/Header/header.css";
 import Header from "./components/Header/Header";
+import Message from "./components/Message/Message";
 // import "./components/LoginRegister/style.css";
 
 function App() {
@@ -26,7 +27,6 @@ function App() {
     const [movil, setMovil] = useState(false);
     const [tabletOrdenador, setTabletOrdenador] = useState(false);
     //LOGICA DE COMPONENTE
-    const [visible, setMenuVisible] = useState(false);
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
 
@@ -112,13 +112,16 @@ function App() {
     }, []);
     return (
         <Router>
+            <Message
+                type={'danger'}
+                message={'WELCOME TO HELL.'}
+            />
             <>
                 {/* >-------------------- Login-Register --------------------< */}
                 <LoginRegister
                     form={form}
                     setForm={setForm}
                     setIsLoggedIn={setIsLoggedIn}
-                    visible={visible}
                 />
                 {/* >-------------------- HEADER --------------------< */}
                 <Header

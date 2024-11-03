@@ -1,0 +1,9 @@
+.cont-alert{
+    width: 30%;
+    height: 150px;
+    display: flex;
+}
+
+.green{  background-color: green;}
+.yellow{ background-color: yellow;}
+.red{    background-color: red;}
