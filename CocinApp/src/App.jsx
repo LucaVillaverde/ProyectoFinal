@@ -39,6 +39,7 @@ function App() {
             formulario.className = "displayNone";
         }
     };
+
     const determinarTipoDispositivo = (ancho) => {
         if (ancho < 720) {
             return 1;
@@ -46,6 +47,7 @@ function App() {
             return 2;
         }
     };
+    
     useEffect(() => {
         const handleResize = () => {
             setMenuVisible(false);

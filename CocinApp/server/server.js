@@ -672,9 +672,6 @@ app.post('/api/recetas/personales', (req, res) => {
             if (err) {
                 return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
             }
-            if (rows.length === 0) {
-                return res.status(404).json({ message: 'No se han encontrado recetas.' });
-            }
             return res.status(200).json({
                 message: 'Se han encontrado todos los datos de la receta.',
                 recetas: rows,

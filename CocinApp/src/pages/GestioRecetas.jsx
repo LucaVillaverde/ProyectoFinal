@@ -13,6 +13,7 @@ const AddForm = memo(
         llamadaDB,
     }) => (
         <form id="formularioAgregarReceta" onSubmit={llamadaDB}>
+            {/* Nombre de la receta */}
             <label htmlFor="recipeName">Nombre de la Receta:</label>
             <input
                 className="inptFormRecipe"
@@ -24,6 +25,7 @@ const AddForm = memo(
                 required
             />
 
+            {/* Dificultad */}
             <label htmlFor="difficulty">Dificultad:</label>
             <select
                 name="recipeDiff"
@@ -39,6 +41,7 @@ const AddForm = memo(
                 <option value="Difícil">Difícil</option>
             </select>
 
+            {/* Categoría */}
             <label>Categoria (4 max):</label>
             <div className="categorias">
                 {["Entrada", "Sopa", "Caldo", "Ensalada", "Plato Principal", "Guarnición", "Postre", "Bebida", "Vegetariana", "Saludable"].map((category) => (
@@ -52,23 +55,26 @@ const AddForm = memo(
                     </label>
                 ))}
             </div>
+
+            {/* Categorías seleccionadas */}
             <div className="chipsContainer">
-            <div className="chips">
-                <strong>Seleccionado</strong>
-                {formData.categories.map((category) => (
-                    <span key={category} className="chip">
-                        {category}{" "}
-                        <button
-                            type="button"
-                            onClick={() => handleRemoveCategory(category)}
-                        >
-                            ✕
-                        </button>
-                    </span>
-                ))}
-            </div>
+                <div className="chips">
+                    <strong>Seleccionado</strong>
+                    {formData.categories.map((category) => (
+                        <span key={category} className="chip">
+                            {category}{" "}
+                            <button
+                                type="button"
+                                onClick={() => handleRemoveCategory(category)}
+                            >
+                                ✕
+                            </button>
+                        </span>
+                    ))}
+                </div>
             </div>
 
+            {/* Descripción */}
             <label htmlFor="description">Descripción de la Receta:</label>
             <textarea
                 className="textAreaDesc"
@@ -79,6 +85,7 @@ const AddForm = memo(
                 required
             ></textarea>
 
+            {/* Ingredientes */}
             <label htmlFor="ingredients">Ingredientes de la Receta:</label>
             <input
                 className="inptFormRecipe"
@@ -90,6 +97,7 @@ const AddForm = memo(
                 required
             />
 
+            {/* Pasos */}
             <label htmlFor="steps">Pasos para la elaboración:</label>
             <input
                 className="inptFormRecipe"
@@ -101,6 +109,7 @@ const AddForm = memo(
                 required
             />
 
+            {/* Tiempo de preparación */}
             <label htmlFor="tiempo">Tiempo de preparación:</label>
             <input
                 className="inptFormRecipe"
@@ -180,7 +189,10 @@ const GestioRecetas = () => {
     },[tipoDispositivo])
 
     useEffect(() => {
-        llamado(nombreUsuario, currentPage, tipoDispositivo)
+        llamado(nombreUsuario, currentPage, tipoDispositivo);
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 130); // 100 ms de retraso
     }, [currentPage, tipoDispositivo]);
 
     useEffect(() => {
