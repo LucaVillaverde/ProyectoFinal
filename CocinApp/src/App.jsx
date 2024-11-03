@@ -22,7 +22,6 @@ import "./css/app.css";
 import "./components/header/header.css";
 // import "./components/LoginRegister/style.css";
 
-
 function App() {
     // OTROS
     const [isLoggedIn, setIsLoggedIn] = useState(false);

@@ -4,7 +4,6 @@ const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const cookieParser = require('cookie-parser');
-const http2 = require('http2');
 const app = express();
 app.use(cookieParser());
 require('dotenv').config();
@@ -17,7 +16,6 @@ const PORT_FRONTEND = 5173
 // ¡¡¡HOST  HOST_FRONTEND(localhost) HOST_FRONTEND2(pruebita) !!!!
 //***************************************************************** */
 const host = process.env.HOST_FRONTEND2;
-const server = http2.createServer(app);
 
 
 function validarEntrada(texto) {
@@ -58,6 +56,16 @@ cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
         }
     });
 });
+
+// if ('serviceWorker' in navigator) {
+//     navigator.serviceWorker.register('/service-worker.js')
+//     .then(registration => {
+//         console.log('Service Worker registrado con éxito:', registration);
+//     })
+//     .catch(error => {
+//         console.error('Error al registrar el Service Worker:', error);
+//     });
+// }
 
 app.use(function(req, res, next){
     const redirectURL = '/'; // Ruta a la que deseas redirigir
@@ -786,15 +794,12 @@ app.post('/api/receta-id', (req, res) => {
 });
 
 
-
-
-
-
 process.on('SIGINT', () => {
     db.close();
     process.exit(0);
 });
 
-server.listen(PORT, '0.0.0.0', () => {
+
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor escuchando en ${host}:${PORT}`);
 });

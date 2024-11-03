@@ -120,6 +120,18 @@ const AddForm = memo(
 );
 
 const GestioRecetas = () => {
+    useEffect(() => {
+        const metaDescription = document.createElement('meta');
+        document.title = "CocinApp: Gestionar Recetas";
+        metaDescription.name = "description";
+        metaDescription.content = "Apartado de gestion de recetas y muestreo de tus recetas."
+        document.getElementsByTagName('head')[0].appendChild(metaDescription);
+        
+        return () => {
+            document.getElementsByTagName('head')[0].removeChild(metaDescription);
+        };
+    }, []);
+
     const [nombreUsuario, setNombreUsuario] = useState("");
     const [info, setInfo] = useState(false);
     const [recetas, setRecetas] = useState([]);

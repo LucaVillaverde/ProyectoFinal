@@ -1,8 +1,21 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import '../css/tienda.css';
 import image_soon from '../assets/contrucion.gif'
 
 const Tienda = () => {
+
+  useEffect(() => {
+    const metaDescription = document.createElement('meta');
+    document.title = "CocinApp: Tienda";
+    metaDescription.name = "description";
+    metaDescription.content = "La tienda de CocinApp donde podras comprar las herramientas para tus recetas."
+    document.getElementsByTagName('head')[0].appendChild(metaDescription);
+    
+    return () => {
+        document.getElementsByTagName('head')[0].removeChild(metaDescription);
+    };
+}, []);
+
   return (
     <div className='container'>
         <h2 className='title'>La tienda de CocinApp</h2>
