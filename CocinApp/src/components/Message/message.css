@@ -1,9 +1,30 @@
-.cont-alert{
-    width: 30%;
-    height: 150px;
+.cont-alert {
     display: flex;
+    width: 100%;
+    color: #000;
+    font-weight: bold;
 }
 
-.green{  background-color: green;}
-.yellow{ background-color: yellow;}
-.red{    background-color: red;}
+.cont-notificaciones{
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    width: 90%;
+    left: 50%; 
+    transform: translateX(-50%);
+    position: fixed;
+    z-index: 99999;
+}
+
+.noficaciones{
+    display: flex;
+    height: auto;
+    width: 100%;
+    row-gap: 10px;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+.green{  background-color: #b8ff47e1; }
+.yellow{ background-color: #ffed47e1;}
+.red{ background-color: #ff4747e1;}

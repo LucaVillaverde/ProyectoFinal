@@ -112,10 +112,22 @@ function App() {
     }, []);
     return (
         <Router>
-            <Message
-                type={'danger'}
-                message={'WELCOME TO HELL.'}
-            />
+            <div className="cont-notificaciones">
+                <div className="noficaciones">
+                <Message
+                    type={'successful'}
+                    message={'Se añadio la receta '}
+                />
+                <Message
+                    type={'warning'}
+                    message={'CUIDADO'}
+                />
+                <Message
+                    type={'danger'}
+                    message={'CUIDADO HELP'}
+                />
+                </div>
+            </div>
             <>
                 {/* >-------------------- Login-Register --------------------< */}
                 <LoginRegister
