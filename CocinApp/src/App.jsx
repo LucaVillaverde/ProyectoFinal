@@ -16,8 +16,8 @@ import Page404 from "./pages/404";
 import GestioRecetas from "./pages/GestioRecetas";
 // Otros
 import "./css/app.css";
-import "./components/header/header.css";
-import Header from "./components/header/Header";
+import "./components/Header/header.css";
+import Header from "./components/Header/Header";
 // import "./components/LoginRegister/style.css";
 
 function App() {
@@ -82,7 +82,6 @@ function App() {
 
         checkLoginStatus();
     }, []);
-    localUsername;
 
     useEffect(() => {
         const verificarAncho = () => {
@@ -122,7 +121,6 @@ function App() {
         };
         llamadoInfoUsuario();
     }, []);
-
     return (
         <Router>
             <>
