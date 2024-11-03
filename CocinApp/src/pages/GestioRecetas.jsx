@@ -235,6 +235,7 @@ const GestioRecetas = () => {
                         llamadaDB={addRecipe}
                     />
                 </div>
+                
             </div>
         </>
     );
