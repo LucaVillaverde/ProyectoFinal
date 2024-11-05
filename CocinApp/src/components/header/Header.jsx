@@ -257,7 +257,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                                             Hola {username}
                                         </span>
                                         <a
-                                            href={`/Panel de Recetas/${username}`}
+                                            href={`/Panel-de-Recetas/${username}`}
                                         >
                                             Gestionar recetas
                                         </a>

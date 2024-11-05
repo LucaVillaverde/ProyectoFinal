@@ -1,4 +1,5 @@
 const express = require('express');
+
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 const bcrypt = require('bcrypt');
@@ -42,23 +43,35 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
+
 // Middleware para aplicar CORS y registrar el origen
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(function(req, res, next){
-    const redirectURL = '/'; // Ruta a la que deseas redirigir
-    const rutasProtegidas = ["Panel-de-Recetas", ""];
 
-    // Si la URL contiene '.git', redirigir al inicio
-    if (req.url.includes('.git')) {
-        return res.redirect(redirectURL);
+app.use((req, res, next) => {
+    const redirectURL = '/';  // Asegúrate de que esta ruta esté disponible
+    const rutasProtegidas = ["http://192.168.0.168:5173/Panel-de-Recetas/"];  // Define las rutas que deseas proteger
+
+    console.log("Ruta solicitada:", req.originalUrl);  // Añadir un log para depurar
+
+    // Compara la URL solicitada con las rutas protegidas
+    for (let i = 0; i < rutasProtegidas.length; i++) {
+        if (req.originalUrl.includes(rutasProtegidas[i])) {
+            console.log(`Redirigiendo desde ${req.originalUrl} hacia ${redirectURL}`);  // Log para depurar
+            return res.redirect(redirectURL);
+        }
     }
 
-    // Si no contiene '.git', continuar con la solicitud
-    next();
+    next();  // Si no es una ruta protegida, continúa con el siguiente middleware
 });
+
+// app.get('/', (req, res) => {
+//     res.send('Página de inicio');
+// });
+
+
 
 // app.use((req, res, next)=>{
 //     const tokenNav = req.cookies.token;
@@ -110,6 +123,37 @@ cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
 // app.get('', (req, res) => {
 
 // });
+
+app.get("/api/protection", (req, res) => {
+    const tokenH = req.cookies.token;
+    const id_user = req.cookies.id_user;
+
+    if (!tokenH || !id_user) {
+        return res.status(401).json({ message: "No estás logueado." });
+    } else {
+        try {
+            db.get("SELECT cookieToken FROM Tokens WHERE id_user = ?", [id_user], async (err, row) => {
+                if (err) {
+                    return res.status(500).json({ message: "Error interno del sistema." });
+                }
+                if (!row) {
+                    return res.status(404).json({ message: "No existes en el sistema." });
+                } else {
+                    const match = await bcrypt.compare(row.cookieToken, tokenH);
+                    if (match) {
+                        return res.status(200).json({ message: "Token verificado correctamente." });
+                    } else {
+                        return res.status(401).json({ message: "Token inválido." });
+                    }
+                }
+            });
+        } catch (err) {
+            console.log(err);
+            return res.status(500).json({ message: "Error interno del sistema." });
+        }
+    }
+});
+
 
 app.post('/api/usuarios', (req, res) => {
     const { id } = req.body;
