@@ -5,7 +5,16 @@ import imgOK from "../../assets/ok.svg";
 import imgWarning from "../../assets/warning.svg";
 import imgDanger from "../../assets/danger.svg";
 
-const Message = ({ message, type }) => {
+const Message = ({ message, type, onClose }) => {
+    // Control de visualizacion de notificación
+    useEffect(()=>{
+      const timer = setTimeout(() => {
+        onClose;
+      }, 3000);
+
+      return ()=> clearTimeout(timer)
+
+    }, [onClose])
 
     return (
         <>
