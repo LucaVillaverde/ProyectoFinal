@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 // LOGO
 // Componentes
-import Footer from "./components/footer/Footer";
+import Header from "./components/Header/Header";
 import LoginRegister from "./components/LoginRegister/LoginRegister";
+import Message from "./components/Message/Message";
+import Footer from "./components/footer/Footer";
 // Pages
 import Home from "./pages/Home";
 import Buscar from "./pages/Buscar";
@@ -16,30 +18,18 @@ import Page404 from "./pages/404";
 import GestioRecetas from "./pages/GestioRecetas";
 // Otros
 import "./css/app.css";
-import "./components/Header/header.css";
-import Header from "./components/Header/Header";
-import Message from "./components/Message/Message";
-// import "./components/LoginRegister/style.css";
+
+
 
 function App() {
-    // OTROS
+    // Variables "Globales"
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [movil, setMovil] = useState(false);
-    const [tabletOrdenador, setTabletOrdenador] = useState(false);
-    //LOGICA DE COMPONENTE
+    const [tabletOrdenador, setTabletOrdenador] = useState(false); // ¿Se usa o solo movil?
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
-
-    const showForm = (tipo) => {
-        setForm(tipo);
-        const formulario = document.getElementById("form_login");
-        if (formulario.className === "displayNone") {
-            formulario.className = "backgroundForm";
-        } else {
-            formulario.className = "displayNone";
-        }
-    };
-
+    
+    //Funciones generales
     const determinarTipoDispositivo = (ancho) => {
         if (ancho < 720) {
             return 1;
@@ -47,7 +37,7 @@ function App() {
             return 2;
         }
     };
-    
+
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
@@ -70,7 +60,6 @@ function App() {
                 setIsLoggedIn(false);
             }
         };
-
         checkLoginStatus();
     }, []);
 
@@ -87,15 +76,13 @@ function App() {
                 setTabletOrdenador(true);
             }
         };
-
         verificarAncho();
-
         window.addEventListener("resize", verificarAncho);
-
         return () => {
             window.removeEventListener("resize", verificarAncho);
         };
     }, []);
+
     useEffect(() => {
         const llamadoInfoUsuario = async () => {
             try {
@@ -112,23 +99,23 @@ function App() {
         };
         llamadoInfoUsuario();
     }, []);
+    
+    // Funciones para uso en componentes.
+    const showForm = (tipo) => {
+        setForm(tipo);
+        const formulario = document.getElementById("form_login");
+        if (formulario.className === "displayNone") {
+            formulario.className = "backgroundForm";
+        } else {
+            formulario.className = "displayNone";
+        }
+    };
+
+
     return (
         <Router>
             <div className="cont-notificaciones">
-                <div className="noficaciones">
-                {/* <Message
-                    type={'successful'}
-                    message={'Se añadio la receta '}
-                />
-                <Message
-                    type={'warning'}
-                    message={'ATENCIÓN / WARNING'}
-                />
-                <Message
-                    type={'danger'}
-                    message={'CUIDADO HELP'}
-                /> */}
-                </div>
+                <div className="noficaciones"></div>
             </div>
             <>
                 {/* >-------------------- Login-Register --------------------< */}
