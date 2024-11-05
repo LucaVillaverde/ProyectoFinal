@@ -7,7 +7,7 @@ h2.title{
 
 .content{
     width: 100%;
-    min-height: 100vh;
+    min-height: 1000px;
     padding: 8px 5px;
     margin: auto;
     display: flex;
@@ -98,4 +98,10 @@ h2.title{
     .container {
         justify-content: space-around;
     }
+}
+
+@media (min-width: 2500px){
+  .content{
+    min-height: 1100px;
+  }
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 // LOGO
 // Componentes
-import Header from "./components/Header/Header";
+import Header from "./components/header/Header";
 import LoginRegister from "./components/LoginRegister/LoginRegister";
 import Message from "./components/Message/Message";
 import Footer from "./components/footer/Footer";
@@ -18,6 +18,7 @@ import Page404 from "./pages/404";
 import GestioRecetas from "./pages/GestioRecetas";
 // Otros
 import "./css/app.css";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 
 
@@ -147,13 +148,14 @@ function App() {
                       path="/perfil/:username" 
                       element={<Perfil />} />
                     <Route
-                        path="/Panel de Recetas/:localUsername"
-                        element={<GestioRecetas />}
+                        path="/Panel-de-Recetas/:localUsername"
+                        element={
+                            <ProtectedRoute>
+                                <GestioRecetas />
+                            </ProtectedRoute>
+                        }
                     />
-                    <Route
-                        path="/mis-recetas/:localUsername"
-                        element={<Perfil />}
-                    />
+
                     <Route path="/tienda" element={<Tienda />} />
 
                     {/* Pagina 404 */}
