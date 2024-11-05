@@ -160,7 +160,7 @@ function App() {
                       path="/perfil/:username" 
                       element={<Perfil />} />
                     <Route
-                        path="/Panel de Recetas/:localUsername"
+                        path="/Panel-de-Recetas/:localUsername"
                         element={<GestioRecetas />}
                     />
                     <Route

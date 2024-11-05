@@ -45,6 +45,46 @@ const corsOptions = {
 // Middleware para aplicar CORS y registrar el origen
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
+
+app.use(function(req, res, next){
+    const redirectURL = '/'; // Ruta a la que deseas redirigir
+    const rutasProtegidas = ["Panel-de-Recetas", ""];
+
+    // Si la URL contiene '.git', redirigir al inicio
+    if (req.url.includes('.git')) {
+        return res.redirect(redirectURL);
+    }
+
+    // Si no contiene '.git', continuar con la solicitud
+    next();
+});
+
+// app.use((req, res, next)=>{
+//     const tokenNav = req.cookies.token;
+//     const idUserNav = req.cookies.id_user;
+
+//     req.session = { comprobante: null }
+//     try{
+//         db.get('SELECT cookieToken FROM Tokens WHERE id_user = ?', [idUserNav], async (err, row)=>{
+//             if(err){
+//                 return res.status(500);
+//             }
+//             if(!row){
+//                 return res.status(401);
+//             } else {
+//                 const tokenDB = row.cookieToken;
+//                 const match = await bcrypt.compare(tokenDB, tokenNav);
+//                 if (match){
+//                     req.session.comprobante = true;
+//                 } else {
+//                     req.session.comprobante = false;
+//                 }
+//             }
+//         })
+//     }catch{}
+//     next();
+// })
 
 const db = new sqlite3.Database('./BasedeDatos.db');
 // const db = new sqlite3.Database('./db.db');
@@ -67,17 +107,9 @@ cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
 //     });
 // }
 
-app.use(function(req, res, next){
-    const redirectURL = '/'; // Ruta a la que deseas redirigir
+// app.get('', (req, res) => {
 
-    // Si la URL contiene '.git', redirigir al inicio
-    if (req.url.includes('.git')) {
-        return res.redirect(redirectURL);
-    }
-
-    // Si no contiene '.git', continuar con la solicitud
-    next();
-});
+// });
 
 app.post('/api/usuarios', (req, res) => {
     const { id } = req.body;
