@@ -24,26 +24,27 @@ const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm, localUsername}) => {
                 try {
                     const cookieTokenDelete = await axios.post(
                         `/api/cookie/delete`,
-                        {}
+                        {},
                     );
 
                     if (cookieTokenDelete.status === 200) {
-                        console.error(200);
                         console.log("La cuenta se ha cerrado exitosamente.");
                         setIsLoggedIn(false);
-                        <Navigate to={"/"} />;
+                        location.reload();
+                    } else if (cookieTokenDelete.status === 400){
+                        location.reload();
                     }
-                } catch (err) {
-                    console.error(err);
-                    setIsLoggedIn(false);
+                } catch {
+                    setIsLoggedIn(false);   
+                    location.reload();                 
                 }
             } else {
-                console.error(response.status);
                 setIsLoggedIn(false);
+                location.reload();
             }
-        } catch (err) {
-            console.error(err);
+        } catch {
             setIsLoggedIn(false);
+            location.reload();
         }
     };
     const deleteUser = async (e) => {
