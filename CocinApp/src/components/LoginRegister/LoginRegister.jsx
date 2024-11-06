@@ -1,4 +1,5 @@
 import {React, useState} from "react";
+import { useAlert } from '../../context/messageContext';
 import "./style.css";
 // import Cookies from "js-cookie";
 import axios from "axios";
@@ -12,6 +13,8 @@ const LoginRegister = ({form,setForm,setIsLoggedIn}) => {
     const [passwordRC, setPasswordRC] = useState("");
     const [message, setMessage] = useState("");
 
+    // Alerta
+    const {showAlert} = useAlert();
 
     // Funciones para registro y login
     const signUp = async (e) => {
@@ -48,15 +51,9 @@ const LoginRegister = ({form,setForm,setIsLoggedIn}) => {
                     console.error("Error al obtener el token:", err);
                 }
             }
-        } catch (err) {
-            setMessage(
-                err.response
-                    ? err.response.data.message
-                    : "Error al crear la cuenta."
-            );
-            setTimeout(() => setMessage(""), 5000);
-            console.log(err);
-            console.error(err);
+        } catch (error) {
+            console.error("Error en el Re:", error);
+            error.response ? showAlert(error.response.data.message,'warning'):showAlert('Error de conexion','danger');           
         }
     };
 
@@ -80,7 +77,6 @@ const LoginRegister = ({form,setForm,setIsLoggedIn}) => {
                     if (cookieTokenResponse.status === 201) {
                         setIsLoggedIn(true);
                         location.reload();
-                        // Aquí podrías actualizar el estado sin recargar la página
                     } else if (cookieTokenResponse.status === 403) {
                         setIsLoggedIn(false);
                     }
@@ -90,12 +86,9 @@ const LoginRegister = ({form,setForm,setIsLoggedIn}) => {
             }
         } catch (error) {
             console.error("Error en el login:", error);
-            setMessage(
-                error.response
-                    ? error.response.data.message
-                    : "Error de conexión"
-            );
-            setTimeout(() => setMessage(""), 5000);
+            error.response.data.message ? showAlert(error.response.data.message,'warning'):showAlert('Error de conexion','danger');
+
+           
         }
     };
 

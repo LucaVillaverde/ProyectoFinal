@@ -1,6 +1,7 @@
 // Importaciones de Librerias
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useAlert } from './context/messageContext';
 import axios from "axios";
 // LOGO
 // Componentes
@@ -29,6 +30,7 @@ function App() {
     const [tabletOrdenador, setTabletOrdenador] = useState(false); // ¿Se usa o solo movil?
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
+    const { alert } = useAlert(); // <-- 
     
     //Funciones generales
     const determinarTipoDispositivo = (ancho) => {
@@ -115,8 +117,11 @@ function App() {
 
     return (
         <Router>
+            {/* >-------------------- ALERTAS CUSTOM--------------------< */}
             <div className="cont-notificaciones">
-                <div className="noficaciones"></div>
+                <div className="noficaciones">
+                    {alert && <Message message={alert.message} type={alert.type} />}
+                </div>
             </div>
             <>
                 {/* >-------------------- Login-Register --------------------< */}

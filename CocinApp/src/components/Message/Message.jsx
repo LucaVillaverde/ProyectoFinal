@@ -6,37 +6,23 @@ import imgWarning from "../../assets/warning.svg";
 import imgDanger from "../../assets/danger.svg";
 
 const Message = ({ message, type, onClose }) => {
-    // Control de visualizacion de notificación
-    useEffect(()=>{
-      const timer = setTimeout(() => {
-        onClose;
-      }, 3000);
+  // Mapeo para las clases y las imágenes basadas en el tipo de alerta
+  const alertConfig = {
+      successful: { className: 'green', imgSrc: imgOK },
+      warning: { className: 'yellow', imgSrc: imgWarning },
+      danger: { className: 'red', imgSrc: imgDanger },
+  };
 
-      return ()=> clearTimeout(timer)
+  // Definimos las configuraciones actuales en función del tipo
+  const { className, imgSrc } = alertConfig[type] || alertConfig['danger'];
 
-    }, [onClose])
+  return (
+      <div id="alertContainer" className={`cont-alert ${className}`}>
+          <img id="icon" src={imgSrc} alt={message} />
+          <p className="parrafoMensaje">{message}</p>
 
-    return (
-        <>
-            {type === 'successful' ?(
-              <div id="alertContainer" className="cont-alert green">
-                <img id="alertOk" src={imgOK} alt={message} />
-                <p className="parrafoMensaje">{message}</p>
-              </div>
-            ):type === 'warning' ? (
-              <div id="alertContainer" className="cont-alert yellow">
-                <img id="alertWarning" src={imgWarning} alt={message} />
-                <p className="parrafoMensaje">{message}</p>
-              </div>
-            )
-            : (
-              <div id="alertContainer" className="cont-alert red">
-                <img id="alertDanger" src={imgDanger} alt={message} />
-                <p className="parrafoMensaje">{message}</p>
-              </div>
-            )}
-        </>
-    );
+      </div>
+  );
 };
 
 export default Message;
