@@ -331,7 +331,7 @@ app.post('/api/login', (req, res) => {
                     return res.status(500).json({ message: 'Error al buscar el usuario. 500' });
                 }
                 if (!row) {
-                    return res.status(404).json({ message: 'Usuario no encontrado. 404' }); // Cambié '400' a '404'
+                    return res.status(404).json({ message: 'El usuario no exite' }); // Cambié '400' a '404'
                 }
                 if (row) {
                     const hashedPasswordDB = row.password;
@@ -341,7 +341,7 @@ app.post('/api/login', (req, res) => {
                         return res.status(200).json({ message: 'Se ha iniciado sesión con exito.' });
                     }
                     else {
-                        return res.status(400).json({ message: "Los datos no coinciden con la base de datos." });
+                        return res.status(400).json({ message: "Usuario o contraseña incorrecto" });
                     }
                 }
             });

@@ -81,7 +81,7 @@ const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
             }
         } catch (error) {
             console.error("Error en el Re:", error);
-            error.response ? showAlert(error.response.data.message,'warning'):showAlert('Error de conexion','danger');           
+            error.response.data.message ? showAlert(error.response.data.message,'warning'):showAlert('Error de conexion','danger');       
         }
     };
 
