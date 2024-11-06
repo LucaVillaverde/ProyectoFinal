@@ -5,29 +5,24 @@ import imgOK from "../../assets/ok.svg";
 import imgWarning from "../../assets/warning.svg";
 import imgDanger from "../../assets/danger.svg";
 
-const Message = ({ message, type }) => {
+const Message = ({ message, type, onClose }) => {
+  // Mapeo para las clases y las imágenes basadas en el tipo de alerta
+  const alertConfig = {
+      successful: { className: 'green', imgSrc: imgOK },
+      warning: { className: 'yellow', imgSrc: imgWarning },
+      danger: { className: 'red', imgSrc: imgDanger },
+  };
 
-    return (
-        <>
-            {type === 'successful' ?(
-              <div id="alertContainer" className="cont-alert green">
-                <img id="alertOk" src={imgOK} alt={message} />
-                <p className="parrafoMensaje">{message}</p>
-              </div>
-            ):type === 'warning' ? (
-              <div id="alertContainer" className="cont-alert yellow">
-                <img id="alertWarning" src={imgWarning} alt={message} />
-                <p className="parrafoMensaje">{message}</p>
-              </div>
-            )
-            : (
-              <div id="alertContainer" className="cont-alert red">
-                <img id="alertDanger" src={imgDanger} alt={message} />
-                <p className="parrafoMensaje">{message}</p>
-              </div>
-            )}
-        </>
-    );
+  // Definimos las configuraciones actuales en función del tipo
+  const { className, imgSrc } = alertConfig[type] || alertConfig['danger'];
+
+  return (
+      <div id="alertContainer" className={`cont-alert ${className}`}>
+          <img id="icon" src={imgSrc} alt={message} />
+          <p className="parrafoMensaje">{message}</p>
+
+      </div>
+  );
 };
 
 export default Message;
