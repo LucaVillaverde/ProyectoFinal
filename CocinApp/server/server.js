@@ -32,7 +32,6 @@ function validarEntrada(texto) {
 const allowedOrigins = [`${host}:${PORT_FRONTEND}`];
 const corsOptions = {
   origin: (origin, callback) => {
-    // console.log('Solicitud proveniente del origen:', origin || 'Sin origen (solicitud local o del mismo servidor)');
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);  // Permite solicitudes de orígenes permitidos
@@ -52,52 +51,18 @@ app.use(cookieParser());
 
 app.use((req, res, next) => {
     const redirectURL = '/';  // Asegúrate de que esta ruta esté disponible
-    const rutasProtegidas = ["http://192.168.0.168:5173/Panel-de-Recetas/"];  // Define las rutas que deseas proteger
+    const rutasProtegidas = ["/Panel-de-Recetas/"];  // En este caso solo requerimos proteger una ruta, pero guardamos este codigo para uso posterior en otros proyectos.
 
-    console.log("Ruta solicitada:", req.originalUrl);  // Añadir un log para depurar
-
+    console.log(`Peticion a la ruta ${req.url}`)
     // Compara la URL solicitada con las rutas protegidas
     for (let i = 0; i < rutasProtegidas.length; i++) {
         if (req.originalUrl.includes(rutasProtegidas[i])) {
-            console.log(`Redirigiendo desde ${req.originalUrl} hacia ${redirectURL}`);  // Log para depurar
             return res.redirect(redirectURL);
         }
     }
 
     next();  // Si no es una ruta protegida, continúa con el siguiente middleware
 });
-
-// app.get('/', (req, res) => {
-//     res.send('Página de inicio');
-// });
-
-
-
-// app.use((req, res, next)=>{
-//     const tokenNav = req.cookies.token;
-//     const idUserNav = req.cookies.id_user;
-
-//     req.session = { comprobante: null }
-//     try{
-//         db.get('SELECT cookieToken FROM Tokens WHERE id_user = ?', [idUserNav], async (err, row)=>{
-//             if(err){
-//                 return res.status(500);
-//             }
-//             if(!row){
-//                 return res.status(401);
-//             } else {
-//                 const tokenDB = row.cookieToken;
-//                 const match = await bcrypt.compare(tokenDB, tokenNav);
-//                 if (match){
-//                     req.session.comprobante = true;
-//                 } else {
-//                     req.session.comprobante = false;
-//                 }
-//             }
-//         })
-//     }catch{}
-//     next();
-// })
 
 const db = new sqlite3.Database('./BasedeDatos.db');
 // const db = new sqlite3.Database('./db.db');
@@ -109,20 +74,6 @@ cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
         }
     });
 });
-
-// if ('serviceWorker' in navigator) {
-//     navigator.serviceWorker.register('/service-worker.js')
-//     .then(registration => {
-//         console.log('Service Worker registrado con éxito:', registration);
-//     })
-//     .catch(error => {
-//         console.error('Error al registrar el Service Worker:', error);
-//     });
-// }
-
-// app.get('', (req, res) => {
-
-// });
 
 app.get("/api/protection", (req, res) => {
     const tokenH = req.cookies.token;
@@ -148,7 +99,6 @@ app.get("/api/protection", (req, res) => {
                 }
             });
         } catch (err) {
-            console.log(err);
             return res.status(500).json({ message: "Error interno del sistema." });
         }
     }
@@ -510,7 +460,6 @@ app.post('/api/checkeo', async (req, res) => {
 
     // Verificar que las cookies no están vacías
     if (!tokenNav || !usernameNav || !idUserNav) {
-        console.log('Faltan cookies de autenticación.'); // Log de error
         res.clearCookie('id_user');
         res.clearCookie('username');
         res.clearCookie('token');
@@ -549,7 +498,6 @@ app.post('/api/checkeo', async (req, res) => {
 
             // Verificar si el token ha expirado
             if (tiempo(createdAt, tiempoActual)) {
-                console.log('Token expirado, actualizando estado.'); // Log de token expirado
                 db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE id_user = ?', [idUserNav], function (err) {
                     if (err) {
                         console.error('Error al actualizar el estado del cookieToken:', err);
@@ -758,8 +706,9 @@ app.post('/api/recetas/personales', (req, res) => {
 });
 
 
-app.post("/api/receta-nueva", async (req, res) => {
+app.post("/api/receta-nueva", (req, res) => {
     const { username, receta } = req.body;
+    console.log(receta.ingredients, receta.steps);
 
     // Validar si todos los parámetros requeridos están presentes
     if (!username || !receta.recipeName || !receta.difficulty || !receta.description || !receta.ingredients || !receta.steps || !receta.categories || !receta.tiempo) {
@@ -778,55 +727,73 @@ app.post("/api/receta-nueva", async (req, res) => {
         });
     }
 
+    // Validar que ingredients y steps son arrays y que no estén vacíos
+    if (!Array.isArray(receta.ingredients) || receta.ingredients.length === 0) {
+        return res.status(400).json({ message: "Se deben proporcionar ingredientes." });
+    }
+
+    if (!Array.isArray(receta.steps) || receta.steps.length === 0) {
+        return res.status(400).json({ message: "Se deben proporcionar pasos." });
+    }
+
+    // Validar que no haya más de 12 ingredientes o pasos
+    if (receta.ingredients.length > 12) {
+        return res.status(400).json({ message: "No se pueden agregar más de 12 ingredientes." });
+    }
+
+    if (receta.steps.length > 12) {
+        return res.status(400).json({ message: "No se pueden agregar más de 12 pasos." });
+    }
+
+    const ingredientsString = receta.ingredients.join(', ');
+    const stepsString = receta.steps.join(', ');
+
     try {
         const categoryArray = receta.categories;
         const placeholders = categoryArray.map(() => '?').join(',');
 
-        // Verificar que las categorías existen en la tabla `Categories`
+        // Verificar si las categorías existen en la tabla `Categories`
         const checkCategoriesQuery = `SELECT category FROM Categories WHERE category IN (${placeholders})`;
-        console.log("Verificando categorías con consulta:", checkCategoriesQuery);
 
-        const rows = await new Promise((resolve, reject) => {
-            db.all(checkCategoriesQuery, categoryArray, (err, rows) => {
-                if (err) reject(err);
-                resolve(rows);
-            });
-        });
+        db.all(checkCategoriesQuery, categoryArray, (err, rows) => {
+            if (err) {
+                console.error("Error al verificar categorías:", err.message);
+                return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+            }
 
-        const existingCategories = rows.map(row => row.category);
-        const missingCategories = categoryArray.filter(cat => !existingCategories.includes(cat));
+            const existingCategories = rows.map(row => row.category);
+            const missingCategories = categoryArray.filter(cat => !existingCategories.includes(cat));
 
-        if (missingCategories.length > 0) {
-            return res.status(400).json({ 
-                message: `Una o más categorías no existen: ${missingCategories.join(', ')}` 
-            });
-        }
+            if (missingCategories.length > 0) {
+                return res.status(400).json({ 
+                    message: `Una o más categorías no existen: ${missingCategories.join(', ')}` 
+                });
+            }
 
-        // Insertar la receta con las categorías almacenadas como cadena separada por comas
-        const insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-        console.log("Insertando receta con consulta:", insertQuery);
+            // Insertar la receta
+            const insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
-        const lastID = await new Promise((resolve, reject) => {
             db.run(insertQuery, [
-                username, 
-                receta.recipeName, 
-                receta.difficulty, 
-                receta.description, 
-                receta.ingredients, 
-                receta.steps, 
-                categoryArray.join(', '), // Guardar las categorías como una cadena separada por comas
+                username,
+                receta.recipeName,
+                receta.difficulty,
+                receta.description,
+                ingredientsString,  // Guardar ingredientes como cadena separada por comas
+                stepsString,  // Guardar pasos como cadena separada por comas
+                categoryArray.join(', '),  // Categorías como cadena separada por comas
                 receta.tiempo
             ], function(err) {
-                if (err) reject(err);
-                resolve(this.lastID);
+                if (err) {
+                    console.error("Error al insertar receta:", err.message);
+                    return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+                }
+
+                return res.status(201).json({
+                    message: "Se ha creado la receta.",
+                    recetaId: this.lastID
+                });
             });
         });
-
-        return res.status(201).json({ 
-            message: "Se ha creado la receta.", 
-            recetaId: lastID 
-        });
-
     } catch (err) {
         console.error("Error en el servidor:", err.message);
         return res.status(500).json({ 
@@ -838,12 +805,13 @@ app.post("/api/receta-nueva", async (req, res) => {
 
 
 
+
+
 app.post('/api/receta-id', (req, res) => {
     const { id_recipe } = req.body;
 
     // Verifica si el `id_recipe` está presente
     if (!id_recipe) {
-        console.log("El campo id_recipe no fue enviado en la solicitud");
         return res.status(400).json({ message: 'El id de la receta es necesario.' });
     }
 

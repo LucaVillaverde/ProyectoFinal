@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAlert } from './context/messageContext';
 import axios from "axios";
-// LOGO
+
 // Componentes
 import Header from "./components/header/Header";
 import LoginRegister from "./components/LoginRegister/LoginRegister";
@@ -21,49 +21,43 @@ import GestioRecetas from "./pages/GestioRecetas";
 import "./css/app.css";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-
-
 function App() {
     // Variables "Globales"
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [movil, setMovil] = useState(false);
-    const [tabletOrdenador, setTabletOrdenador] = useState(false); // ¿Se usa o solo movil?
+    const [tabletOrdenador, setTabletOrdenador] = useState(false); 
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
     const { alert } = useAlert(); // <-- 
     
     //Funciones generales
-    const determinarTipoDispositivo = (ancho) => {
-        if (ancho < 720) {
-            return 1;
-        } else {
-            return 2;
-        }
-    };
+    const determinarTipoDispositivo = (ancho) => (ancho < 720 ? 1 : 2);
 
     useEffect(() => {
-        const checkLoginStatus = async () => {
+        // Función para verificar autenticación y cargar datos del usuario
+        const verificarAutenticacionYUsuario = async () => {
             try {
-                const cookieTokenResponse = await axios.post(
-                    `/api/checkeo`,
-                    {},
-                    { withCredentials: true }
-                ); // Asegúrate de incluir withCredentials
-                if (cookieTokenResponse.status === 200) {
+                const authResponse = await axios.post(`/api/checkeo`, {}, { withCredentials: true });
+                if (authResponse.status === 200) {
                     setIsLoggedIn(true);
+                    
+                    // Solo cargamos los datos de usuario si la autenticación es válida
+                    const userResponse = await axios.get(`/api/info-usuario`);
+                    if (userResponse.status === 200) {
+                        setLocalUsername(userResponse.data.username);
+                    }
                 } else {
-                    console.error(
-                        "Error al verificar las credenciales:",
-                        cookieTokenResponse.data.message
-                    );
                     setIsLoggedIn(false);
                 }
-            } catch (err) {
-                console.error("Error al verificar credenciales:", err);
+            } catch (error) {
+                console.error("Error al verificar autenticación o cargar usuario:", error);
                 setIsLoggedIn(false);
+            } finally {
+                setLoading(false); // Finalizamos la carga una vez que todo ha sido verificado
             }
         };
-        checkLoginStatus();
+
+        verificarAutenticacionYUsuario();
     }, []);
 
     useEffect(() => {
@@ -71,14 +65,10 @@ function App() {
             const ancho = window.innerWidth;
             const tipo = determinarTipoDispositivo(ancho);
 
-            if (tipo === 1) {
-                setMovil(true);
-                setTabletOrdenador(false);
-            } else {
-                setMovil(false);
-                setTabletOrdenador(true);
-            }
+            setMovil(tipo === 1);
+            setTabletOrdenador(tipo === 2);
         };
+
         verificarAncho();
         window.addEventListener("resize", verificarAncho);
         return () => {
@@ -86,34 +76,16 @@ function App() {
         };
     }, []);
 
-    useEffect(() => {
-        const llamadoInfoUsuario = async () => {
-            try {
-                const llamado = await axios.get(`/api/info-usuario`);
-                if (llamado.status === 200) {
-                    setLocalUsername(llamado.data.username);
-                }
-                if (llamado.status === 401) {
-                    console.log(`${llamado.status}, No estas logueado.`);
-                }
-            } catch (err) {
-                console.log("Error en la solicitud.", err.message); // Muestra el mensaje de error
-            }
-        };
-        llamadoInfoUsuario();
-    }, []);
-    
     // Funciones para uso en componentes.
     const showForm = (tipo) => {
         setForm(tipo);
         const formulario = document.getElementById("form_login");
-        if (formulario.className === "displayNone") {
-            formulario.className = "backgroundForm";
-        } else {
-            formulario.className = "displayNone";
-        }
+        formulario.className = formulario.className === "displayNone" ? "backgroundForm" : "displayNone";
     };
 
+    if (loading) {
+        return <div>Cargando...</div>; // Puedes cambiar esto por un componente de carga más elegante
+    }
 
     return (
         <Router>
@@ -140,31 +112,21 @@ function App() {
                 />
                 {/* >-------------------- MAIN PAGE --------------------< */}
                 <Routes>
-                    <Route
-                      path="/" 
-                      element={<Home />} />
-                    <Route 
-                      path="/receta/:id" 
-                      element={<Receta />} />
-                    <Route 
-                      path="/Buscar" 
-                      element={<Buscar />} />
-                    <Route 
-                      path="/perfil/:username" 
-                      element={<Perfil />} />
+                    <Route path="/" element={<Home />} />
+                    <Route path="/receta/:id" element={<Receta />} />
+                    <Route path="/Buscar" element={<Buscar />} />
+                    <Route path="/perfil/:username" element={<Perfil />} />
                     <Route
                         path="/Panel-de-Recetas/:localUsername"
                         element={
                             <ProtectedRoute>
-                                <GestioRecetas />
+                                <GestioRecetas nombreUsuario={localUsername} />
                             </ProtectedRoute>
                         }
                     />
-
                     <Route path="/tienda" element={<Tienda />} />
-
                     {/* Pagina 404 */}
-                    <Route path="*" element={<Page404 />}/>
+                    <Route path="*" element={<Page404 />} />
                 </Routes>
                 {/* >-------------------- FOOTER --------------------< */}
                 <Footer />
@@ -172,4 +134,5 @@ function App() {
         </Router>
     );
 }
+
 export default App;
