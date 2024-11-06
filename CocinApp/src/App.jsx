@@ -2,7 +2,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAlert } from './context/messageContext';
-import axios from "axios";
 
 // Componentes
 import Header from "./components/header/Header";
@@ -28,37 +27,11 @@ function App() {
     const [tabletOrdenador, setTabletOrdenador] = useState(false); 
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
-    const { alert } = useAlert(); // <-- 
-    
+    const { alert } = useAlert();
+
     //Funciones generales
     const determinarTipoDispositivo = (ancho) => (ancho < 720 ? 1 : 2);
 
-    useEffect(() => {
-        // Función para verificar autenticación y cargar datos del usuario
-        const verificarAutenticacionYUsuario = async () => {
-            try {
-                const authResponse = await axios.post(`/api/checkeo`, {}, { withCredentials: true });
-                if (authResponse.status === 200) {
-                    setIsLoggedIn(true);
-                    
-                    // Solo cargamos los datos de usuario si la autenticación es válida
-                    const userResponse = await axios.get(`/api/info-usuario`);
-                    if (userResponse.status === 200) {
-                        setLocalUsername(userResponse.data.username);
-                    }
-                } else {
-                    setIsLoggedIn(false);
-                }
-            } catch (error) {
-                console.error("Error al verificar autenticación o cargar usuario:", error);
-                setIsLoggedIn(false);
-            } finally {
-                setLoading(false); // Finalizamos la carga una vez que todo ha sido verificado
-            }
-        };
-
-        verificarAutenticacionYUsuario();
-    }, []);
 
     useEffect(() => {
         const verificarAncho = () => {
@@ -83,9 +56,7 @@ function App() {
         formulario.className = formulario.className === "displayNone" ? "backgroundForm" : "displayNone";
     };
 
-    if (loading) {
-        return <div>Cargando...</div>; // Puedes cambiar esto por un componente de carga más elegante
-    }
+
 
     return (
         <Router>
@@ -101,6 +72,7 @@ function App() {
                     form={form}
                     setForm={setForm}
                     setIsLoggedIn={setIsLoggedIn}
+                    setLocalUsername={setLocalUsername}
                 />
                 {/* >-------------------- HEADER --------------------< */}
                 <Header
@@ -114,7 +86,8 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/receta/:id" element={<Receta />} />
-                    <Route path="/Buscar" element={<Buscar />} />
+                    <Route path="/Buscar" element={<Buscar />}
+                    />
                     <Route path="/perfil/:username" element={<Perfil />} />
                     <Route
                         path="/Panel-de-Recetas/:localUsername"

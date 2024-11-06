@@ -1,10 +1,10 @@
-import {React, useState} from "react";
+import {React, useState, useEffect} from "react";
 import { useAlert } from '../../context/messageContext';
 import "./style.css";
 // import Cookies from "js-cookie";
 import axios from "axios";
 
-const LoginRegister = ({form,setForm,setIsLoggedIn}) => {
+const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
     // Variables
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -12,9 +12,37 @@ const LoginRegister = ({form,setForm,setIsLoggedIn}) => {
     const [passwordR, setPasswordR] = useState("");
     const [passwordRC, setPasswordRC] = useState("");
     const [message, setMessage] = useState("");
-
     // Alerta
     const {showAlert} = useAlert();
+
+    useEffect(() => {
+        // Función para verificar autenticación y cargar datos del usuario
+        const verificarAutenticacionYUsuario = async () => {
+            try {
+                const authResponse = await axios.post(`/api/checkeo`, {}, { withCredentials: true });
+                
+                if (authResponse.status === 200) {
+                    try {
+                        const userResponse = await axios.get(`/api/info-usuario`, { withCredentials: true });
+                        if (userResponse.data.success) {
+                            setLocalUsername(userResponse.data.username);
+                            setIsLoggedIn(true);
+                        } else {
+                            setIsLoggedIn(false); // Cierra sesión si `success` es falso
+                        }
+                    } catch {
+                        setIsLoggedIn(false);
+                    }
+                } else {
+                    setIsLoggedIn(false);
+                }
+            } catch (error) {
+                setIsLoggedIn(false);
+            }
+        };
+    
+        verificarAutenticacionYUsuario();
+    }, []);
 
     // Funciones para registro y login
     const signUp = async (e) => {
@@ -76,7 +104,8 @@ const LoginRegister = ({form,setForm,setIsLoggedIn}) => {
                     );
                     if (cookieTokenResponse.status === 201) {
                         setIsLoggedIn(true);
-                        location.reload();
+                        setLocalUsername(username);
+                        closeForm();
                     } else if (cookieTokenResponse.status === 403) {
                         setIsLoggedIn(false);
                     }

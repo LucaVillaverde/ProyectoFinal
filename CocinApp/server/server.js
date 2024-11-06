@@ -170,25 +170,37 @@ app.post('/api/verifpassword', (req, res) => {
 
 app.get('/api/info-usuario', async (req, res) => {
     const id_user = req.cookies.id_user;
-    if (!id_user){
-        return res.status(401).json({ message: "no hay id_user indicado,"});
-    }else {
-        try{
-            db.get('SELECT username FROM Users WHERE id_user = ?', [id_user], (err, row) => {
-                if(err){
-                    return res.status(500).json({ message: "Error interno del server al querer obtener el nombre de usuario en la base de datos." });
-                }
-                const username = row.username;
-                return res.status(200).json({ 
-                    message: "Se obtuvo el usuario con exito de la base de datos.",
-                    username,
-                 })
-            })
-        }catch (err){
-            return res.status(err);
-        }
+    if (!id_user) {
+        res.clearCookie('id_user');
+        res.clearCookie('username');
+        res.clearCookie('token');
+        return res.json({ success: false, message: "No se indicó el id_user." });
     }
-})
+
+    try {
+        db.get('SELECT username FROM Users WHERE id_user = ?', [id_user], (err, row) => {
+            if (err || !row) {
+                res.clearCookie('id_user');
+                res.clearCookie('username');
+                res.clearCookie('token');
+                return res.json({ success: false, message: "Error al obtener usuario o usuario no encontrado." });
+            }
+
+            const { username } = row;
+            return res.json({
+                success: true,
+                message: "Usuario obtenido con éxito.",
+                username,
+            });
+        });
+    } catch {
+        res.clearCookie('id_user');
+        res.clearCookie('username');
+        res.clearCookie('token');
+        return res.json({ success: false, message: "Error del servidor." });
+    }
+});
+
 
 app.post('/api/token-register', async (req, res) => {
     const { usernameNH } = req.body;
@@ -452,8 +464,6 @@ app.delete('/api/delete', (req, res) => {
 
 
 app.post('/api/checkeo', async (req, res) => {
-
-    // Obtener las cookies
     const tokenNav = req.cookies.token;
     const usernameNav = req.cookies.username;
     const idUserNav = req.cookies.id_user;
@@ -463,69 +473,56 @@ app.post('/api/checkeo', async (req, res) => {
         res.clearCookie('id_user');
         res.clearCookie('username');
         res.clearCookie('token');
-        return res.status(401).json({ message: 'No hay cookies de autenticación.' });
+        return res.status(400);
     }
 
     const tiempoActual = new Date().toISOString();
 
     try {
-        // Consultar la base de datos para obtener el token y el nombre de usuario
         db.get('SELECT cookieToken, username, created_at FROM Tokens WHERE id_user = ?', [idUserNav], async function (err, row) {
-            if (err) {
-                console.error('Error de base de datos:', err);
-                return res.status(500).json({ message: 'Error interno del servidor.' });
-            }
-            if (!row) {
+            if (err || !row) {
                 res.clearCookie('id_user');
                 res.clearCookie('username');
                 res.clearCookie('token');
-                return res.status(404).json({ message: 'No se han encontrado los datos.' });
+                return res.json({ success: false, message: 'Error de validación de credenciales' });
             }
 
-            // Comparar el token y el nombre de usuario
             const matchT = await bcrypt.compare(row.cookieToken, tokenNav);
             const usernameMatch = await bcrypt.compare(row.username, usernameNav);
 
-            const createdAt = row.created_at;
-
-            // Función para verificar si el token ha expirado (más de 24 horas)
-            const tiempo = (createdAt, tiempoActual) => {
+            const tiempoExpirado = (createdAt, tiempoActual) => {
                 const createdDate = new Date(createdAt);
                 const currentDate = new Date(tiempoActual);
                 const UnDiaMilisegundos = 24 * 60 * 60 * 1000;
                 return (currentDate - createdDate) >= UnDiaMilisegundos;
             };
 
-            // Verificar si el token ha expirado
-            if (tiempo(createdAt, tiempoActual)) {
-                db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE id_user = ?', [idUserNav], function (err) {
-                    if (err) {
-                        console.error('Error al actualizar el estado del cookieToken:', err);
-                        return res.status(500).json({ message: "Error interno del servidor al actualizar el estado del cookieToken." });
+            if (tiempoExpirado(row.created_at, tiempoActual)) {
+                db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE id_user = ?', [idUserNav], function (updateErr) {
+                    if (!updateErr) {
+                        res.clearCookie('id_user');
+                        res.clearCookie('username');
+                        res.clearCookie('token');
+                        return res.json({ success: false, message: 'Token expirado y eliminado' });
                     }
-                    res.clearCookie('id_user');
-                    res.clearCookie('username');
-                    res.clearCookie('token');
-                    return res.status(200).json({ message: 'Token expirado y actualizado.' });
                 });
+            } else if (matchT && usernameMatch) {
+                return res.status(200).json({ success: true, message: 'Tokens válidos' });
             } else {
-                if (matchT && usernameMatch) {
-                    return res.status(200).json({ message: 'Los tokens coinciden.' });
-                } else {
-                    res.clearCookie('id_user');
-                    res.clearCookie('username');
-                    res.clearCookie('token');
-                    return res.status(401).json({ message: 'Los tokens no coinciden.' });
-                }
+                res.clearCookie('id_user');
+                res.clearCookie('username');
+                res.clearCookie('token');
+                return res.json({ success: false, message: 'Credenciales no válidas' });
             }
         });
-    } catch (err) {
+    } catch {
         res.clearCookie('id_user');
         res.clearCookie('username');
         res.clearCookie('token');
-        return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+        return res.json({ success: false, message: 'Error interno' });
     }
 });
+
 
 
 app.post('/api/cookie/delete', async (req, res) => {

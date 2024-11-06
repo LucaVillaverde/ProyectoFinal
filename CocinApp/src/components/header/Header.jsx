@@ -180,6 +180,7 @@ const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm, localUsername}) => {
         );
 };
 export default Header;
+
 const UserMenu = ({ logout, del_profile, username,movil }) => {
     const [isOpen, setIsOpen] = useState(false);
     // Función para alternar la visibilidad del menú

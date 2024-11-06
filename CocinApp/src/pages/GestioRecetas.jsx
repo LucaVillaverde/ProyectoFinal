@@ -247,7 +247,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
         if (nuevoAncho !== tipoDispositivo) {
             setTipoDispositivo(nuevoAncho);
         }
-    }, 200);
+    });
 
     useEffect(() => {
         window.addEventListener('resize', verificarAncho);
