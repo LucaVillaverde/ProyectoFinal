@@ -242,7 +242,6 @@ const GestioRecetas = ({ nombreUsuario }) => {
     const verificarAncho = useDebounce(() => {
         const ancho = window.innerWidth;
         const nuevoAncho = determinarAncho(ancho);
-        console.log("Ancho verificado:", ancho);
 
         if (nuevoAncho !== tipoDispositivo) {
             setTipoDispositivo(nuevoAncho);
