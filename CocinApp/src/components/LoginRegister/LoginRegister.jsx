@@ -36,7 +36,7 @@ const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
                 } else {
                     setIsLoggedIn(false);
                 }
-            } catch (error) {
+            } catch {
                 setIsLoggedIn(false);
             }
         };

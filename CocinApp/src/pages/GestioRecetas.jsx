@@ -316,6 +316,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
     const addRecipe = useCallback(
         async (e) => {
             e.preventDefault();
+            e.stopPropagation();
             const tiempoRegex = /^(?:([1-9]|1[0-9]|2[0-4])\s?(hora|horas|h)|([1-9]|[1-5][0-9]|60)\s?(minuto|minutos|m|min|hs))$/i;
             if (!tiempoRegex.test(formData.tiempo)){
                 console.log("Por favor, ingresa un tiempo válido, como '30 minutos', '30 Min', '1 hora' o '2 horas'.");
@@ -337,10 +338,9 @@ const GestioRecetas = ({ nombreUsuario }) => {
                 const response = await axios.post("/api/receta-nueva", {
                     username: nombreUsuario,
                     receta: formData,
-                });
+                },{withCredentials: true});
                 if (response.status === 201) {
                     llamado(nombreUsuario); 
-                    alert("Receta añadida exitosamente.");
                     // Reset the form
                     setFormData({
                         recipeName: "",

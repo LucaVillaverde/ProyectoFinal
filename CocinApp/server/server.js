@@ -705,7 +705,7 @@ app.post('/api/recetas/personales', (req, res) => {
 
 app.post("/api/receta-nueva", (req, res) => {
     const { username, receta } = req.body;
-    console.log(receta.ingredients, receta.steps);
+    console.log('Datos recibidos:', req.body);
 
     // Validar si todos los parámetros requeridos están presentes
     if (!username || !receta.recipeName || !receta.difficulty || !receta.description || !receta.ingredients || !receta.steps || !receta.categories || !receta.tiempo) {
@@ -721,6 +721,12 @@ app.post("/api/receta-nueva", (req, res) => {
                 steps: receta.steps, 
                 tiempo: receta.tiempo 
             } 
+        });
+    }
+    console.log(receta.recipeName.length);
+    if (receta.recipeName.length > 40){
+        return res.status(400).json({
+            message: 'El nombre de la receta es muy largo'
         });
     }
 
