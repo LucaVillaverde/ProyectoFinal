@@ -205,7 +205,7 @@ app.post("/api/eliminarReceta", (req, res) => {
         return res.status(500).json({ message: "Algo salio mal." });
     }
 
-})
+});
 
 app.post('/api/verifpassword', (req, res) => {
     const { contraUser, borrarRecetas } = req.body;
