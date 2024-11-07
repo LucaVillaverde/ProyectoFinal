@@ -146,6 +146,9 @@
         min-height: 467px;
         max-height: 500px;
     }
+    .card-subtitle{
+        font-size: 16px;
+    }
 }
 @media (min-width:1552px){
     .contenedor-tarjetas{

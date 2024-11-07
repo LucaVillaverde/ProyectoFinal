@@ -1,185 +1,174 @@
-import { React, useState} from "react";
+import { React, useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
 import "./header.css";
 import logoimg from "../../assets/logo1.png";
-import "../../assets/btn_burgerIcon.png"
 import logoPerfilM from "../../assets/LogoPerfilMovil.jpg";
 import logoPerfilP from "../../assets/LogoPerfilPC.jpg";
+import menuHamburguesa from "../../assets/btn_burgerIcon.png";
 
-const Header = ({movil,isLoggedIn,setIsLoggedIn,showForm, localUsername}) => {
+const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
     const [visible, setMenuVisible] = useState(false);
-    // PATH
+    const [movil, setMovil] = useState(null);
+
     const links = [
         { href: "/", label: "INICIO" },
         { href: "/Buscar", label: "BUSCAR" },
         { href: "/tienda", label: "TIENDA" },
     ];
-    // Funciones
+
+    useEffect(() => {
+        const determinarAncho = (ancho) => (ancho > 720 ? 1 : 0);
+
+        const verificarAncho = () => {
+            const anchoBoolean = determinarAncho(window.innerWidth);
+            if (anchoBoolean === 1) {
+                setMovil(false);
+            } else {
+                setMovil(true);
+            }
+        };
+
+        verificarAncho();
+        window.addEventListener("resize", verificarAncho);
+
+        return () => {
+            window.removeEventListener("resize", verificarAncho);
+        };
+    }, []); // Evitar agregar `movil` aquí
+
     const logout = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`/api/logout`, {});
+            const response = await axios.post(`/api/logout`);
             if (response.status === 200) {
-                try {
-                    const cookieTokenDelete = await axios.post(
-                        `/api/cookie/delete`,
-                        {},
-                    );
-
-                    if (cookieTokenDelete.status === 200) {
-                        console.log("La cuenta se ha cerrado exitosamente.");
-                        setIsLoggedIn(false);
-                        location.reload();
-                    } else if (cookieTokenDelete.status === 400){
-                        location.reload();
-                    }
-                } catch {
-                    setIsLoggedIn(false);   
-                    location.reload();                 
+                const cookieDelete = await axios.post(`/api/cookie/delete`, 
+                    {}
+                );
+                if (cookieDelete.status === 200){
+                    setIsLoggedIn(false);
                 }
-            } else {
-                setIsLoggedIn(false);
-                location.reload();
             }
-        } catch {
+        } catch (err){
+            console.error(err);
             setIsLoggedIn(false);
-            location.reload();
         }
     };
+
     const deleteUser = async (e) => {
         e.preventDefault();
         const contraUser = prompt("Confirme su contraseña");
 
         if (contraUser) {
-            const confirmacion = window.confirm(
-                "¿Estas seguro de borrar tu cuenta?"
+            const confirmacion = window.confirm("¿Estás seguro de borrar tu cuenta?");
+            const borrarRecetas = window.confirm(
+                "Aceptar para borrar tus recetas del sistema o Cancelar para que se pongan a nombre de CocinApp."
             );
+
             if (confirmacion) {
                 try {
-                    const deleteResponse = await axios.post(
-                        `/api/verifpassword`,
-                        {
-                            contraUser,
-                        }
-                    );
+                    const deleteResponse = await axios.post(`/api/verifpassword`, {
+                        contraUser,
+                        borrarRecetas,
+                    });
                     if (deleteResponse.status === 200) {
                         setIsLoggedIn(false);
-                        location.reload();
                     }
                 } catch (err) {
-                    console.error(
-                        err.response
-                            ? err.response.data.message
-                            : "Error desconocido al eliminar el usuario."
-                    );
-                    setMessage(
-                        err.response
-                            ? err.response.data.message
-                            : "Error desconocido al eliminar el usuario."
-                    );
+                    console.error(err.response ? err.response.data.message : "Error al eliminar el usuario.");
                 }
-            } else {
-                location.reload();
             }
         }
     };
-    const showMenu= ()=>{
+
+    const showMenu = () => {
         setMenuVisible(!visible);
-    }
+    };
 
-
-    return (
-            movil ? (
-                <>
-                    <header>
-                        <div className="nav-user">
-                            <div className="seccion">
-                                {isLoggedIn ? (
-                                    <UserMenu
-                                        username={localUsername}
-                                        logout={(e) => logout(e)}
-                                        del_profile={(e) => deleteUser(e)}
-                                        movil={movil}
-                                    />
-                                ) : (
-                                    <button className="btn_user" onClick={()=>showForm("login")}>
-                                        INGRESO / REGISTRO
-                                    </button>
-                                )}
-                            </div>
+    return movil ? (
+        <header>
+            <div className="nav-user">
+                <div className="seccion">
+                    {isLoggedIn ? (
+                        <UserMenu
+                            username={localUsername}
+                            logout={logout}
+                            del_profile={deleteUser}
+                            movil={movil}
+                        />
+                    ) : (
+                        <button className="btn_user" onClick={() => showForm("login")}>
+                            INGRESO / REGISTRO
+                        </button>
+                    )}
+                </div>
+            </div>
+            <div className="header_content">
+                <div className="header-l">
+                    <div className="eslogan">
+                        <p>
+                            <b>
+                                Tus <br /> Recetas <br /> Simplificadas
+                            </b>
+                        </p>
+                    </div>
+                    <a href="/">
+                        <img className="logo_img" src={logoimg} alt="LOGO" />
+                    </a>
+                    <div id="menu" className={`hamburger-menu ${visible ? "" : "rotate"}`} onClick={showMenu}>
+                        <img src={menuHamburguesa} alt="Menu hamburguesa" />
+                    </div>
+                </div>
+                <nav className={`links ${visible ? "" : "menuClose"}`}>
+                    {links.map((link, index) => (
+                        <a key={index} href={link.href} className="link">
+                            {link.label}
+                        </a>
+                    ))}
+                </nav>
+            </div>
+        </header>
+    ) : (
+        <header>
+            <div className="header_content">
+                <div className="header-l">
+                    <a href="/" id="logoContainer">
+                        <img className="logo_img" src={logoimg} alt="LOGO" />
+                    </a>
+                    <div className="containerEslogan">
+                        <p className="eslogan">Tus recetas simplificadas</p>
+                    </div>
+                    {isLoggedIn ? (
+                        <UserMenu
+                            username={localUsername}
+                            logout={logout}
+                            del_profile={deleteUser}
+                        />
+                    ) : (
+                        <div className="btn_user-move">
+                            <button className="btn_user" onClick={() => showForm("login")}>
+                                INGRESO
+                            </button>
+                            <button className="btn_user" onClick={() => showForm("registro")}>
+                                REGISTRO
+                            </button>
                         </div>
-        
-                        <div className="header_content">
-                            <div className="header-l">
-                                <div>
-                                    <p className="eslogan">
-                                        <b>
-                                            Tus <br /> Recetas <br /> Simplificadas
-                                        </b>
-                                    </p>
-                                </div>
-                                <a href="/">
-                                    <img className="logo_img" src={logoimg} alt="LOGO" />
-                                </a>
-                                <div id="menu" className={`hamburger-menu ${visible ? "" : "rotate"}`} onClick={showMenu}>
-                                    <div className="line"></div>
-                                    <div className="line"></div>
-                                    <div className="line"></div>
-                                </div>
-                            </div>
-                            <nav className={`links ${visible ? "" : "menuClose"}`}>
-                                {links.map((link, index) => (
-                                    <a key={index} href={link.href} className="link">
-                                        {link.label}
-                                    </a>
-                                ))}
-                            </nav>
-                        </div>
-                    </header>
-                </>
-            ) : (
-                <>
-                    <header>
-                        <div className="header_content">
-                            <div className="header-l">
-                                <a href="/">
-                                    <img className="logo_img" src={logoimg} alt="LOGO" />
-                                </a>
-                                <div className="containerEslogan">
-                                    <p className="eslogan">Tus recetas simplificadas</p>
-                                </div>
-                                {isLoggedIn ? (
-                                    <UserMenu
-                                        username={localUsername}
-                                        logout={(e) => logout(e)}
-                                        del_profile={deleteUser}
-                                    />
-                                ) : (
-                                    <div className="btn_user-move">
-                                        <button className="btn_user" onClick={()=>showForm("login")}>
-                                            INGRESO
-                                        </button>
-                                        <button className="btn_user" onClick={()=>showForm("registro")}>
-                                            REGISTRO
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                            <nav className={`links ${visible ? "" : "menuClose"}`}>
-                                {links.map((link, index) => (
-                                    <a key={index} href={link.href} className="link">
-                                        {link.label}
-                                    </a>
-                                ))}
-                            </nav>
-                        </div>
-                    </header>
-                </>
-            )
-        );
+                    )}
+                </div>
+                <nav className={`links ${visible ? "" : "menuClose"}`}>
+                    {links.map((link, index) => (
+                        <a key={index} href={link.href} className="link">
+                            {link.label}
+                        </a>
+                    ))}
+                </nav>
+            </div>
+        </header>
+    );
 };
+
 export default Header;
+
 
 const UserMenu = ({ logout, del_profile, username,movil }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -196,7 +185,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
     };
  
     return (
-        <div>
+        <div id="contenedorUserMenu">
             {movil ? (
                 <>
                     <div className="menu-container" onClick={closeMenu}>
@@ -239,8 +228,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                     </div>
                 </>
             ) : (
-                <>
-                    <div className="menu-container-move">
+                <div className="menu-container-move">
                         <div className="menu-container" onClick={closeMenu}>
                             <div className="menu">
                                 <button
@@ -279,8 +267,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                                 )}
                             </div>
                         </div>
-                    </div>
-                </>
+                </div>
             )}
         </div>
     );

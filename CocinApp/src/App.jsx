@@ -11,11 +11,10 @@ import Footer from "./components/footer/Footer";
 // Pages
 import Home from "./pages/Home";
 import Buscar from "./pages/Buscar";
-import Perfil from "./pages/Perfil";
 import Receta from "./pages/Receta";
 import Tienda from "./pages/Tienda";
 import Page404 from "./pages/404";
-import GestioRecetas from "./pages/GestioRecetas";
+import GestioRecetas from "./pages/GestionarRecetas";
 // Otros
 import "./css/app.css";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -29,33 +28,14 @@ function App() {
     const [localUsername, setLocalUsername] = useState("");
     const { alert } = useAlert();
 
-    //Funciones generales
-    const determinarTipoDispositivo = (ancho) => (ancho < 720 ? 1 : 2);
-
-
-    useEffect(() => {
-        const verificarAncho = () => {
-            const ancho = window.innerWidth;
-            const tipo = determinarTipoDispositivo(ancho);
-
-            setMovil(tipo === 1);
-            setTabletOrdenador(tipo === 2);
-        };
-
-        verificarAncho();
-        window.addEventListener("resize", verificarAncho);
-        return () => {
-            window.removeEventListener("resize", verificarAncho);
-        };
-    }, []);
 
     // Funciones para uso en componentes.
     const showForm = (tipo) => {
         setForm(tipo);
         const formulario = document.getElementById("form_login");
         formulario.className = formulario.className === "displayNone" ? "backgroundForm" : "displayNone";
-    };
 
+    };
 
 
     return (
@@ -76,7 +56,6 @@ function App() {
                 />
                 {/* >-------------------- HEADER --------------------< */}
                 <Header
-                    movil={movil}
                     isLoggedIn={isLoggedIn}
                     setIsLoggedIn={setIsLoggedIn}
                     showForm={showForm}
@@ -88,7 +67,6 @@ function App() {
                     <Route path="/receta/:id" element={<Receta />} />
                     <Route path="/Buscar" element={<Buscar />}
                     />
-                    <Route path="/perfil/:username" element={<Perfil />} />
                     <Route
                         path="/Panel-de-Recetas/:localUsername"
                         element={

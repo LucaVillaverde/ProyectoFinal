@@ -1,9 +1,12 @@
 import React, { useEffect, useState, memo, useCallback } from "react";
+import { useAlert } from '../context/messageContext';
 import axios from "axios";
-import "../css/form.css";
-import "../components/card/card.css";
+// Componentes
 import SimpleCard from "../components/card/SimpleCard";
-
+import "../css/form.css";
+import img404 from '../assets/image_404.png';
+import addIco from '../assets/add.svg';
+import delIco from '../assets/del.svg';
 const useDebounce = (callback, delay) => {
     const timerRef = React.useRef();
 
@@ -41,7 +44,7 @@ const AddForm = memo(({
     <form id="formularioAgregarReceta" onSubmit={llamadaDB}>
         <label className='lbl-title-form' htmlFor="recipeName">Nombre de la Receta:</label>
         <input
-            className="inptFormRecipe"
+            className="inptFormRecipeName"
             type="text"
             id="recipeName"
             value={formData.recipeName}
@@ -90,8 +93,13 @@ const AddForm = memo(({
         ></textarea>
 
         <label className="lbl-title-form">Ingredientes de la Receta:</label>
+
         {formData.ingredients.map((ingredient, index) => (
             <div key={index}>
+                <div className="inpDel">
+                <button type="button" className="btn-del" onClick={() => handleRemoveIngredient(index)}>
+                        <img src={delIco}/>
+                </button>
                 <input
                     className="inptFormRecipe"
                     type="text"
@@ -100,16 +108,21 @@ const AddForm = memo(({
                     onChange={(e) => handleIngredientChange(index, e)}
                     required
                 />
-                <button type="button" onClick={() => handleRemoveIngredient(index)}>Eliminar</button>
+                </div>
             </div>
         ))}
-        <button type="button" onClick={handleAddIngredient}>
-            Agregar ingrediente
+        
+        <button type="button" aria-label="Agregar Campo de Ingrediente" className="btn-add" onClick={handleAddIngredient}>
+        <img alt="Boton de agregar campo ingrediente" src={addIco}/>
         </button>
 
         <label className="lbl-title-form">Pasos para la elaboración:</label>
         {formData.steps.map((step, index) => (
             <div key={index}>
+                <div className="inpDel">
+                <button type="button"  className="btn-del" onClick={()=> handleRemoveStep(index)}>
+                        <img src={delIco}/>
+                </button>
                 <input
                     className="inptFormRecipe"
                     type="text"
@@ -118,16 +131,19 @@ const AddForm = memo(({
                     onChange={(e) => handleStepChange(index, e)}
                     required
                 />
-                <button type="button" onClick={()=> handleRemoveStep(index)}>Eliminar</button>
-            </div>
-        ))}
-        <button type="button" onClick={handleAddStep}>
-            Agregar paso
-        </button>
+                </div>
 
+            </div>
+
+        ))}
+        
+        <button type="button" aria-label="Agregar Campo de Paso" className="btn-add" onClick={handleAddStep}>
+            <img alt="Boton de agregar campo paso" src={addIco}/>
+        </button>
+        
         <label className='lbl-title-form' htmlFor="tiempo">Tiempo de preparación:</label>
         <input
-            className="inptFormRecipe"
+            className="inptFormTiempo"
             type="text"
             id="tiempo"
             placeholder="30 minutos / 30 min o 1 hora / 2 horas"
@@ -143,6 +159,7 @@ const AddForm = memo(({
 ));
 
 const GestioRecetas = ({ nombreUsuario }) => {
+    const {showAlert} = useAlert();
     useEffect(() => {
         const metaDescription = document.createElement('meta');
         document.title = "CocinApp: Gestionar Recetas";
@@ -162,9 +179,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
     const [tipoDispositivo, setTipoDispositivo] = useState();
     const [primeraCarga, setPrimeraCarga] = useState(true);
 
-    const domain = import.meta.env.VITE_HOST_API2;
-    const host = `${domain}:5000`;
-    
+   
     const [formData, setFormData] = useState({
         recipeName: "",
         difficulty: "",
@@ -188,14 +203,13 @@ const GestioRecetas = ({ nombreUsuario }) => {
         if (formData.ingredients.length < 12) {
             setFormData(prevData => {
                 const updatedIngredients = [...prevData.ingredients, ""];
-                console.log("Ingredientes actualizados:", updatedIngredients);
                 return {
                     ...prevData,
                     ingredients: updatedIngredients,
                 };
             });
         } else {
-            alert("Puedes agregar hasta 12 ingredientes.");
+            showAlert('Maximo 12 Ingredientes', 'warning');
         }
     }, [formData.ingredients]);
 
@@ -226,7 +240,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
                 };
             });
         } else {
-            alert("Puedes agregar hasta 12 pasos.");
+            showAlert('Maximo 12 pasos', 'warning');
         }
     }, [formData.steps]);
 
@@ -306,7 +320,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
             if (updatedCategories.length <= 4) {
                 return { ...prevData, categories: updatedCategories };
             } else {
-                alert("Solo puedes seleccionar hasta 4 categorías.");
+                showAlert('Maximo 4 categorias', 'warning');
                 return prevData;
             }
         });
@@ -319,14 +333,17 @@ const GestioRecetas = ({ nombreUsuario }) => {
             const tiempoRegex = /^(?:([1-9]|1[0-9]|2[0-4])\s?(hora|horas|h)|([1-9]|[1-5][0-9]|60)\s?(minuto|minutos|m|min|hs))$/i;
             if (!tiempoRegex.test(formData.tiempo)){
                 console.log("Por favor, ingresa un tiempo válido, como '30 minutos', '30 Min', '1 hora' o '2 horas'.");
+                showAlert("Por favor, ingresa un tiempo válido, como '30 minutos', '30 Min', '1 hora' o '2 horas'.", 'warning');
                 return;
             }
             if (formData.categories.length < 1){
                 console.log("Favor de seleccionar por lo menos una categoria, pedazo de basura.");
+                showAlert('Favor de seleccionar por lo menos una categoria, pedazo de basura.', 'warning');
                 return;
             }
             if (formData.ingredients.length < 1){
                 console.log("Favor de indicar los ingredientes de la receta.");
+                showAlert('Favor de indicar los ingredientes de la receta.', 'warning');
                 return;
             }
             if (formData.steps.length < 1){
@@ -350,9 +367,10 @@ const GestioRecetas = ({ nombreUsuario }) => {
                         steps: [],
                         tiempo: "",
                     });
+                    showAlert(`Se añadio ${formData.recipeName}`, 'successful');
                 }
             } catch (err) {
-                console.log("Error al agregar receta:", err);
+                err.response.data.message ? showAlert(err.response.data.message,'warning'):showAlert('Error de conexion','danger');  
             }
         },
         [formData]
@@ -367,13 +385,18 @@ const GestioRecetas = ({ nombreUsuario }) => {
                     ancho: ancho,
                 });
                 if (response.status === 200) {
-                    setRecetas(response.data.recetas);
-                    setTotalPages(response.data.totalPages);
-                    setInfo(true);
+                    if(response.data.recetas.length === 0){
+                        console.log("No tenes recetas flaco.");
+                    } else {
+                        setRecetas(response.data.recetas);
+                        setTotalPages(response.data.totalPages);
+                        setInfo(true);
+                    }
                 } else if (response.status === 404) {
                     setInfo(false);
-                    alert("No tienes recetas para mostrar.");
+                    console.log("No tienes recetas");
                 }
+                
             } catch (error) {
                 console.log("Error en la llamada a la API:", error);
             }
@@ -389,7 +412,6 @@ const GestioRecetas = ({ nombreUsuario }) => {
     const handleNextPage = () => {
         setCurrentPage((prev) => Math.min(prev + 1, totalPages));
     };
-     
     return (
         <div>
             <div>
@@ -414,7 +436,10 @@ const GestioRecetas = ({ nombreUsuario }) => {
             </div>
     {!info ?(
         <>
-        <span>No tienes recetas para mostrar</span>
+            <div className="recipe-cont-404">
+                <h2>NO HAY RECETAS</h2>
+                <img src={img404} alt="No hay recetas" className='recipe-image-404'/>
+            </div>
         </>
       ) : (
         <div className="contenedorRecetas">
@@ -424,15 +449,15 @@ const GestioRecetas = ({ nombreUsuario }) => {
                           <a className="card" href={`/receta/${id_recipe}`} key={id_recipe}>
                               <SimpleCard
                                   tiempo={tiempo}
-                                  image={"https://placehold.co/400x250/000/fff/png"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
+                                  image={"https://placehold.co/400x250/000/fff/png"}  
                                   title={recipe_name}
                                   author={username}
                                   dificulty={difficulty}
-                                  category={categories}  // Si tienes categorías como un array, deberías ajustarlo
+                                  category={categories}  
                               />
                           </a>
                       ))}
-        </div>
+            </div>
         </div>
       )}
       <div className="contenedorPaginacionBusqueda">

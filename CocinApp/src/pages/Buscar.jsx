@@ -116,7 +116,7 @@ const Buscar = () => {
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Buscar..."
+                                placeholder="Buscar por nombre..."
                             />
                             <button title="Botón para buscar recetas" className="search-btn" type="submit">
                             <svg
@@ -134,7 +134,9 @@ const Buscar = () => {
                         </div>
                     </form>
                     <div>
-                        <h3>Categorías</h3>
+                        <div id="filtradoPorCategorias">
+                            <h3>Filtrado por Categorías</h3>
+                        </div>
                         <div className="filters">
                             <div className="filter-menu">
                                 {['Entrada', 'Sopa', 'Caldo', 'Ensalada', 'Plato Principal', 'Guarnición', 'Postre', 'Bebida', 'Vegetariana', 'Saludable'].map(category => (

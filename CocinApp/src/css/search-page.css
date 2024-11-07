@@ -55,6 +55,17 @@
     overflow-x: auto; /* Habilita el scroll horizontal */
 }
 
+#filtradoPorCategorias{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+#filtradoPorCategorias h3{
+    text-decoration: underline;
+    font-size: 20px;
+}
+
 .filter{
     width: 45%;
     margin: 0 8px;

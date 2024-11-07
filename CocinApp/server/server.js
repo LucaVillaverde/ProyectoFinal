@@ -10,13 +10,14 @@ app.use(cookieParser());
 require('dotenv').config();
 // PORTS
 const PORT = 5000;
-const PORT_FRONTEND = 5173
+const PORT_FRONTEND = 4173
 // HOST
 
 //***************************************************************** */
 // ¡¡¡HOST  HOST_FRONTEND(localhost) HOST_FRONTEND2(pruebita) !!!!
 //***************************************************************** */
-const host = process.env.HOST_FRONTEND2;
+const host = process.env.HOST_FRONTEND;
+
 
 
 function validarEntrada(texto) {
@@ -29,6 +30,7 @@ function validarEntrada(texto) {
 }
 
 
+
 const allowedOrigins = [`${host}:${PORT_FRONTEND}`];
 const corsOptions = {
   origin: (origin, callback) => {
@@ -39,14 +41,18 @@ const corsOptions = {
       callback();  // Bloquea orígenes no permitidos
     }
   },
-  optionsSuccessStatus: 200
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Métodos permitidos
+    allowedHeaders: ['Content-Type', 'Authorization'],  // Cabeceras permitidas
+    optionsSuccessStatus: 200
 };
+
 
 
 // Middleware para aplicar CORS y registrar el origen
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+
 
 
 app.use((req, res, next) => {
@@ -64,8 +70,42 @@ app.use((req, res, next) => {
     next();  // Si no es una ruta protegida, continúa con el siguiente middleware
 });
 
+
+
+app.use((req, res, next) => {  
+    // Establecer el encabezado Content-Security-Policy correctamente como una cadena
+    res.setHeader('Content-Security-Policy', 
+      "default-src 'self'; " +
+      "script-src 'self'; " +
+      "style-src 'self'; " +
+      "img-src 'self'; " +
+      "font-src 'self'; " +
+      "connect-src 'self'; " +
+      "object-src 'none'; " +
+      "frame-ancestors 'none'; " +
+      "base-uri 'self';"
+    );
+  
+    // Otros encabezados de seguridad
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.removeHeader('x-powered-by');
+  
+    // CORS (Access-Control-Allow-* headers)
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');  // Métodos permitidos
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');  // Cabeceras permitidas
+    res.setHeader('Access-Control-Allow-Origin', `${host}:${PORT_FRONTEND}`);  // Origen permitido
+    
+    // Llamar al siguiente middleware
+    next();
+  });
+  
+
+
 const db = new sqlite3.Database('./BasedeDatos.db');
 // const db = new sqlite3.Database('./db.db');
+
+
 
 cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
     db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
@@ -74,6 +114,8 @@ cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
         }
     });
 });
+
+
 
 app.get("/api/protection", (req, res) => {
     const tokenH = req.cookies.token;
@@ -105,6 +147,7 @@ app.get("/api/protection", (req, res) => {
 });
 
 
+
 app.post('/api/usuarios', (req, res) => {
     const { id } = req.body;
     try{
@@ -121,51 +164,152 @@ app.post('/api/usuarios', (req, res) => {
     }
 });
 
+
+
 app.post('/api/verifpassword', (req, res) => {
-    const { contraUser } = req.body;
+    const { contraUser, borrarRecetas } = req.body;
     const id_user = req.cookies.id_user;
-    // Validar la entrada
-    if (!id_user || !contraUser) {
+    const usernameH = req.cookies.username;
+
+    // Llamadas a base de datos
+    // Borrado:
+    const deleteQueryUsersTable = 'DELETE FROM Users WHERE id_user = ?';
+    const deleteQueryTokensTable = 'DELETE FROM Tokens WHERE id_user = ?';
+    const deleteQueryRecipeTable = "DELETE FROM Recipe WHERE username = ?";
+
+    // Actualizar:
+    const updateQueryRecipeTable = 'UPDATE Recipe SET username = ? WHERE username = ?';
+
+    // Obtener Información:
+    const getUsernameFromUsers = 'SELECT username FROM Users WHERE id_user = ?';
+    const getPasswordFromUsers = "SELECT password FROM Users WHERE id_user = ?";
+
+    // Validar datos necesarios
+    if (!id_user || !contraUser || !usernameH) {
         return res.status(400).json({ message: "Falta proporcionar datos" });
     }
 
-
-    db.get('SELECT password FROM Users WHERE id_user = ?', [id_user], async (err, row) => {
-        if (err) {
-            return res.status(500).json({ message: "Error interno del server al querer obtener el dato del usuario." });
-        }
-        if (!row) {
-            res.clearCookie('id_user');
-            res.clearCookie('username');
-            res.clearCookie('token');
-            return res.status(404).json({ message: "No se ha encontrado el dato del usuario." });
-        }
-
-        const match = await bcrypt.compare(contraUser, row.password);
-        if (match) {
-            const deleteQueryUsersTable = 'DELETE FROM Users WHERE id_user = ?';
-            const deleteQueryTokensTable = 'DELETE FROM Tokens WHERE id_user = ?';
-
-            db.run(deleteQueryTokensTable, [id_user], (err) => {
-                if (err) {
-                    return res.status(500).json({ message: 'Error interno del server al eliminar el token.' });
-                }
-
-                db.run(deleteQueryUsersTable, [id_user], (err) => {
-                    if (err) {
-                        return res.status(500).json({ message: "Error interno del server al eliminar al usuario." });
+    if (borrarRecetas) {
+        db.get(getPasswordFromUsers, [id_user], async (err, row) => {
+            if (err) {
+                return res.status(500).json({ message: "Error al obtener datos del usuario." });
+            }
+            if (!row) {
+                res.clearCookie('id_user');
+                res.clearCookie('username');
+                res.clearCookie('token');
+                return res.status(404).json({ message: "Usuario no encontrado." });
+            }
+            const matchP = await bcrypt.compare(contraUser, row.password);
+            if (matchP){
+                db.get(getUsernameFromUsers, [id_user], async (err, row) => {
+                    if (err){
+                        return res.status(500).json({ message: "Error al intentar obtener el nombre de usuario." });
                     }
-                    res.clearCookie("id_user");
-                    res.clearCookie("username");
-                    res.clearCookie("token");
-                    return res.status(200).json({ message: "Usuario eliminado con éxito de la tabla Users y Tokens." });
+                    if (!row){
+                        return res.status(404).json({ message: "Error, no hay un nombre de usuario con ese id_user." });
+                    }
+                    else{
+                        const matchUsername = await bcrypt.compare(row.username, usernameH);
+                        if (matchUsername){
+                            const usernameNH = row.username;
+                            db.run(deleteQueryRecipeTable, [usernameNH], (err) => {
+                                if (err){
+                                    return res.status(500).json({ message: "No se ha podido eliminar la o las recetas a nombre del usuario." });
+                                }
+                                else {
+                                    db.run(deleteQueryTokensTable, [id_user], (err) => {
+                                        if (err){
+                                            return res.status(500).json({ message: "No se ha podido eliminar al usuario de la tabla Tokens." });
+                                        }
+                                        else {
+                                            db.run(deleteQueryUsersTable, [id_user], (err) => {
+                                                if (err){
+                                                    return res.status(500).json({ message: "No se ha podido eliminar al usuario de la tabla Users." });
+                                                }
+                                                else {
+                                                    res.clearCookie("id_user");
+                                                    res.clearCookie("username");
+                                                    res.clearCookie("token");
+                                                    return res.status(200).json({ message: "Se ha logrado con exito borrar las recetas, tokens y datos del usuario de la base de datos."});
+                                                }
+                                            })
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    }
+                })
+            }
+        })
+    } else {
+        db.get(getPasswordFromUsers, [id_user], async (err, row) => {
+            if (err) {
+                return res.status(500).json({ message: "Error al obtener datos del usuario." });
+            }
+            if (!row) {
+                res.clearCookie('id_user');
+                res.clearCookie('username');
+                res.clearCookie('token');
+                return res.status(404).json({ message: "Usuario no encontrado." });
+            }
+            const matchP = await bcrypt.compare(contraUser, row.password);
+            if (matchP) {
+                db.get(getUsernameFromUsers, [id_user], async (err, row) => {
+                    if (err) {
+                        return res.status(500).json({ message: "Error al obtener nombre de usuario." });
+                    }
+                    if (!row) {
+                        return res.status(404).json({ message: "Nombre de usuario no encontrado." });
+                    }
+
+                    const matchUsername = await bcrypt.compare(row.username, usernameH);
+                    const usernameNH = row.username;
+                    if (matchUsername) {
+                        // Actualiza las recetas del usuario antes de borrar el usuario
+                        db.run(updateQueryRecipeTable, ["CocinApp", usernameNH], function (err) {
+                            if (err) {
+                                console.log("Error en la actualización de recetas:", err);
+                                return res.status(500).json({ message: "Error al actualizar recetas a nombre de CocinApp." });
+                            }
+
+                            if (this.changes > 0) {
+                                console.log(`Se actualizaron ${this.changes} recetas al usuario CocinApp.`);
+                            } else {
+                                console.log("No se encontraron recetas para actualizar.");
+                            }
+
+                            // Luego, elimina el token y el usuario
+                            db.run(deleteQueryTokensTable, [id_user], (err) => {
+                                if (err) {
+                                    return res.status(500).json({ message: "Error al eliminar token." });
+                                }
+
+                                db.run(deleteQueryUsersTable, [id_user], (err) => {
+                                    if (err) {
+                                        return res.status(500).json({ message: "Error al eliminar usuario." });
+                                    }
+
+                                    // Limpia las cookies y responde con éxito
+                                    res.clearCookie("id_user");
+                                    res.clearCookie("username");
+                                    res.clearCookie("token");
+                                    return res.status(200).json({ message: "Usuario eliminado con éxito y recetas transferidas a CocinApp." });
+                                });
+                            });
+                        });
+                    } else {
+                        return res.status(401).json({ message: "Verificación de nombre de usuario fallida." });
+                    }
                 });
-            });
-        } else {
-            return res.status(401).json({ message: "Contraseña incorrecta." });
-        }
-    });
+            } else {
+                return res.status(401).json({ message: "Contraseña incorrecta." });
+            }
+        });
+    }
 });
+
 
 
 app.get('/api/info-usuario', async (req, res) => {
@@ -200,6 +344,7 @@ app.get('/api/info-usuario', async (req, res) => {
         return res.json({ success: false, message: "Error del servidor." });
     }
 });
+
 
 
 app.post('/api/token-register', async (req, res) => {
@@ -316,6 +461,7 @@ app.post('/api/token-login', async (req, res) => {
 });
 
 
+
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) { // Cambié '&&' a '||' para verificar que ambas variables son necesarias
@@ -346,6 +492,7 @@ app.post('/api/login', (req, res) => {
                 }
             });
 });
+
 
 
 app.post('/api/register', (req, res) => {
@@ -463,6 +610,7 @@ app.delete('/api/delete', (req, res) => {
 });
 
 
+
 app.post('/api/checkeo', async (req, res) => {
     const tokenNav = req.cookies.token;
     const usernameNav = req.cookies.username;
@@ -473,7 +621,7 @@ app.post('/api/checkeo', async (req, res) => {
         res.clearCookie('id_user');
         res.clearCookie('username');
         res.clearCookie('token');
-        return res.status(400);
+        return res.json({ success: false, message: "Error." });
     }
 
     const tiempoActual = new Date().toISOString();
@@ -484,9 +632,10 @@ app.post('/api/checkeo', async (req, res) => {
                 res.clearCookie('id_user');
                 res.clearCookie('username');
                 res.clearCookie('token');
-                return res.json({ success: false, message: 'Error de validación de credenciales' });
+                return res.status(400).json({ success: false, message: 'Error al obtener los datos del usuario o no se encontraron' });
             }
 
+            // Comparar el token y el username con los valores en la base de datos
             const matchT = await bcrypt.compare(row.cookieToken, tokenNav);
             const usernameMatch = await bcrypt.compare(row.username, usernameNav);
 
@@ -503,7 +652,7 @@ app.post('/api/checkeo', async (req, res) => {
                         res.clearCookie('id_user');
                         res.clearCookie('username');
                         res.clearCookie('token');
-                        return res.json({ success: false, message: 'Token expirado y eliminado' });
+                        return res.status(400).json({ success: false, message: 'Token expirado y eliminado' });
                     }
                 });
             } else if (matchT && usernameMatch) {
@@ -512,23 +661,22 @@ app.post('/api/checkeo', async (req, res) => {
                 res.clearCookie('id_user');
                 res.clearCookie('username');
                 res.clearCookie('token');
-                return res.json({ success: false, message: 'Credenciales no válidas' });
+                return res.status(400).json({ success: false, message: 'Credenciales no válidas' });
             }
         });
-    } catch {
+    } catch (err) {
         res.clearCookie('id_user');
         res.clearCookie('username');
         res.clearCookie('token');
-        return res.json({ success: false, message: 'Error interno' });
+        return res.status(500).json({ success: false, message: 'Error interno en la validación', error: err });
     }
 });
 
 
 
+
 app.post('/api/cookie/delete', async (req, res) => {
     const id_user = req.cookies.id_user;
-
-    if (id_user) {
         try {
             db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE id_user = ?', [id_user], (err) => {
                 if (err) {
@@ -544,14 +692,7 @@ app.post('/api/cookie/delete', async (req, res) => {
             console.error('Error al borrar el token de la Base de Datos:', err);
             return res.status(500).json({ message: 'Error al borrar el token de la Base de Datos.' });
         }
-    } else {
-        res.clearCookie('id_user');
-        res.clearCookie('username');
-        res.clearCookie('token');
-        return res.status(400).json({ message: "No se proporcionó un id_user." });
-    }
 });
-
 
 
 
@@ -611,6 +752,8 @@ app.post('/api/recetas', (req, res) => {
         })
     }
 });
+
+
 
 app.post('/api/recetas/filtradas', (req, res) => {
     const { pageNumber, anchoBoolean, nombreReceta, arrayCategorias } = req.body;
@@ -693,6 +836,9 @@ app.post('/api/recetas/personales', (req, res) => {
             if (err) {
                 return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
             }
+            if (!rows){
+                return res.status(404).json({ message: "No hay recetas para mostrar"});
+            }
             return res.status(200).json({
                 message: 'Se han encontrado todos los datos de la receta.',
                 recetas: rows,
@@ -705,7 +851,6 @@ app.post('/api/recetas/personales', (req, res) => {
 
 app.post("/api/receta-nueva", (req, res) => {
     const { username, receta } = req.body;
-    console.log('Datos recibidos:', req.body);
 
     // Validar si todos los parámetros requeridos están presentes
     if (!username || !receta.recipeName || !receta.difficulty || !receta.description || !receta.ingredients || !receta.steps || !receta.categories || !receta.tiempo) {
@@ -723,7 +868,6 @@ app.post("/api/receta-nueva", (req, res) => {
             } 
         });
     }
-    console.log(receta.recipeName.length);
     if (receta.recipeName.length > 40){
         return res.status(400).json({
             message: 'El nombre de la receta es muy largo'
@@ -751,62 +895,74 @@ app.post("/api/receta-nueva", (req, res) => {
     const ingredientsString = receta.ingredients.join(', ');
     const stepsString = receta.steps.join(', ');
 
-    try {
-        const categoryArray = receta.categories;
-        const placeholders = categoryArray.map(() => '?').join(',');
-
-        // Verificar si las categorías existen en la tabla `Categories`
-        const checkCategoriesQuery = `SELECT category FROM Categories WHERE category IN (${placeholders})`;
-
-        db.all(checkCategoriesQuery, categoryArray, (err, rows) => {
-            if (err) {
-                console.error("Error al verificar categorías:", err.message);
-                return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+    try{
+        db.get('SELECT recipe_name FROM Recipe WHERE recipe_name = ?', [receta.recipeName], (err, row)=>{
+            if (err){
+                return res.status(500).json({ message: "Error al buscar recetas por ese nombre." });
             }
-
-            const existingCategories = rows.map(row => row.category);
-            const missingCategories = categoryArray.filter(cat => !existingCategories.includes(cat));
-
-            if (missingCategories.length > 0) {
-                return res.status(400).json({ 
-                    message: `Una o más categorías no existen: ${missingCategories.join(', ')}` 
-                });
+            if (row){
+                return res.status(400).json({ message: "Ya tienes una receta con ese nombre." });
             }
-
-            // Insertar la receta
-            const insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-
-            db.run(insertQuery, [
-                username,
-                receta.recipeName,
-                receta.difficulty,
-                receta.description,
-                ingredientsString,  // Guardar ingredientes como cadena separada por comas
-                stepsString,  // Guardar pasos como cadena separada por comas
-                categoryArray.join(', '),  // Categorías como cadena separada por comas
-                receta.tiempo
-            ], function(err) {
-                if (err) {
-                    console.error("Error al insertar receta:", err.message);
-                    return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+            else {
+                try {
+                    const categoryArray = receta.categories;
+                    const placeholders = categoryArray.map(() => '?').join(',');
+            
+                    // Verificar si las categorías existen en la tabla `Categories`
+                    const checkCategoriesQuery = `SELECT category FROM Categories WHERE category IN (${placeholders})`;
+            
+                    db.all(checkCategoriesQuery, categoryArray, (err, rows) => {
+                        if (err) {
+                            console.error("Error al verificar categorías:", err.message);
+                            return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+                        }
+            
+                        const existingCategories = rows.map(row => row.category);
+                        const missingCategories = categoryArray.filter(cat => !existingCategories.includes(cat));
+            
+                        if (missingCategories.length > 0) {
+                            return res.status(400).json({ 
+                                message: `Una o más categorías no existen: ${missingCategories.join(', ')}` 
+                            });
+                        }
+            
+                        // Insertar la receta
+                        const insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            
+                        db.run(insertQuery, [
+                            username,
+                            receta.recipeName,
+                            receta.difficulty,
+                            receta.description,
+                            ingredientsString,  // Guardar ingredientes como cadena separada por comas
+                            stepsString,  // Guardar pasos como cadena separada por comas
+                            categoryArray.join(', '),  // Categorías como cadena separada por comas
+                            receta.tiempo
+                        ], function(err) {
+                            if (err) {
+                                console.error("Error al insertar receta:", err.message);
+                                return res.status(500).json({ message: 'Error interno del servidor.', error: err.message });
+                            }
+            
+                            return res.status(201).json({
+                                message: "Se ha creado la receta.",
+                                recetaId: this.lastID
+                            });
+                        });
+                    });
+                } catch (err) {
+                    console.error("Error en el servidor:", err.message);
+                    return res.status(500).json({ 
+                        message: 'Error interno del servidor.', 
+                        error: err.message 
+                    });
                 }
-
-                return res.status(201).json({
-                    message: "Se ha creado la receta.",
-                    recetaId: this.lastID
-                });
-            });
-        });
-    } catch (err) {
-        console.error("Error en el servidor:", err.message);
-        return res.status(500).json({ 
-            message: 'Error interno del servidor.', 
-            error: err.message 
-        });
+            }
+        })
+    }catch(err){
+        return res.status(err).json({ message: "Ha ocurrido un error, donde? no se." });
     }
 });
-
-
 
 
 
@@ -838,10 +994,12 @@ app.post('/api/receta-id', (req, res) => {
 });
 
 
+
 process.on('SIGINT', () => {
     db.close();
     process.exit(0);
 });
+
 
 
 app.listen(PORT, '0.0.0.0', () => {

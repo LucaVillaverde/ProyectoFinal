@@ -15,15 +15,17 @@ const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
     // Alerta
     const {showAlert} = useAlert();
 
+    
     useEffect(() => {
-        // Función para verificar autenticación y cargar datos del usuario
         const verificarAutenticacionYUsuario = async () => {
             try {
-                const authResponse = await axios.post(`/api/checkeo`, {}, { withCredentials: true });
+                // Llamada a la API de checkeo
+                const authResponse = await axios.post(`/api/checkeo`, {});
                 
                 if (authResponse.status === 200) {
+                    // Si la autenticación es exitosa, obtener la información del usuario
                     try {
-                        const userResponse = await axios.get(`/api/info-usuario`, { withCredentials: true });
+                        const userResponse = await axios.get(`/api/info-usuario`);
                         if (userResponse.data.success) {
                             setLocalUsername(userResponse.data.username);
                             setIsLoggedIn(true);
@@ -41,8 +43,11 @@ const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
             }
         };
     
+        // Ejecutar la función una vez al montar el componente
         verificarAutenticacionYUsuario();
-    }, []);
+    }, []); // Empty dependency array para que se ejecute solo al inicio
+    
+    
 
     // Funciones para registro y login
     const signUp = async (e) => {

@@ -40,14 +40,29 @@ label{
 
 .inptFormRecipe{
   display: block;
-  width: 100%;
-  background-color: #f8b137;
+  width: 70%;
+  background-color: var(--secondary-color);
   height: 30px;
   border: none;
   border-bottom: 2px solid #4b4b4b;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  margin-top: 8px;
   outline: none;
 }
+
+.inptFormTiempo, .inptFormRecipeName{
+  display: block;
+  width: 100%;
+  background-color: var(--secondary-color);
+  height: 30px;
+  border: none;
+  border-bottom: 2px solid #4b4b4b;
+  margin-bottom: 8px;
+  margin-top: 8px;
+  outline: none;
+}
+.inptFormRecipeName::placeholder{color: #0009}
+.inptFormTiempo::placeholder{color: #0009;}
 .inptFormRecipe::placeholder{color: #0009;}
 .selectRecipe{
   width:100%;
@@ -66,9 +81,6 @@ option{
   background-color: #f8b137;
 }
 .textAreaDesc::placeholder{color: #000;}
-
-
-
 
 .categorias {
   display: grid;
@@ -122,6 +134,43 @@ option{
   box-shadow: 2px 2px 1px #414141;
 }
 
+.recipe-cont-404{
+  width: 100%;
+  height: auto;
+  margin: auto;
+  justify-content: space-between;
+  text-align: center;
+}
+.recipe-image-404{
+  width: 90%;
+  max-width: 600px;
+}
+
+
+.btn-add, .btn-del{
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0px 1px 4px #774b00;
+  background-color: var(--secondary-color);
+}
+
+.btn-add{
+  margin: auto;
+  margin-top: 2%;
+}
+
+.inpDel{
+  width: 100%;
+  display: flex;
+  margin: auto;
+  align-items: center;
+  justify-content: space-around;
+  margin-top: 0;
+  flex-direction: row;
+}
+
 @media (min-width: 375px){
   .checkbox-label {
     font-size: 13px;
@@ -133,7 +182,6 @@ option{
     font-size: 15px;
   }
 }
-
 @media (min-width: 700px){
   .categorias{
     display: grid;
@@ -151,6 +199,10 @@ option{
   .chips{
     width: 50%;
   }
+
+  .textAreaDesc{
+    font-size: 16px;
+  }
 }
 
 @media (min-width: 1024px){
@@ -160,15 +212,8 @@ option{
   }
 
   .inptFormRecipe{
-    /* width: 90%; */
     margin: auto;
   }
-  /* label{text-align: center;} */
-
-  /* .categorias{
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-    row-gap: 30px;
-  } */
 
   .btnAdd{
     width: 30%;
@@ -179,5 +224,9 @@ option{
   }
   .chips{
     width: 50%;
+  }
+
+  .inpDel{
+    margin-top: 15px;
   }
 }

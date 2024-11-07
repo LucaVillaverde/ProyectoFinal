@@ -6,20 +6,24 @@ header{
     width: 100%;
     padding: 0 8px;
     padding-top: 5px;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     align-items: center;
+    justify-items: center;
 }
 
 .eslogan{
+    justify-self: start;
     font-size: 12px;
-    width: 31px;
 }
 
 .logo_img{
     width: 64px;
     height: auto;
     margin: 5px 0;
+}
+.producto-titulo{
+    
 }
 
 
@@ -85,16 +89,17 @@ header{
 }
 
 .hamburger-menu {
-    width: 8%;
-    height: 3vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
+    width: 24px;
+    height: 24px;
     margin-right: 5px;
     transform: rotate(90deg);
     transition: transform 1s;
-    float: right;
+    justify-self: end;
+}
+
+.hamburger-menu img{
+    width: 24px;
+    height: 24px;
 }
 
 .line {
@@ -214,18 +219,20 @@ header{
 }
 
 @media (min-width:720px){
-
     .header-l{
-        display: flex;
-        justify-content: space-between;
-        margin: auto;
+        padding: 0;
+        grid-template-columns: 20% 60% 20%;
     }
 
-    .menu-container-move{
-        position: relative;
-        left: -32px;
+    #logoContainer{
+        justify-self: start;
+        margin-left: 6%;
     }
 
+    #contenedorUserMenu{
+        justify-self: end;
+        margin-right: 20%;
+    }
 
     .btn_user-avatar{
         width: 38px;
@@ -233,18 +240,11 @@ header{
     }
 
     .btn_user-move{
-        position: relative;
-        left: -26px;
-        width: 55px;
+        justify-self: end;
     }
 
     .btn_user{
         width: 100%;
-    }
-
-
-    .containerEslogan{
-        width: 365px;
     }
 
     .eslogan{

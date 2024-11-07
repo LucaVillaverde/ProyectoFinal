@@ -37,7 +37,6 @@ const Home = () => {
                 fetchRecetas(anchoBoolean);
             }
         };
-    
         verificarAncho();
         window.addEventListener('resize', verificarAncho);
     
@@ -45,7 +44,6 @@ const Home = () => {
             window.removeEventListener('resize', verificarAncho);
         };
     }, [tipoDispositivo]); // Asegúrate de que tipoDispositivo esté en las dependencias
-    
     
     
 
@@ -66,11 +64,8 @@ const Home = () => {
             setLoading(false);
         }
     };
-    
 
 
-
-    
     return (
         <>
             <h2 className="title">RECIENTES</h2>
@@ -85,7 +80,7 @@ const Home = () => {
                                           tiempo={tiempo}
                                           image={"https://placehold.co/400x250/000/fff/webp"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
                                           title={recipe_name}
-                                          author={id_recipe}
+                                          author={username}
                                           dificulty={difficulty}
                                           category={categories}  // Si tienes categorías como un array, deberías ajustarlo
                                       />

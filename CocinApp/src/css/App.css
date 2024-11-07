@@ -15,7 +15,7 @@ html, body {
   padding: 0;
 }
 body{
-  width: 100vw;
+  width: 100%;
   overflow-x: hidden;
   background-color: var(--third-color);
   color: var(--fourth-color); 
@@ -30,6 +30,7 @@ a{
   color: var(--fourth-color);
 }
 
+p{color: black;}
 
 .container{
   height: 80vh;
