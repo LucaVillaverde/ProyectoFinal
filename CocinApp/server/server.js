@@ -164,7 +164,48 @@ app.post('/api/usuarios', (req, res) => {
     }
 });
 
+app.post("/api/eliminarReceta", (req, res) => {
+    const { contraseña, id_recipe } = req.body;
+    const id_user = req.cookies.id_user;
 
+    if(!contraseña || !id_user || !id_recipe){
+        return res.status(400).json({ message: "Falta indicar datos." });
+    }
+
+    const getPasswordFromUsers = "SELECT password FROM Users WHERE id_user = ?";
+    const deleteQueryRecipeTable = "DELETE FROM Recipe WHERE id_recipe = ?";
+
+    try{
+        db.get(getPasswordFromUsers, [id_user], async (err, row) => {
+            if (err) {
+                return res.status(500).json({ message: "Algo salio mal Hola." });
+            }
+            if (!row) {
+                return res.status(404).json({ message: "No hay datos existentes." });
+            }
+            else {
+                const match = await bcrypt.compare(contraseña, row.password);
+                if (match){
+                    try{
+                        db.run(deleteQueryRecipeTable, [id_recipe], (err) => {
+                            if (err) {
+                                return res.status(500).json({ message: "Error al intentar eliminar la receta." });
+                            }
+                            else {
+                                return res.status(200).json({ message: "Se elimino correctamente la receta." });
+                            }
+                        })
+                    }catch{
+                        return res.status(500).json({ message: "Error al intentar eliminar la receta." });
+                    }
+                }
+            }
+        })
+    }catch{
+        return res.status(500).json({ message: "Algo salio mal." });
+    }
+
+})
 
 app.post('/api/verifpassword', (req, res) => {
     const { contraUser, borrarRecetas } = req.body;

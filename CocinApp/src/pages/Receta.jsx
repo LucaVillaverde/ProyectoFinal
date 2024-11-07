@@ -1,5 +1,5 @@
 import { React, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, redirect, useParams } from "react-router-dom";
 import axios from "axios";
 import "../recipe.css";
 
@@ -15,7 +15,7 @@ const Receta = () => {
         const metaDescription = document.createElement('meta');
         document.title = `CocinApp : Receta :${receta?.recipe_name || 'Cargando...'}`;
         metaDescription.name = "description";
-        metaDescription.content = "Pagina recetas de CocinApp, donde tienes tu receta simplificada.";
+        metaDescription.content = "Aquí tienes tu receta simplificada.";
         document.getElementsByTagName('head')[0].appendChild(metaDescription);
         
         return () => {
@@ -54,6 +54,27 @@ const Receta = () => {
         
         obtenerReceta();
     }, []);
+
+    const deleteRecipe = async () => {
+        const contraseña = prompt("Confirme su contraseña");
+        if(contraseña){
+            const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
+            if (confirmacion){
+                const eliminarReceta = await axios.post("/api/eliminarReceta", {
+                    contraseña,
+                    id_recipe: id,
+                });
+                if (eliminarReceta.status === 200){
+                    window.alert(eliminarReceta.data.message);
+                    window.history.back();
+                }
+            }else{
+                window.alert("Esta bien, no te eliminamos la receta.");
+            }
+        }else{
+            window.alert("No indicaste ninguna contraseña.");
+        }
+    }
 
     // Condicional para evitar errores de renderizado si receta es null
     if (!receta) {
@@ -102,7 +123,10 @@ const Receta = () => {
                 {showMessage && <p>Regístrese para poder dar like</p>}
                 <div className="btn_recipe">
                     {localUsername === receta.username ? (
+                        <div className="buttons">
                         <button>EDITAR</button>
+                        <button onClick={deleteRecipe}>ELIMINAR</button>
+                        </div>
                     ) : (
                         <span>Aquí iría el botón de favoritos.</span>
                     )}
