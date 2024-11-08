@@ -485,7 +485,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
                           <a className="card" href={`/receta/${id_recipe}`} key={id_recipe}>
                               <SimpleCard
                                   tiempo={tiempo}
-                                  image={"https://placehold.co/400x250/000/fff/png"}  
+                                  image={ image || "https://placehold.co/400x250/000/fff/png"}  
                                   title={recipe_name}
                                   author={username}
                                   dificulty={difficulty}
