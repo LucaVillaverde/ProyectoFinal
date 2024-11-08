@@ -68,7 +68,7 @@ function App() {
                     <Route path="/Buscar" element={<Buscar />}
                     />
                     <Route
-                        path="/Panel-de-Recetas/:localUsername"
+                        path="/Panel-de-Recetas/:LocalUsername"
                         element={
                             <ProtectedRoute>
                                 <GestioRecetas nombreUsuario={localUsername} />

@@ -1,5 +1,5 @@
 import { React, useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import axios from "axios";
 import "../recipe.css";
 import addIco from '../assets/add.svg';
@@ -58,6 +58,8 @@ const Receta = () => {
 
     const deleteRecipe = async () => {
         const contraseña = prompt("Confirme su contraseña");
+        const referrer = document.referrer;
+        const miDominio = window.location.origin;
         if(contraseña){
             const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
             if (confirmacion){
@@ -67,7 +69,11 @@ const Receta = () => {
                 });
                 if (eliminarReceta.status === 200){
                     window.alert(eliminarReceta.data.message);
-                    window.history.back();
+                    if (referrer.startsWith(miDominio)){
+                        window.location.replace(referrer);
+                    }else{
+                        window.location.replace(`/`);
+                    }
                 }
             }else{
                 window.alert("Esta bien, no te eliminamos la receta.");
@@ -86,7 +92,8 @@ const Receta = () => {
                 description: receta.description || '',
                 ingredients: Array.isArray(receta.ingredients) ? receta.ingredients : [],
                 steps: Array.isArray(receta.steps) ? receta.steps : [], // Verifica que sea array
-                tiempo: receta.tiempo || ''
+                tiempo: receta.tiempo || '',
+                image: receta.image,
             });
         }
     }, [receta]);
@@ -305,7 +312,7 @@ const Receta = () => {
                 <h2 className="recipe-title">{receta?.recipe_name}</h2>
                 <section className="recipe-img-cont frame-content">
                     <img
-                        src={receta?.img || "https://placehold.co/600x400/000000/FFFFFF/png"}
+                        src={receta?.image || "https://placehold.co/600x400/000000/FFFFFF/png"}
                         alt={receta?.recipe_name}
                         className="recipe-img"
                     />

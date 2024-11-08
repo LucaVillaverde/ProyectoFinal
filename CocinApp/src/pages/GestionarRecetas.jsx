@@ -40,8 +40,9 @@ const AddForm = memo(({
     llamadaDB,
     handleIngredientChange,
     handleStepChange,
+    handleFileChange,
     }) => (
-    <form id="formularioAgregarReceta" onSubmit={llamadaDB}>
+    <form id="formularioAgregarReceta" onSubmit={llamadaDB} method="post" encType="multipart/form-data">
         <label className='lbl-title-form' htmlFor="recipeName">Nombre de la Receta:</label>
         <input
             className="inptFormRecipeName"
@@ -51,6 +52,13 @@ const AddForm = memo(({
             placeholder="Nombre de receta"
             onChange={handleInputChange}
             required
+        />
+        <label className='lbl-title-form' htmlFor="recipeImage">Imagen de receta:</label>
+        <input 
+            type="file"
+            name="recipeImage"
+            onChange={handleFileChange}
+            accept="image/*"
         />
 
         <label className='lbl-title-form' htmlFor="difficulty">Dificultad:</label>
@@ -186,7 +194,12 @@ const GestioRecetas = ({ nombreUsuario }) => {
         ingredients: [],
         steps: [],
         tiempo: "",
+        image: null,
     });
+
+    const handleFileChange = (event) => {
+        setFormData({ ...formData, image: event.target.files[0] });
+    };
 
     const handleIngredientChange = useCallback((index, event) => {
         const newIngredients = [...formData.ingredients];
@@ -329,33 +342,52 @@ const GestioRecetas = ({ nombreUsuario }) => {
             e.preventDefault();
             e.stopPropagation();
             const tiempoRegex = /^(?:([1-9]|1[0-9]|2[0-4])\s?(hora|horas|h)|([1-9]|[1-5][0-9]|60)\s?(minuto|minutos|m|min|hs))$/i;
-            if (!tiempoRegex.test(formData.tiempo)){
-                console.log("Por favor, ingresa un tiempo válido, como '30 minutos', '30 Min', '1 hora' o '2 horas'.");
+            
+            if (!tiempoRegex.test(formData.tiempo)) {
                 showAlert("Por favor, ingresa un tiempo válido, como '30 minutos', '30 Min', '1 hora' o '2 horas'.", 'warning');
                 return;
             }
-            if (formData.categories.length < 1){
-                console.log("Favor de seleccionar por lo menos una categoria, pedazo de basura.");
-                showAlert('Favor de seleccionar por lo menos una categoria, pedazo de basura.', 'warning');
+            
+            if (formData.categories.length < 1) {
+                showAlert('Favor de seleccionar por lo menos una categoria.', 'warning');
                 return;
             }
-            if (formData.ingredients.length < 1){
-                console.log("Favor de indicar los ingredientes de la receta.");
+            
+            if (formData.ingredients.length < 1) {
                 showAlert('Favor de indicar los ingredientes de la receta.', 'warning');
                 return;
             }
-            if (formData.steps.length < 1){
-                console.log("Favor de indicar pasos de la receta.");
+            
+            if (formData.steps.length < 1) {
+                showAlert('Favor de indicar pasos de la receta.', 'warning');
                 return;
             }
+    
+            // Convertir los ingredientes, pasos y categorías a cadenas separadas por comas
+            const ingredientesString = formData.ingredients.join(', ');
+            const pasosString = formData.steps.join(', ');
+            const categoriasString = formData.categories.join(', ');
+    
             try {
-                const response = await axios.post("/api/receta-nueva", {
-                    username: nombreUsuario,
-                    receta: formData,
-                },{withCredentials: true});
+                const formDataToSend = new FormData();
+                formDataToSend.append("username", nombreUsuario);
+                formDataToSend.append("recipeName", formData.recipeName);
+                formDataToSend.append("difficulty", formData.difficulty);
+                formDataToSend.append("description", formData.description);
+                formDataToSend.append("ingredients", ingredientesString);
+                formDataToSend.append("steps", pasosString);
+                formDataToSend.append("categories", categoriasString);
+                formDataToSend.append("tiempo", formData.tiempo);
+    
+                // Si se tiene una imagen
+                if (formData.image) {
+                    formDataToSend.append("image", formData.image);
+                }
+    
+                const response = await axios.post("/api/receta-nueva", formDataToSend, { withCredentials: true });
+    
                 if (response.status === 201) {
-                    llamado(nombreUsuario); 
-                    // Reset the form
+                    showAlert(`Se añadió ${formData.recipeName}`, 'successful');
                     setFormData({
                         recipeName: "",
                         difficulty: "",
@@ -364,15 +396,20 @@ const GestioRecetas = ({ nombreUsuario }) => {
                         ingredients: [],
                         steps: [],
                         tiempo: "",
+                        image: null,
                     });
-                    showAlert(`Se añadio ${formData.recipeName}`, 'successful');
+                    llamado(nombreUsuario, currentPage, tipoDispositivo);
                 }
             } catch (err) {
-                err.response.data.message ? showAlert(err.response.data.message,'warning'):showAlert('Error de conexion','danger');  
+                err.response?.data?.message
+                    ? showAlert(err.response.data.message, 'warning')
+                    : showAlert('Error de conexión', 'danger');
             }
         },
         [formData]
     );
+    
+    
 
     const llamado = useCallback((nombre, page, ancho) => { 
         const llamadoPersonal = async () => {
@@ -428,6 +465,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
                         handleStepChange={handleStepChange}
                         handleIngredientChange={handleIngredientChange}
                         llamadaDB={addRecipe}
+                        handleFileChange={handleFileChange}
                     />
                 </div>
                 
