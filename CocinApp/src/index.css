@@ -13,7 +13,7 @@ h2.title{
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    flex-direction: row;
+    flex-direction: column;
     gap: 16px;
 }
 .container{

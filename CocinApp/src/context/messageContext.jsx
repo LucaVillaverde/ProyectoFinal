@@ -9,7 +9,7 @@ export const AlertProvider = ({ children }) => {
 
     const showAlert = (message, type = 'danger') => {
         setAlert({ message, type });
-        setTimeout(() => setAlert(null), 3000); // Oculta la alerta después de 3 segundos
+        setTimeout(() => setAlert(null), 4000); // Oculta la alerta después de 3 segundos
     };
 
     return (

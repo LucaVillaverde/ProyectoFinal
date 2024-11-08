@@ -113,7 +113,7 @@ const AddForm = memo(({
         ))}
         
         <button type="button" aria-label="Agregar Campo de Ingrediente" className="btn-add" onClick={handleAddIngredient}>
-        <img alt="Boton de agregar campo ingrediente" src={addIco}/>
+            <img alt="Boton de agregar campo ingrediente" src={addIco}/>
         </button>
 
         <label className="lbl-title-form">Pasos para la elaboración:</label>
@@ -132,9 +132,7 @@ const AddForm = memo(({
                     required
                 />
                 </div>
-
             </div>
-
         ))}
         
         <button type="button" aria-label="Agregar Campo de Paso" className="btn-add" onClick={handleAddStep}>

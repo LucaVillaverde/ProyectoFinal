@@ -36,7 +36,7 @@ function localProductos() {
 
 
   return (
-    <div className="producto">
+    <div className="product">
       <div className="cont">
         <img
           src="https://placehold.co/100x100/000000/FFFFFF/png"

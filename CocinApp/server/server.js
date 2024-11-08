@@ -1006,33 +1006,92 @@ app.post("/api/receta-nueva", (req, res) => {
 });
 
 
+app.put('/api/actualizarReceta', (req, res) => {
+    const { formData, id_recipe } = req.body;
+    console.log(id_recipe);
+
+    if (!formData.recipe_name || !formData.difficulty || !formData.categories || !formData.description || !formData.ingredients || !formData.steps || !formData.tiempo || !id_recipe){
+        return res.status(400).json({ message: "No se tienen los datos necesarios." });
+    }
+
+    if (formData.recipe_name.length < 3 || formData.description.length < 3){
+        return res.status(400).json({ message: "El nombre o la descripcion son muy cortos." });
+    }
+
+    // Validar que ingredients y steps son arrays y que no estén vacíos
+    if (!Array.isArray(formData.ingredients) || formData.ingredients.length === 0) {
+        return res.status(400).json({ message: "Se deben proporcionar ingredientes." });
+    }
+
+    if (!Array.isArray(formData.steps) || formData.steps.length === 0) {
+        return res.status(400).json({ message: "Se deben proporcionar pasos." });
+    }
+
+    // Validar que no haya más de 12 ingredientes o pasos
+    if (formData.ingredients.length > 12) {
+        return res.status(400).json({ message: "No se pueden agregar más de 12 ingredientes." });
+    }
+
+    if (formData.steps.length > 12) {
+        return res.status(400).json({ message: "No se pueden agregar más de 12 pasos." });
+    }
+
+    // Asegurarse de que categories sea un array
+    const categoriesArray = Array.isArray(formData.categories) ? formData.categories : formData.categories.split(',').map(item => item.trim());
+
+    // Convertir ingredientes y pasos a cadenas para almacenarlos en la base de datos
+    const ingredientsString = formData.ingredients.join(', '); // Por ejemplo: 'ingrediente1, ingrediente2'
+    const stepsString = formData.steps.join(', ');
+
+    // Convertir categorías a una cadena separada por comas
+    const categoriesString = categoriesArray.join(', '); // Por ejemplo: 'Plato Principal, Sopa'
+
+    const updateQueryRecipeTable = 'UPDATE Recipe SET recipe_name = ?, difficulty = ?, description = ?, ingredients = ?, steps = ?, categories = ?, tiempo = ? WHERE id_recipe = ?';
+    db.run(updateQueryRecipeTable, [formData.recipe_name, formData.difficulty, formData.description, ingredientsString, stepsString, categoriesString, formData.tiempo, id_recipe], (err, row) => {
+        if (err) {
+            return res.status(500).json({ message: "Error al actualizar la receta." });
+        }
+        if (!row) {
+            return res.status(404).json({ message: "No se encontro la receta a actualizar." });
+        } else {
+            return res.status(200).json({ message: "Se ha actualizado con exito." });
+        }
+    });
+});
+
+
+
 
 app.post('/api/receta-id', (req, res) => {
     const { id_recipe } = req.body;
-
-    // Verifica si el `id_recipe` está presente
-    if (!id_recipe) {
-        return res.status(400).json({ message: 'El id de la receta es necesario.' });
-    }
-
-    const getQuery = 'SELECT * FROM Recipe WHERE id_recipe = ?';
-
-    db.all(getQuery, [id_recipe], (err, rows) => {
+    
+    const query = 'SELECT * FROM Recipe WHERE id_recipe = ?';
+    
+    db.get(query, [id_recipe], (err, row) => {
         if (err) {
-            console.error('Error en la consulta de la base de datos:', err);
-            return res.status(500).json({ message: 'Error al determinar los datos de las recetas.' });
+            return res.status(500).json({ message: "Error al obtener la receta." });
+        }
+        if (!row) {
+            return res.status(404).json({ message: "Receta no encontrada." });
         }
 
-        if (rows.length === 0) {
-            return res.status(404).json({ message: 'No se han encontrado recetas.' });
-        }
+        // Convertir ingredientes y pasos de cadenas a arrays
+        const ingredients = row.ingredients.split(', ').map(item => item.trim());
+        const steps = row.steps.split(', ').map(item => item.trim());
 
+        // Si 'categories' es una cadena, convertirla en un array
+        const categories = row.categories.split(',').map(item => item.trim());
+
+        // Responder con los datos modificados
         return res.status(200).json({
-            message: 'Se han encontrado todos los datos de la receta.',
-            receta: rows[0]
+            ...row,
+            ingredients,
+            steps,
+            categories
         });
     });
 });
+
 
 
 

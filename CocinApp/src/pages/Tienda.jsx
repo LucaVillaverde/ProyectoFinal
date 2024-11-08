@@ -4,7 +4,6 @@ import "../css/tienda.css";
 import Product from "../components/Product/Product";
 import carritoImg from "../assets/carrito.svg";
 
-
 const Tienda = () => {
   useEffect(() => {
     const metaDescription = document.createElement("meta");
@@ -43,9 +42,9 @@ const Tienda = () => {
       setListaCarrito(true);
     }
   };
-  const comprar = ()=>{
+  const comprar = () => {
     console.log(`Usted ha pagado: ${aPagar}`);
-  }
+  };
 
   const agregarAlCarrito = (producto) => {
     setCarrito((carritoActual) => {
@@ -112,65 +111,65 @@ const Tienda = () => {
       descripcion: "El NoPollo, que mas queres?",
     },
     {
-      id: 21,
+      id: 25,
       nombre: "Fefo",
       imagen: "Posible imagen",
       precio: 390,
       descripcion: "El Fefo, que mas queres?",
     },
     {
-      id: 22,
+      id: 26,
       nombre: "Luca",
       imagen: "Posible imagen",
       precio: 330,
       descripcion: "El Luca, que mas queres?",
     },
     {
-      id: 23,
+      id: 27,
       nombre: "Nadia",
       imagen: "Posible imagen",
       precio: 100,
       descripcion: "La Nadia, que mas queres?",
     },
     {
-      id: 24,
+      id: 28,
       nombre: "NoPollo",
       imagen: "Posible imagen",
       precio: 743,
       descripcion: "El NoPollo, que mas queres?",
     },
     {
-      id: 21,
+      id: 29,
       nombre: "Fefo",
       imagen: "Posible imagen",
       precio: 390,
       descripcion: "El Fefo, que mas queres?",
     },
     {
-      id: 22,
+      id: 30,
       nombre: "Luca",
       imagen: "Posible imagen",
       precio: 330,
       descripcion: "El Luca, que mas queres?",
     },
     {
-      id: 23,
+      id: 31,
       nombre: "Nadia",
       imagen: "Posible imagen",
       precio: 100,
       descripcion: "La Nadia, que mas queres?",
     },
     {
-      id: 24,
+      id: 32,
       nombre: "NoPollo",
       imagen: "Posible imagen",
       precio: 743,
       descripcion: "El NoPollo, que mas queres?",
-    }
+    },
   ];
 
   return (
-    <div className='content'>
+    <div className="contentenido">
       <div id="contenedorCarrito">
         <button className="btnCarrito" onClick={cambEstado}>
           <img
@@ -209,6 +208,7 @@ const Tienda = () => {
           </button>
         </div>
       </div>
+
       <div className="contenedorProductos">
         {Datos.map(({ id, nombre, imagen, precio, descripcion }) => (
           <Product
@@ -225,5 +225,4 @@ const Tienda = () => {
     </div>
   );
 };
-
 export default Tienda;

@@ -31,7 +31,9 @@
     text-decoration: underline;
 }
 
-.recipe-step{list-style: none;}
+.recipe-step{
+  /* margin-top: 3%; */
+}
 
 
 /* From Uiverse.io by TroyRandall */ 
