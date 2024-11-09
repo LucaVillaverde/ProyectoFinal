@@ -53,10 +53,12 @@ const AddForm = memo(({
             onChange={handleInputChange}
             required
         />
-        <label className='lbl-title-form' htmlFor="recipeImage">Imagen de receta:</label>
-        <input 
+
+        <label className='lbl-title-form' htmlFor="image">Imagen de receta:</label>
+        <input
+            id="fileInput" 
             type="file"
-            name="recipeImage"
+            name="image"
             onChange={handleFileChange}
             accept="image/*"
         />
@@ -111,7 +113,8 @@ const AddForm = memo(({
                 <input
                     className="inptFormRecipe"
                     type="text"
-                    placeholder={`Ingrediente ${index + 1}`}
+                    pattern="[^,]*" 
+                    placeholder={`Ingrediente ${index + 1} (sin "," porfavor.)`}
                     value={ingredient}
                     onChange={(e) => handleIngredientChange(index, e)}
                     required
@@ -134,8 +137,9 @@ const AddForm = memo(({
                 <input
                     className="inptFormRecipe"
                     type="text"
-                    placeholder={`Paso ${index + 1}`}
+                    placeholder={`Paso ${index + 1} (sin "," porfavor.)`}
                     value={step}
+                    pattern="[^,]*" 
                     onChange={(e) => handleStepChange(index, e)}
                     required
                 />
@@ -296,6 +300,10 @@ const GestioRecetas = ({ nombreUsuario }) => {
         }
     }, [recetas]);
 
+    useEffect(()=>{
+        console.log(primeraCarga);
+    }, [primeraCarga])
+
     useEffect(() => {
         if (nombreUsuario) {
             llamado(nombreUsuario, currentPage, tipoDispositivo);
@@ -341,53 +349,56 @@ const GestioRecetas = ({ nombreUsuario }) => {
         async (e) => {
             e.preventDefault();
             e.stopPropagation();
+    
             const tiempoRegex = /^(?:([1-9]|1[0-9]|2[0-4])\s?(hora|horas|h)|([1-9]|[1-5][0-9]|60)\s?(minuto|minutos|m|min|hs))$/i;
-            
+    
             if (!tiempoRegex.test(formData.tiempo)) {
                 showAlert("Por favor, ingresa un tiempo válido, como '30 minutos', '30 Min', '1 hora' o '2 horas'.", 'warning');
                 return;
             }
-            
-            if (formData.categories.length < 1) {
-                showAlert('Favor de seleccionar por lo menos una categoria.', 'warning');
+    
+            const { recipeName, difficulty, categories, description, ingredients, steps, tiempo, image } = formData;
+    
+            if (categories.length < 1) {
+                showAlert('Favor de seleccionar por lo menos una categoría.', 'warning');
                 return;
             }
-            
-            if (formData.ingredients.length < 1) {
+    
+            if (ingredients.length < 1) {
                 showAlert('Favor de indicar los ingredientes de la receta.', 'warning');
                 return;
             }
-            
-            if (formData.steps.length < 1) {
+    
+            if (steps.length < 1) {
                 showAlert('Favor de indicar pasos de la receta.', 'warning');
                 return;
             }
     
-            // Convertir los ingredientes, pasos y categorías a cadenas separadas por comas
-            const ingredientesString = formData.ingredients.join(', ');
-            const pasosString = formData.steps.join(', ');
-            const categoriasString = formData.categories.join(', ');
+            // Crear un objeto FormData
+            const formDataToSend = new FormData();
+            formDataToSend.append('recipeName', recipeName);
+            formDataToSend.append('difficulty', difficulty);
+            formDataToSend.append('categories', categories); // Convertir array de categorías a string
+            formDataToSend.append('description', description);
+            formDataToSend.append('ingredients', ingredients); // Convertir array de ingredientes a string
+            formDataToSend.append('steps', steps); // Convertir array de pasos a string
+            formDataToSend.append('tiempo', tiempo);
+            formDataToSend.append('username', nombreUsuario);
+    
+            // Si se seleccionó una imagen, agregarla al FormData
+            if (image) {
+                formDataToSend.append('image', image);
+            }
     
             try {
-                const formDataToSend = new FormData();
-                formDataToSend.append("username", nombreUsuario);
-                formDataToSend.append("recipeName", formData.recipeName);
-                formDataToSend.append("difficulty", formData.difficulty);
-                formDataToSend.append("description", formData.description);
-                formDataToSend.append("ingredients", ingredientesString);
-                formDataToSend.append("steps", pasosString);
-                formDataToSend.append("categories", categoriasString);
-                formDataToSend.append("tiempo", formData.tiempo);
-    
-                // Si se tiene una imagen
-                if (formData.image) {
-                    formDataToSend.append("image", formData.image);
-                }
-    
-                const response = await axios.post("/api/receta-nueva", formDataToSend, { withCredentials: true });
+                const response = await axios.post("/api/receta-nueva", formDataToSend, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                    withCredentials: true
+                });
     
                 if (response.status === 201) {
-                    showAlert(`Se añadió ${formData.recipeName}`, 'successful');
+                    showAlert(`Se añadió ${recipeName}`, 'successful');
+                    document.getElementById("fileInput").value = null;
                     setFormData({
                         recipeName: "",
                         difficulty: "",
@@ -401,14 +412,18 @@ const GestioRecetas = ({ nombreUsuario }) => {
                     llamado(nombreUsuario, currentPage, tipoDispositivo);
                 }
             } catch (err) {
-                err.response?.data?.message
-                    ? showAlert(err.response.data.message, 'warning')
-                    : showAlert('Error de conexión', 'danger');
+                const errorMessage = err.response?.data?.message || 'Error de conexión';
+                showAlert(errorMessage, 'danger');
             }
         },
         [formData]
     );
     
+    
+    
+    useEffect(()=>{
+        console.log(formData);
+    }, [formData])
     
 
     const llamado = useCallback((nombre, page, ancho) => { 
