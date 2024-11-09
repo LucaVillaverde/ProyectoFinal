@@ -908,7 +908,7 @@ const resizeImage = (req, res, next) => {
     
     if (!imagen) {
         console.log("No se recibió imagen, pasando al siguiente middleware...");
-        return next(); // No se recibió imagen, pasamos al siguiente middleware
+        return next();
     }
 
     try {
@@ -933,13 +933,13 @@ const resizeImage = (req, res, next) => {
                     const replaceRecipeName = safeString(recipeName);
                     const replaceUsername = safeString(username);
                     const fileExtension = path.extname(imagen.originalname).toLowerCase();
-                    const customFileName = `${replaceUsername}_${replaceRecipeName}${fileExtension}`;
+                    const customFileName = `${replaceUsername}-${replaceRecipeName}${fileExtension === '.webp' ? '.webp' : '.webp'}`;
                     const outputPath = path.join(__dirname, 'uploads', customFileName);
 
                     const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
                     if (imagen.size > MAX_FILE_SIZE) {
                         console.log('El archivo es demasiado grande:', imagen.size);
-                        return res.status(400).json({ message: 'El archivo es demasiado grande. El tamaño máximo permitido es 1MB.' });
+                        return res.status(400).json({ message: 'El archivo es demasiado grande. El tamaño máximo permitido es 4MB.' });
                     }
 
                     if (metadata.width < targetWidth || metadata.height < targetHeight) {
@@ -947,14 +947,23 @@ const resizeImage = (req, res, next) => {
                         return res.status(400).json({ message: `Las imágenes deben tener al menos 1280px de ancho y 720px de alto. Actual: ${metadata.width}x${metadata.height}` });
                     }
 
-                    // Redimensionar y guardar la imagen
-                    await sharp(imagen.buffer)
-                        .resize(targetWidth, targetHeight)
-                        .toFile(outputPath);
+                    if (fileExtension === ".webp") {
+                        // Si es webp, solo redimensionamos si es necesario
+                        await sharp(imagen.buffer)
+                            .resize(targetWidth, targetHeight)
+                            .toFile(outputPath);
+                        console.log(`Imagen en formato webp procesada y guardada en: ${outputPath}`);
+                    } else {
+                        // Convertimos a webp y redimensionamos si no es webp
+                        await sharp(imagen.buffer)
+                            .resize(targetWidth, targetHeight)
+                            .webp({ quality: 80 })
+                            .toFile(outputPath);
+                        console.log(`Imagen convertida a webp y guardada en: ${outputPath}`);
+                    }
 
-                    console.log(`Imagen procesada y guardada en: ${outputPath}`);
                     imagen.path = outputPath;
-                    next(); // Continuamos con la inserción de la receta
+                    next();
                 } catch (error) {
                     console.error('Error al procesar la imagen:', error.message);
                     return res.status(500).json({ error: 'Error al procesar la imagen' });
@@ -966,6 +975,7 @@ const resizeImage = (req, res, next) => {
         return res.status(500).json({ error: error.message });
     }
 };
+
 
 app.post("/api/receta-nueva", upload.single('image'), resizeImage, (req, res) => {
     const { username, recipeName, difficulty, description, ingredients, steps, categories, tiempo } = req.body;
@@ -1049,22 +1059,14 @@ app.post("/api/receta-nueva", upload.single('image'), resizeImage, (req, res) =>
 
 
 
-
-
-  
-
-
 const resizeImageEdited = async (req, res, next) => {
     const username = req.body.username;
     const recipeName = req.body.recipeName;
+
     if (!req.file) {
         console.log("No se recibió ningún archivo");
         return next(); // Si no hay archivo, continúa con el siguiente middleware
     }
-
-  
-    const targetWidth = 1280;
-    const targetHeight = 720;
 
     // Validar formato de la imagen
     const allowedFormats = ['.jpg', '.jpeg', '.webp'];
@@ -1080,43 +1082,45 @@ const resizeImageEdited = async (req, res, next) => {
     }
 
     try {
-        const metadata = await sharp(req.file.buffer).metadata();  // Aquí se procesa el archivo
+        const metadata = await sharp(req.file.buffer).metadata();
+        const targetWidth = 1280;
+        const targetHeight = 720;
+        const replaceRecipeName = safeString(recipeName);
+        const replaceUsername = safeString(username);
+        const outputFileName = `${replaceUsername}-${replaceRecipeName}.webp`;
+        const outputPath = path.join(__dirname, 'uploads', outputFileName);
 
-        const replaceRecipeName = safeString(recipeName.replace(/\s+/g, '_').toLowerCase());
-        const replaceUsername = safeString(username.replace(/\s+/g, '_').toLowerCase());
-        const customFileName = `${replaceUsername}_${replaceRecipeName}${fileExtension}`;
-        const outputPath = path.join(__dirname, 'uploads', customFileName);
-
-        if (metadata.width < targetWidth && metadata.height < targetHeight){
-            return res.status(400).json({ message: "imagenes 1280x720 en adelante porfavor." });
-        }
-        if(metadata.width < targetWidth){
-            return res.status(400).json({ message: "revise que el ancho sea igual o mayor a 1280px" });
-        }
-        if(metadata.height < targetHeight){
-            return res.status(400).json({ message: "revise que el alto sea igual o mayor a 720px" });
+        if (metadata.width < targetWidth || metadata.height < targetHeight) {
+            return res.status(400).json({ message: "Las imágenes deben tener al menos 1280px de ancho y 720px de alto." });
         }
 
-        if (metadata.width !== targetWidth || metadata.height !== targetHeight) {
-            console.log("Redimensionando la imagen...");
+        if (fileExtension === ".webp") {
+            // Si es webp, solo redimensionamos si es necesario
             await sharp(req.file.buffer)
                 .resize(targetWidth, targetHeight)
                 .toFile(outputPath);
+            console.log(`Imagen en formato webp procesada y guardada en: ${outputPath}`);
         } else {
-            console.log("La imagen ya cumple con la resolución objetivo, guardando...");
-            await sharp(req.file.buffer).toFile(outputPath);
+            // Convertimos a webp y redimensionamos si no es webp
+            await sharp(req.file.buffer)
+                .resize(targetWidth, targetHeight)
+                .toFormat('webp')
+                .webp({ quality: 70 })
+                .toFile(outputPath);
+            console.log(`Imagen convertida a webp y guardada en: ${outputPath}`);
         }
 
-        // Convertir la ruta a relativa
-        const relativePath = path.join('uploads', customFileName).replace(/\\/g, '/'); // Asegura el formato correcto de la ruta
-
+        // Guardar la ruta relativa
+        const relativePath = path.join('uploads', outputFileName).replace(/\\/g, '/'); 
         req.file.path = relativePath; // Almacenar la ruta relativa
         next();
     } catch (error) {
-        console.error('Error al procesar la imagen:', error);  // Detalles del error
+        console.error('Error al procesar la imagen:', error);
         res.status(500).json({ error: 'Error al procesar la imagen' });
     }
 };
+
+
 
 app.put('/api/actualizarReceta', upload.single('image'), resizeImageEdited, async (req, res) => {
     const { id_recipe, recipeName, difficulty, description, ingredients, steps, categories, tiempo, image } = req.body;
