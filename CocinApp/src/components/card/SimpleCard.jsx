@@ -5,7 +5,7 @@ const SimpleCard = ({ tiempo, image, title, author, dificulty, category }) => {
     return (
             <>
                 <div className="card-content-image">
-                    <img src={image} alt={title} className="card-image" />
+                    <img src={image} width={"1280px"} height={"720px"} alt={title} className="card-image" />
                 </div>
                 <div className="card-content">
                     <h2 className="title-card">{title}</h2>

@@ -1,7 +1,8 @@
 // Importaciones de Librerias
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAlert } from './context/messageContext';
+import axios from "axios";
 
 // Componentes
 import Header from "./components/header/Header";
@@ -26,8 +27,30 @@ function App() {
     const [tabletOrdenador, setTabletOrdenador] = useState(false); 
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
+    const [isAuthenticated, setIsAuthenticated] = useState(null)
+    const primerRenderizado = useRef(true);
     const { alert } = useAlert();
 
+    useEffect(() => {
+        if (primerRenderizado.current) {
+          primerRenderizado.current = false;
+          return;
+        }
+    
+        const checkAuth = async () => {
+          try {
+            const response = await axios.get("/api/protection");
+            if (response.status === 200) {
+              setIsAuthenticated(true);
+            }
+          } catch (err) {
+            console.error(err);
+            setIsAuthenticated(false);
+          }
+        };
+    
+        checkAuth();
+      }, [isLoggedIn]);
 
     // Funciones para uso en componentes.
     const showForm = (tipo) => {
@@ -70,7 +93,7 @@ function App() {
                     <Route
                         path="/Panel-de-Recetas/:LocalUsername"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute isAuthenticated={isAuthenticated}>
                                 <GestioRecetas nombreUsuario={localUsername} />
                             </ProtectedRoute>
                         }
