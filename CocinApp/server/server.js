@@ -907,12 +907,10 @@ const resizeImage = (req, res, next) => {
     const imagen = req.file;
     
     if (!imagen) {
-        console.log("No se recibió imagen, pasando al siguiente middleware...");
         return next();
     }
 
     try {
-        console.log(`Recibida imagen para la receta ${recipeName} del usuario ${username}`);
         
         db.get('SELECT recipe_name FROM Recipe WHERE username = ? AND recipe_name = ?', [username, recipeName], async (err, row) => {
             if (err) {
@@ -921,11 +919,9 @@ const resizeImage = (req, res, next) => {
             }
 
             if (row) {
-                console.log('Ya existe una receta con ese nombre:', recipeName);
                 return res.status(400).json({ message: "Ya existe una receta con ese nombre." });
             } else {
                 try {
-                    console.log("Procesando la imagen...");
                     const metadata = await sharp(imagen.buffer).metadata();
                     const targetWidth = 1280;
                     const targetHeight = 720;
@@ -938,12 +934,10 @@ const resizeImage = (req, res, next) => {
 
                     const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
                     if (imagen.size > MAX_FILE_SIZE) {
-                        console.log('El archivo es demasiado grande:', imagen.size);
                         return res.status(400).json({ message: 'El archivo es demasiado grande. El tamaño máximo permitido es 4MB.' });
                     }
 
                     if (metadata.width < targetWidth || metadata.height < targetHeight) {
-                        console.log(`La imagen es demasiado pequeña: ${metadata.width}x${metadata.height}`);
                         return res.status(400).json({ message: `Las imágenes deben tener al menos 1280px de ancho y 720px de alto. Actual: ${metadata.width}x${metadata.height}` });
                     }
 
@@ -952,14 +946,12 @@ const resizeImage = (req, res, next) => {
                         await sharp(imagen.buffer)
                             .resize(targetWidth, targetHeight)
                             .toFile(outputPath);
-                        console.log(`Imagen en formato webp procesada y guardada en: ${outputPath}`);
                     } else {
                         // Convertimos a webp y redimensionamos si no es webp
                         await sharp(imagen.buffer)
                             .resize(targetWidth, targetHeight)
                             .webp({ quality: 80 })
                             .toFile(outputPath);
-                        console.log(`Imagen convertida a webp y guardada en: ${outputPath}`);
                     }
 
                     imagen.path = outputPath;
@@ -1064,7 +1056,6 @@ const resizeImageEdited = async (req, res, next) => {
     const recipeName = req.body.recipeName;
 
     if (!req.file) {
-        console.log("No se recibió ningún archivo");
         return next(); // Si no hay archivo, continúa con el siguiente middleware
     }
 
@@ -1099,7 +1090,6 @@ const resizeImageEdited = async (req, res, next) => {
             await sharp(req.file.buffer)
                 .resize(targetWidth, targetHeight)
                 .toFile(outputPath);
-            console.log(`Imagen en formato webp procesada y guardada en: ${outputPath}`);
         } else {
             // Convertimos a webp y redimensionamos si no es webp
             await sharp(req.file.buffer)
@@ -1107,7 +1097,6 @@ const resizeImageEdited = async (req, res, next) => {
                 .toFormat('webp')
                 .webp({ quality: 70 })
                 .toFile(outputPath);
-            console.log(`Imagen convertida a webp y guardada en: ${outputPath}`);
         }
 
         // Guardar la ruta relativa
