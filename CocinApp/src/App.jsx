@@ -31,6 +31,7 @@ function App() {
     const primerRenderizado = useRef(true);
     const { alert, confirm, closeConfirm } = useAlert();
 
+
     useEffect(() => {
         if (primerRenderizado.current) {
           primerRenderizado.current = false;

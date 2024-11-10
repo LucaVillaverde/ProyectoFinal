@@ -6,14 +6,16 @@ const bcrypt = require('bcrypt');
 const cron = require('node-cron');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
-const path = require('path')
+const path = require('path');
+const sharp = require('sharp');
+const fs = require("fs");
+const { type } = require('os');
 const app = express();
 app.use(cookieParser());
 require('dotenv').config();
 // PORTS
 const PORT = 5000;
 const PORT_FRONTEND = 4173
-const pathImages = '../public';
 // HOST
 
 //***************************************************************** */
@@ -31,9 +33,6 @@ function validarEntrada(texto) {
         terminaConEspacio: texto.endsWith(' '),
     };
 }
-
-
-console.log(pathImages)
 
 const allowedOrigins = [`${host}:${PORT_FRONTEND}`];
 const corsOptions = {
@@ -895,199 +894,269 @@ app.post('/api/recetas/personales', (req, res) => {
 
 
 const safeString = (str) => {
-    return str.replace(/[^\w\s]/gi, ''); // Eliminar caracteres especiales
+    return str.replace(/[^\w\s-]/gi, '').replace(/\s+/g, '_').toLowerCase();
 };
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, './uploads');  // Carpeta donde se guardarán las imágenes
-    },
-    filename: (req, file, cb) => {
-        // Obtener los valores de 'recipe_name' y 'username' de los datos enviados
-        const recipeName = safeString(req.body.recipeName.replace(/\s+/g, '_').toLowerCase());  // Reemplaza los espacios por guiones bajos y pasa a minúsculas
-        const username = safeString(req.body.username.replace(/\s+/g, '_').toLowerCase());  // Lo mismo para el nombre de usuario
-        const fileExtension = path.extname(file.originalname).toLowerCase();  // Obtener la extensión original del archivo (por ejemplo, .jpg, .png)
-
-        // Crear el nombre del archivo usando el nombre de la receta, el nombre de usuario y un timestamp para hacerlo único
-        const customFileName = `${username}_${recipeName}${fileExtension}`;
-        cb(null, customFileName);  // Usar el nombre personalizado
-    }
-});
-
+// Configuración de Multer con almacenamiento en memoria
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-app.post("/api/receta-nueva", upload.single('image'), (req, res) => {
-    // Verificar que los parámetros están presentes
-    console.log(req.file);  // Verificar si la imagen fue recibida correctamente
+const resizeImage = (req, res, next) => {
+    const username = req.body.username;
+    const recipeName = req.body.recipeName;
+    const imagen = req.file;
+    
+    if (!imagen) {
+        return next();
+    }
 
+    try {
+        
+        db.get('SELECT recipe_name FROM Recipe WHERE username = ? AND recipe_name = ?', [username, recipeName], async (err, row) => {
+            if (err) {
+                console.error('Error al buscar receta en la base de datos:', err.message);
+                return res.status(500).json({ message: "Error al buscar recetas", error: err.message });
+            }
+
+            if (row) {
+                return res.status(400).json({ message: "Ya existe una receta con ese nombre." });
+            } else {
+                try {
+                    const metadata = await sharp(imagen.buffer).metadata();
+                    const targetWidth = 1280;
+                    const targetHeight = 720;
+
+                    const replaceRecipeName = safeString(recipeName);
+                    const replaceUsername = safeString(username);
+                    const fileExtension = path.extname(imagen.originalname).toLowerCase();
+                    const customFileName = `${replaceUsername}-${replaceRecipeName}${fileExtension === '.webp' ? '.webp' : '.webp'}`;
+                    const outputPath = path.join(__dirname, 'uploads', customFileName);
+
+                    const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+                    if (imagen.size > MAX_FILE_SIZE) {
+                        return res.status(400).json({ message: 'El archivo es demasiado grande. El tamaño máximo permitido es 4MB.' });
+                    }
+
+                    if (metadata.width < targetWidth || metadata.height < targetHeight) {
+                        return res.status(400).json({ message: `Las imágenes deben tener al menos 1280px de ancho y 720px de alto. Actual: ${metadata.width}x${metadata.height}` });
+                    }
+
+                    if (fileExtension === ".webp") {
+                        // Si es webp, solo redimensionamos si es necesario
+                        await sharp(imagen.buffer)
+                            .resize(targetWidth, targetHeight)
+                            .toFile(outputPath);
+                    } else {
+                        // Convertimos a webp y redimensionamos si no es webp
+                        await sharp(imagen.buffer)
+                            .resize(targetWidth, targetHeight)
+                            .webp({ quality: 80 })
+                            .toFile(outputPath);
+                    }
+
+                    imagen.path = outputPath;
+                    next();
+                } catch (error) {
+                    console.error('Error al procesar la imagen:', error.message);
+                    return res.status(500).json({ error: 'Error al procesar la imagen' });
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error al procesar la imagen o al buscar receta:', error.message);
+        return res.status(500).json({ error: error.message });
+    }
+};
+
+
+app.post("/api/receta-nueva", upload.single('image'), resizeImage, (req, res) => {
     const { username, recipeName, difficulty, description, ingredients, steps, categories, tiempo } = req.body;
 
-    // Validar que todos los parámetros requeridos estén presentes
+    // Asegura que 'ingredients', 'steps', y 'categories' sean arrays antes de convertirlos a string
+    const ingredientsArray = Array.isArray(ingredients) ? ingredients : ingredients.split(',').map(item => item.trim());
+    const stepsArray = Array.isArray(steps) ? steps : steps.split(',').map(item => item.trim());
+    const categoriesArray = Array.isArray(categories) ? categories : categories.split(',').map(item => item.trim());
+
+    // Convierte los arrays en cadenas de texto separadas por comas con espacio después de la coma
+    const ingredientsString = ingredientsArray.join(', ');
+    const stepsString = stepsArray.join(', ');
+    const categoriesString = categoriesArray.join(', '); // Asegura que haya espacio después de cada coma
+
+    // Validación de parámetros requeridos
     const missingParams = [];
     if (!username) missingParams.push('username');
     if (!recipeName) missingParams.push('recipeName');
     if (!difficulty) missingParams.push('difficulty');
     if (!description) missingParams.push('description');
-    if (!ingredients) missingParams.push('ingredients');
-    if (!steps) missingParams.push('steps');
-    if (!categories) missingParams.push('categories');
+    if (!ingredientsString) missingParams.push('ingredients');
+    if (!stepsString) missingParams.push('steps');
+    if (!categoriesString) missingParams.push('categories');
     if (!tiempo) missingParams.push('tiempo');
 
     if (missingParams.length > 0) {
-        return res.status(400).json({
-            message: `Faltan los siguientes parámetros: ${missingParams.join(', ')}`,
-        });
+        return res.status(400).json({ message: `Faltan los siguientes parámetros: ${missingParams.join(', ')}` });
     }
 
-    // Tratar ingredientes y pasos como arrays
-    const ingredientsArray = ingredients.split(',').map(ingredient => ingredient.trim());
-    const stepsArray = steps.split(',').map(step => step.trim());
-    const categoryArray = categories.split(',').map(category => category.trim());
-
-    // Comprobación de categorías
-    const placeholders = categoryArray.map(() => '?').join(',');
-    const checkCategoriesQuery = `SELECT category FROM Categories WHERE category IN (${placeholders})`;
-
-    let insertQuery = "";
-    let values = [];
     let rutaImagen = "";
-
-    // Validación de la imagen
     if (req.file) {
-        const imageMulter = req.file.filename;
-        const validExtensions = ['.jpg', '.webp', '.png']; // Lista de extensiones válidas
-        const fileExtension = path.extname(imageMulter).toLowerCase();
+        const validExtensions = ['.jpg', '.webp'];
+        const fileExtension = path.extname(req.file.path).toLowerCase();
 
         if (!validExtensions.includes(fileExtension)) {
+            fs.unlinkSync(req.file.path); // Elimina la imagen si la extensión no es válida
             return res.status(400).json({ message: "Formato de imagen no válido" });
         }
 
-        // Si la imagen es válida, asignamos el nombre del archivo a rutaImagen
-        rutaImagen = `../../server/uploads/${req.file.filename}`;
-        values = [
-            username,
-            recipeName,
-            difficulty,
-            description,
-            ingredientsArray.join(', '),
-            stepsArray.join(', '),
-            categoryArray.join(', '),
-            tiempo,
-            rutaImagen,
-        ];
-        insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    } else {
-        // Si no hay imagen, insertar sin la columna de imagen
-        values = [
-            username,
-            recipeName,
-            difficulty,
-            description,
-            ingredientsArray.join(', '),
-            stepsArray.join(', '),
-            categoryArray.join(', '),
-            tiempo,
-        ];
-        insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+        // Asignamos la ruta de la imagen
+        rutaImagen = `../../server/uploads/${path.basename(req.file.path)}`;
     }
 
-    // Insertar en la base de datos
-    try {
-        db.get('SELECT recipe_name FROM Recipe WHERE username = ? AND recipe_name = ?', [username, recipeName], (err, row) => {
+    const insertQuery = rutaImagen
+        ? `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        : `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    const values = rutaImagen
+        ? [username, recipeName, difficulty, description, ingredientsString, stepsString, categoriesString, tiempo, rutaImagen]
+        : [username, recipeName, difficulty, description, ingredientsString, stepsString, categoriesString, tiempo];
+
+    // Verificación de categorías
+    const placeholders = categoriesArray.map(() => '?').join(',');
+    const checkCategoriesQuery = `SELECT category FROM Categories WHERE category IN (${placeholders})`;
+
+    db.all(checkCategoriesQuery, categoriesArray, (err, rows) => {
+        if (err) {
+            return res.status(500).json({ message: "Error al verificar las categorías", error: err.message });
+        }
+
+        const existingCategories = rows.map(row => row.category);
+        const missingCategories = categoriesArray.filter(cat => !existingCategories.includes(cat));
+        if (missingCategories.length > 0) {
+            return res.status(400).json({
+                message: `Las siguientes categorías no existen: ${missingCategories.join(', ')}`,
+            });
+        }
+
+        // Inserción en la base de datos
+        db.run(insertQuery, values, function (err) {
             if (err) {
-                return res.status(500).json({ message: "Error al buscar recetas", error: err.message });
+                return res.status(500).json({ message: 'Error al insertar receta', error: err.message });
             }
-            if (row) {
-                return res.status(400).json({ message: "Ya existe una receta con ese nombre." });
-            } else {
-                db.all(checkCategoriesQuery, categoryArray, (err, rows) => {
-                    if (err) {
-                        return res.status(500).json({ message: "Error al verificar las categorías", error: err.message });
-                    }
-
-                    const existingCategories = rows.map(row => row.category);
-                    const missingCategories = categoryArray.filter(cat => !existingCategories.includes(cat));
-
-                    if (missingCategories.length > 0) {
-                        return res.status(400).json({
-                            message: `Las siguientes categorías no existen: ${missingCategories.join(', ')}`
-                        });
-                    }
-
-                    // Insertar en la base de datos
-                    db.run(insertQuery, values, function (err) {
-                        if (err) {
-                            return res.status(500).json({ message: 'Error al insertar receta', error: err.message });
-                        }
-
-                        return res.status(201).json({
-                            message: "Se ha creado la receta.",
-                            recetaId: this.lastID
-                        });
-                    });
-                });
-            }
+            return res.status(201).json({
+                message: "Se ha creado la receta.",
+                recetaId: this.lastID,
+            });
         });
-    } catch (err) {
-        return res.status(500).json({ message: "Ha ocurrido un error inesperado.", error: err.message });
-    }
+    });
 });
 
 
-  
 
+const resizeImageEdited = async (req, res, next) => {
+    const username = req.body.username;
+    const recipeName = req.body.recipeName;
 
-app.put('/api/actualizarReceta', (req, res) => {
-    const { formData, id_recipe } = req.body;
-    console.log(id_recipe);
-
-    if (!formData.recipe_name || !formData.difficulty || !formData.categories || !formData.description || !formData.ingredients || !formData.steps || !formData.tiempo || !id_recipe){
-        return res.status(400).json({ message: "No se tienen los datos necesarios." });
+    if (!req.file) {
+        return next(); // Si no hay archivo, continúa con el siguiente middleware
     }
 
-    if (formData.recipe_name.length < 3 || formData.description.length < 3){
-        return res.status(400).json({ message: "El nombre o la descripcion son muy cortos." });
+    // Validar formato de la imagen
+    const allowedFormats = ['.jpg', '.jpeg', '.webp'];
+    const fileExtension = path.extname(req.file.originalname).toLowerCase();
+    if (!allowedFormats.includes(fileExtension)) {
+        return res.status(400).json({ error: 'Formato de imagen no soportado' });
     }
 
-    // Validar que ingredients y steps son arrays y que no estén vacíos
-    if (!Array.isArray(formData.ingredients) || formData.ingredients.length === 0) {
-        return res.status(400).json({ message: "Se deben proporcionar ingredientes." });
+    // Validar el tamaño del archivo (4 MB máximo)
+    const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+    if (req.file.size > MAX_FILE_SIZE) {
+        return res.status(400).json({ error: 'El archivo es demasiado grande' });
     }
 
-    if (!Array.isArray(formData.steps) || formData.steps.length === 0) {
-        return res.status(400).json({ message: "Se deben proporcionar pasos." });
-    }
+    try {
+        const metadata = await sharp(req.file.buffer).metadata();
+        const targetWidth = 1280;
+        const targetHeight = 720;
+        const replaceRecipeName = safeString(recipeName);
+        const replaceUsername = safeString(username);
+        const outputFileName = `${replaceUsername}-${replaceRecipeName}.webp`;
+        const outputPath = path.join(__dirname, 'uploads', outputFileName);
 
-    // Validar que no haya más de 12 ingredientes o pasos
-    if (formData.ingredients.length > 12) {
-        return res.status(400).json({ message: "No se pueden agregar más de 12 ingredientes." });
-    }
-
-    if (formData.steps.length > 12) {
-        return res.status(400).json({ message: "No se pueden agregar más de 12 pasos." });
-    }
-
-    // Asegurarse de que categories sea un array
-    const categoriesArray = Array.isArray(formData.categories) ? formData.categories : formData.categories.split(',').map(item => item.trim());
-
-    // Convertir ingredientes y pasos a cadenas para almacenarlos en la base de datos
-    const ingredientsString = formData.ingredients.join(', '); // Por ejemplo: 'ingrediente1, ingrediente2'
-    const stepsString = formData.steps.join(', ');
-
-    // Convertir categorías a una cadena separada por comas
-    const categoriesString = categoriesArray.join(', '); // Por ejemplo: 'Plato Principal, Sopa'
-
-    const updateQueryRecipeTable = 'UPDATE Recipe SET recipe_name = ?, difficulty = ?, description = ?, ingredients = ?, steps = ?, categories = ?, tiempo = ? WHERE id_recipe = ?';
-    db.run(updateQueryRecipeTable, [formData.recipe_name, formData.difficulty, formData.description, ingredientsString, stepsString, categoriesString, formData.tiempo, id_recipe], (err, row) => {
-        if (err) {
-            return res.status(500).json({ message: "Error al actualizar la receta." });
+        if (metadata.width < targetWidth || metadata.height < targetHeight) {
+            return res.status(400).json({ message: "Las imágenes deben tener al menos 1280px de ancho y 720px de alto." });
         }
-        if (!row) {
-            return res.status(404).json({ message: "No se encontro la receta a actualizar." });
+
+        if (fileExtension === ".webp") {
+            // Si es webp, solo redimensionamos si es necesario
+            await sharp(req.file.buffer)
+                .resize(targetWidth, targetHeight)
+                .toFile(outputPath);
         } else {
-            return res.status(200).json({ message: "Se ha actualizado con exito." });
+            // Convertimos a webp y redimensionamos si no es webp
+            await sharp(req.file.buffer)
+                .resize(targetWidth, targetHeight)
+                .toFormat('webp')
+                .webp({ quality: 70 })
+                .toFile(outputPath);
         }
-    });
+
+        // Guardar la ruta relativa
+        const relativePath = path.join('uploads', outputFileName).replace(/\\/g, '/'); 
+        req.file.path = relativePath; // Almacenar la ruta relativa
+        next();
+    } catch (error) {
+        console.error('Error al procesar la imagen:', error);
+        res.status(500).json({ error: 'Error al procesar la imagen' });
+    }
+};
+
+
+
+app.put('/api/actualizarReceta', upload.single('image'), resizeImageEdited, async (req, res) => {
+    const { id_recipe, recipeName, difficulty, description, ingredients, steps, categories, tiempo, image } = req.body;
+
+    try {
+        const getImagePathQuery = 'SELECT image FROM Recipe WHERE id_recipe = ?';
+        db.get(getImagePathQuery, [id_recipe], async (err, row) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error al obtener la imagen actual.' });
+            }
+            if (!row) {
+                return res.status(404).json({ message: 'Receta no encontrada.' });
+            }
+
+            // Si ingredients, steps o categories son cadenas, convertirlas a arrays
+            const ingredientsArray = Array.isArray(ingredients) ? ingredients : ingredients.split(',').map(item => item.trim());
+            const stepsArray = Array.isArray(steps) ? steps : steps.split(',').map(item => item.trim());
+            const categoriesArray = Array.isArray(categories) ? categories : categories.split(',').map(item => item.trim());
+
+            const ingredientsString = ingredientsArray.join(', ');
+            const stepsString = stepsArray.join(', ');
+            const categoriesString = categoriesArray.join(', ');
+
+            const newImagePath = req.file ? `../../server/uploads/${path.basename(req.file.path)}` : row.image;
+
+            const updateQuery = `UPDATE Recipe SET recipe_name = ?, difficulty = ?, description = ?, ingredients = ?, steps = ?, categories = ?, tiempo = ?, image = ? WHERE id_recipe = ?`;
+
+            db.run(updateQuery, [
+                recipeName,
+                difficulty,
+                description,
+                ingredientsString,
+                stepsString,
+                categoriesString,
+                tiempo,
+                newImagePath,
+                id_recipe,
+            ], (err) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Error al actualizar la receta.' });
+                }
+                return res.status(200).json({ message: 'Receta actualizada con éxito.' });
+            });
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 

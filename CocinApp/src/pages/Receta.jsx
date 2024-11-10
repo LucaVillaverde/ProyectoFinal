@@ -20,7 +20,8 @@ const Receta = () => {
         description: '',
         ingredients: [], // Define como array vacío
         steps: [],
-        tiempo: ''
+        tiempo: '',
+        image: null,
     });  
     const [show, setShow] = useState(false);
 
@@ -119,15 +120,37 @@ const Receta = () => {
     
     
     const actualizarReceta = async (e) => {
-        try{
-            const actualizar = await axios.put('/api/actualizarReceta', {
-                formData,
-                id_recipe: id,
-            })
-        }catch (err){
-            console.error(err);
+        e.preventDefault();
+        try {
+            const formDataToSend = new FormData();
+            formDataToSend.append("username", localUsername);
+            formDataToSend.append("id_recipe", id); // Enviar el id de la receta para actualizarla
+            formDataToSend.append("recipeName", formData.recipe_name);
+            formDataToSend.append("difficulty", formData.difficulty);
+            formDataToSend.append("description", formData.description);
+            formDataToSend.append("tiempo", formData.tiempo);
+    
+            // Convertir los arrays a cadenas separadas por comas para enviar al back end
+            formDataToSend.append("ingredients", formData.ingredients);
+            formDataToSend.append("steps", formData.steps);
+            formDataToSend.append("categories", formData.categories);
+    
+            if (formData.image) {
+                formDataToSend.append("image", formData.image);
+            }
+    
+            const response = await axios.put("/api/actualizarReceta", formDataToSend, { withCredentials: true });
+    
+            if (response.status === 200) {
+                showAlert(`Se actualizó ${formData.recipe_name}`, 'successful');
+            }
+        } catch (err) {
+            err.response?.data?.message
+            ? showAlert(err.response.data.message, 'warning')
+            : showAlert('Error de conexión', 'danger');
         }
-    }
+    };
+    
 
     const addIngredient = () => {
         if (formData.ingredients.length < 12){
@@ -185,6 +208,10 @@ const Receta = () => {
         });
     };
 
+    const handleFileChange = (event) => {
+        setFormData({ ...formData, image: event.target.files[0] });
+    };
+
     const handleIngredientChange = (index, event) => {
         const newIngredients = [...formData.ingredients];
         newIngredients[index] = event.target.value;
@@ -201,7 +228,7 @@ const Receta = () => {
         <div>
             {show ? (
                 <div className="form-content">
-                <form id="formularioAgregarReceta">
+                <form id="formularioAgregarReceta" onSubmit={(e) => actualizarReceta(e)}>
                     <label className="lbl-title-form" htmlFor="recipeName">Nombre de la Receta:</label>
                     <input
                         type="text"
@@ -211,6 +238,15 @@ const Receta = () => {
                         onChange={handleInputChange}
                         required
                     />
+
+                    <label className='lbl-title-form' htmlFor="recipeImage">Imagen de receta:</label>
+                            <input
+                                id="fileInput" 
+                                type="file"
+                                name="recipeImage"
+                                onChange={handleFileChange}
+                                accept="image/*"
+                            />
 
                     <label className='lbl-title-form' htmlFor="difficulty">Dificultad:</label>
                     <select
@@ -259,8 +295,9 @@ const Receta = () => {
                             <input
                                 className="inptFormRecipe"
                                 type="text"
-                                placeholder={`Ingrediente ${index + 1}`}
+                                placeholder={`Ingrediente ${index + 1} (sin "," porfavor.)`}
                                 value={ingredient}
+                                pattern="[^,]*"
                                 onChange={(e) => handleIngredientChange(index, e)}
                                 required
                             />
@@ -281,8 +318,9 @@ const Receta = () => {
                         <input
                             className="inptFormRecipe"
                             type="text"
-                            placeholder={`Paso ${index + 1}`}
+                            placeholder={`Paso ${index + 1} (sin "," porfavor.)`}
                             value={step}
+                            pattern="[^,]*"
                             onChange={(e) => handleStepChange(index, e)}
                             required
                         />
@@ -303,7 +341,7 @@ const Receta = () => {
                         required
                     />
 
-                    <button onClick={(e) => actualizarReceta(e)} className="btnAdd" type="submit">Enviar</button>
+                    <button className="btnAdd" type="submit">Enviar</button>
                 </form>
                 </div>
             ) : (
