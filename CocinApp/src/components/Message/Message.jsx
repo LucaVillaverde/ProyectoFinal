@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useState } from "react";
 import { useAlert } from "../../context/messageContext";
 import "./message.css";
 // ICONS
@@ -6,7 +6,7 @@ import imgOK from "../../assets/ok.svg";
 import imgWarning from "../../assets/warning.svg";
 import imgDanger from "../../assets/danger.svg";
 
-export const Message = ({ message, type, onClose }) => {
+export const Message = ({ message, type}) => {
   // Mapeo para las clases y las imágenes basadas en el tipo de alerta
   const alertConfig = {
       successful: { className: 'green', imgSrc: imgOK },
@@ -27,35 +27,34 @@ export const Message = ({ message, type, onClose }) => {
 };
 
 
-export const ConfirmPromp = ({ close}) => {
-    const [password, setPassword] = useState('');
-    const { confirm } = useAlert(); // confirm ejecutará deleteUser()
+export const ConfirmPromp = ({ close }) => {
+    const { setPassword, closeConfirm } = useAlert();
 
-    const handleConfirm = () => {
-        if (password === 'laContraseñaCorrecta') { // Reemplaza con la lógica de verificación real
-            if (confirm) confirm(); // Llama a deleteUser si la contraseña es correcta
-            close(); // Cierra el prompt
-        } else {
-            alert("Contraseña incorrecta");
-        }
+    const handlePasswordChange = (e) => {
+        setPassword(e.target.value); // Actualiza directamente el contexto con el valor del input
     };
 
     return (
         <div className='promp-alert'>
             <div className="promp-alert-header">
-                <button className='promp-alert-header-close' onClick={close}>X</button>
+                <button className='header-close' onClick={close}>X</button>
             </div>
-            <h3 className="promp-alert-title">Confirme contraseña para borrar</h3>
+            <h3>Confirme contraseña para borrar.</h3>
             <div className='promp-alert-inputCont'>
                 <input
                     type="password"
                     className='promp-alert-input'
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={handlePasswordChange}
+                    placeholder="Ingrese su contraseña"
                 />
             </div>
-            <div className="promp-alert-confirmCont">
-                <button className='promp-alert-confirm' onClick={handleConfirm}>
+            <div className="promp-alert-confirm">
+                <button
+                    className='promp-alert-confirm'
+                    onClick={() => {
+                        closeConfirm(); // Cierra el diálogo sin ninguna acción adicional
+                    }}
+                >
                     Borrar
                 </button>
             </div>
@@ -66,4 +65,4 @@ export const ConfirmPromp = ({ close}) => {
 
 
 
- 
+

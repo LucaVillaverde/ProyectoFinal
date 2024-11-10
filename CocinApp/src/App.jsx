@@ -23,8 +23,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function App() {
     // Variables "Globales"
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [movil, setMovil] = useState(false);
-    const [tabletOrdenador, setTabletOrdenador] = useState(false); 
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(null)
