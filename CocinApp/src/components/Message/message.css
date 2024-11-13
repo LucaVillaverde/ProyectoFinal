@@ -15,7 +15,7 @@
     left: 50%; 
     transform: translateX(-50%);
     position: fixed;
-    z-index: 99999;
+    z-index: 10;
 }
 
 #icon{
@@ -26,7 +26,7 @@
     margin-left: 10px;
 }
 
-.noficaciones{
+.notificaciones{
     display: flex;
     height: auto;
     width: 100%;
@@ -52,4 +52,58 @@
 .red{
     background-color: #ff4747e1;
     border-left: 12px solid red;
+}
+
+/* Alerta con promp (para confirmar password) */
+
+.promp-alert{
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    position: fixed;
+    z-index: 3;
+    left: 50%; 
+    transform: translateX(-50%);
+    padding: 15px;
+    background-color: var(--secondary-color);
+    box-shadow: 0 1px 10px #0009;
+    border-radius: 8px;
+}
+.promp-alert-header{text-align: end;}
+.promp-alert-header-close{
+    background-color: transparent;
+    border: none;
+    font-size: 18px;
+    
+}
+.promp-alert-header-close:hover{color: rgba(192, 0, 0, 0.664);}
+.promp-alert-title{
+    text-align: center;
+    margin: 5px auto
+}
+.promp-alert-inputCont{text-align: center; padding: 10px 0;}
+.promp-alert-input{
+    width: 90%;
+    height: 25px;
+    border: none;
+    background-color: var(--third-color);
+    border-bottom: 2px solid var(--fourth-color);
+    
+
+}
+.promp-alert-confirm{
+    width: 55%;
+    height: 25px;
+    background-color: var(--primary-color);
+    border: none;
+    box-shadow: 1px 2px 0.8px #d17d00e3;
+    font-weight: bold;
+}
+.promp-alert-confirmCont{
+    width: 100%;
+    text-align: center;
+    margin: 8px 0;
+}
+.promp-alert-confirm:hover{
+    box-shadow: 1px 2px 0.8px #fc9701d3;
 }

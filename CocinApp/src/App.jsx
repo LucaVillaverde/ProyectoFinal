@@ -7,7 +7,7 @@ import axios from "axios";
 // Componentes
 import Header from "./components/header/Header";
 import LoginRegister from "./components/LoginRegister/LoginRegister";
-import Message from "./components/Message/Message";
+import {Message, ConfirmPromp} from "./components/Message/Message";
 import Footer from "./components/footer/Footer";
 // Pages
 import Home from "./pages/Home";
@@ -23,13 +23,11 @@ import ProtectedRoute from "./components/ProtectedRoute";
 function App() {
     // Variables "Globales"
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [movil, setMovil] = useState(false);
-    const [tabletOrdenador, setTabletOrdenador] = useState(false); 
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(null)
     const primerRenderizado = useRef(true);
-    const { alert } = useAlert();
+    const { alert, confirm, closeConfirm } = useAlert();
 
 
     useEffect(() => {
@@ -66,10 +64,11 @@ function App() {
         <Router>
             {/* >-------------------- ALERTAS CUSTOM--------------------< */}
             <div className="cont-notificaciones">
-                <div className="noficaciones">
+                <div className="notificaciones">
                     {alert && <Message message={alert.message} type={alert.type} />}
                 </div>
             </div>
+            {confirm && <ConfirmPromp close={closeConfirm} />}
             <>
                 {/* >-------------------- Login-Register --------------------< */}
                 <LoginRegister
