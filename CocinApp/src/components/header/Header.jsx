@@ -46,12 +46,12 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                     {}
                 );
                 if (cookieDelete.status === 200){
-                    setIsLoggedIn(false);
+                    location.reload();
                 }
             }
         } catch (err){
             console.error(err);
-            setIsLoggedIn(false);
+            location.reload();
         }
     };
 

@@ -110,7 +110,7 @@ const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
                     if (cookieTokenResponse.status === 201) {
                         setIsLoggedIn(true);
                         setLocalUsername(username);
-                        closeForm();
+                        location.reload();
                     } else if (cookieTokenResponse.status === 403) {
                         setIsLoggedIn(false);
                     }

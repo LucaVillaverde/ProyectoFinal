@@ -109,6 +109,7 @@ const db = new sqlite3.Database('./BasedeDatos.db');
 // const db = new sqlite3.Database('./db.db');
 
 
+// Ejecucion/verificacion cada 1 minuto relacionada a la expiracion de tokens.
 
 cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
     db.run('UPDATE Tokens SET cookieToken = 0, created_at = 0 WHERE julianday(\'now\') - julianday(created_at) >= 1', (err) => {
@@ -118,6 +119,72 @@ cron.schedule('*/1 * * * *', () => { //Tarea ejecutada cada 1 minuto
     });
 });
 
+// -----------------------------------------------------------------------------
+
+// Ejecucion/verificacion cada 1 minuto relacionada al backup de las imagenes en proyecto build.
+
+cron.schedule('*/1 * * * *', () => { // Tarea ejecutada cada 1 minuto
+    const carpetaOriginal = '../dist/uploads/';
+    const carpetaRespaldo = '../public/uploads/';
+    
+    // Verificar si las carpetas de origen y destino existen.
+    if (!fs.existsSync(carpetaOriginal)) {
+        console.log(`No existe: ${carpetaOriginal}`);
+        return;
+    }
+    if (!fs.existsSync(carpetaRespaldo)) {
+        console.log(`No existe: ${carpetaRespaldo}`);
+        return;
+    }
+
+    // Leer las imágenes en la carpeta de respaldo
+    fs.readdir(carpetaRespaldo, (err, imagenesRespaldo) => {
+        if (err) {
+            console.error('Error al leer la carpeta de respaldo:', err);
+            return;
+        }
+
+        // Eliminar las imágenes en la carpeta de respaldo que no están en la carpeta original
+        imagenesRespaldo.forEach(imagen => {
+            const imagenOriginal = path.join(carpetaOriginal, imagen);
+            const imagenRespaldo = path.join(carpetaRespaldo, imagen);
+            
+            if (!fs.existsSync(imagenOriginal)) {
+                // La imagen no está en la carpeta original, eliminar de respaldo
+                fs.unlinkSync(imagenRespaldo);
+                console.log(`Imagen eliminada de respaldo: ${imagen}`);
+            }
+        });
+
+        // Leer las imágenes en la carpeta de origen
+        fs.readdir(carpetaOriginal, (err, imagenesOriginal) => {
+            if (err) {
+                console.error('Error al leer la carpeta de origen:', err);
+                return;
+            }
+
+            // Copiar las imágenes de origen a respaldo si no existen en respaldo
+            imagenesOriginal.forEach(imagen => {
+                const imagenOriginal = path.join(carpetaOriginal, imagen);
+                const imagenRespaldo = path.join(carpetaRespaldo, imagen);
+
+                if (!fs.existsSync(imagenRespaldo)) {
+                    fs.copyFile(imagenOriginal, imagenRespaldo, err => {
+                        if (err) {
+                            console.error(`Error al copiar el archivo ${imagen}:`, err);
+                        } else {
+                            console.log(`Archivo ${imagen} copiado con éxito a ${carpetaRespaldo}`);
+                        }
+                    });
+                } else {
+                }
+            });
+        });
+    });
+});
+
+
+// -----------------------------------------------------------------------------
 
 app.get("/api/protection", (req, res) => {
     const tokenH = req.cookies.token;
@@ -166,48 +233,7 @@ app.post('/api/usuarios', (req, res) => {
     }
 });
 
-app.post("/api/eliminarReceta", (req, res) => {
-    const { contraseña, id_recipe } = req.body;
-    const id_user = req.cookies.id_user;
 
-    if(!contraseña || !id_user || !id_recipe){
-        return res.status(400).json({ message: "Falta indicar datos." });
-    }
-
-    const getPasswordFromUsers = "SELECT password FROM Users WHERE id_user = ?";
-    const deleteQueryRecipeTable = "DELETE FROM Recipe WHERE id_recipe = ?";
-
-    try{
-        db.get(getPasswordFromUsers, [id_user], async (err, row) => {
-            if (err) {
-                return res.status(500).json({ message: "Algo salio mal Hola." });
-            }
-            if (!row) {
-                return res.status(404).json({ message: "No hay datos existentes." });
-            }
-            else {
-                const match = await bcrypt.compare(contraseña, row.password);
-                if (match){
-                    try{
-                        db.run(deleteQueryRecipeTable, [id_recipe], (err) => {
-                            if (err) {
-                                return res.status(500).json({ message: "Error al intentar eliminar la receta." });
-                            }
-                            else {
-                                return res.status(200).json({ message: "Se elimino correctamente la receta." });
-                            }
-                        })
-                    }catch{
-                        return res.status(500).json({ message: "Error al intentar eliminar la receta." });
-                    }
-                }
-            }
-        })
-    }catch{
-        return res.status(500).json({ message: "Algo salio mal." });
-    }
-
-});
 
 app.post('/api/verifpassword', (req, res) => {
     const { contraUser, borrarRecetas } = req.body;
@@ -925,34 +951,35 @@ const resizeImage = (req, res, next) => {
                     const metadata = await sharp(imagen.buffer).metadata();
                     const targetWidth = 1280;
                     const targetHeight = 720;
-
+                    
                     const replaceRecipeName = safeString(recipeName);
                     const replaceUsername = safeString(username);
                     const fileExtension = path.extname(imagen.originalname).toLowerCase();
-                    const customFileName = `${replaceUsername}-${replaceRecipeName}${fileExtension === '.webp' ? '.webp' : '.webp'}`;
-                    const outputPath = path.join(__dirname, 'uploads', customFileName);
-
-                    const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
+                    const customFileName = `${replaceUsername}-${replaceRecipeName}-${Date.now()}.webp`;
+                    const outputPath = path.join('../dist/', 'uploads', customFileName);
+                    
+                    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
                     if (imagen.size > MAX_FILE_SIZE) {
                         return res.status(400).json({ message: 'El archivo es demasiado grande. El tamaño máximo permitido es 4MB.' });
                     }
-
+                    
                     if (metadata.width < targetWidth || metadata.height < targetHeight) {
                         return res.status(400).json({ message: `Las imágenes deben tener al menos 1280px de ancho y 720px de alto. Actual: ${metadata.width}x${metadata.height}` });
                     }
-
+                    
                     if (fileExtension === ".webp") {
                         // Si es webp, solo redimensionamos si es necesario
                         await sharp(imagen.buffer)
                             .resize(targetWidth, targetHeight)
-                            .toFile(outputPath);
+                            .toFile(outputPath)
                     } else {
                         // Convertimos a webp y redimensionamos si no es webp
                         await sharp(imagen.buffer)
                             .resize(targetWidth, targetHeight)
                             .webp({ quality: 80 })
-                            .toFile(outputPath);
+                            .toFile(outputPath)
                     }
+                    
 
                     imagen.path = outputPath;
                     next();
@@ -999,25 +1026,17 @@ app.post("/api/receta-nueva", upload.single('image'), resizeImage, (req, res) =>
 
     let rutaImagen = "";
     if (req.file) {
-        const validExtensions = ['.jpg', '.webp'];
         const fileExtension = path.extname(req.file.path).toLowerCase();
 
-        if (!validExtensions.includes(fileExtension)) {
-            fs.unlinkSync(req.file.path); // Elimina la imagen si la extensión no es válida
-            return res.status(400).json({ message: "Formato de imagen no válido" });
-        }
-
         // Asignamos la ruta de la imagen
-        rutaImagen = `../../server/uploads/${path.basename(req.file.path)}`;
+        rutaImagen = `/uploads/${path.basename(req.file.path)}`;
+    } else {
+        rutaImagen = '/assets/imagenDefault.webp';
     }
 
-    const insertQuery = rutaImagen
-        ? `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        : `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    const insertQuery = `INSERT INTO Recipe (username, recipe_name, difficulty, description, ingredients, steps, categories, tiempo, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    const values = rutaImagen
-        ? [username, recipeName, difficulty, description, ingredientsString, stepsString, categoriesString, tiempo, rutaImagen]
-        : [username, recipeName, difficulty, description, ingredientsString, stepsString, categoriesString, tiempo];
+    const values = [username, recipeName, difficulty, description, ingredientsString, stepsString, categoriesString, tiempo, rutaImagen];
 
     // Verificación de categorías
     const placeholders = categoriesArray.map(() => '?').join(',');
@@ -1052,61 +1071,102 @@ app.post("/api/receta-nueva", upload.single('image'), resizeImage, (req, res) =>
 
 
 const resizeImageEdited = async (req, res, next) => {
-    const username = req.body.username;
-    const recipeName = req.body.recipeName;
+    const { username, recipeName, id_recipe } = req.body;
+    const targetWidth = 1280;
+    const targetHeight = 720;
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 5MB
 
-    if (!req.file) {
-        return next(); // Si no hay archivo, continúa con el siguiente middleware
-    }
-
-    // Validar formato de la imagen
-    const allowedFormats = ['.jpg', '.jpeg', '.webp'];
-    const fileExtension = path.extname(req.file.originalname).toLowerCase();
-    if (!allowedFormats.includes(fileExtension)) {
-        return res.status(400).json({ error: 'Formato de imagen no soportado' });
-    }
-
-    // Validar el tamaño del archivo (4 MB máximo)
-    const MAX_FILE_SIZE = 4 * 1024 * 1024; // 4MB
-    if (req.file.size > MAX_FILE_SIZE) {
-        return res.status(400).json({ error: 'El archivo es demasiado grande' });
-    }
-
-    try {
-        const metadata = await sharp(req.file.buffer).metadata();
-        const targetWidth = 1280;
-        const targetHeight = 720;
-        const replaceRecipeName = safeString(recipeName);
-        const replaceUsername = safeString(username);
-        const outputFileName = `${replaceUsername}-${replaceRecipeName}.webp`;
-        const outputPath = path.join(__dirname, 'uploads', outputFileName);
-
-        if (metadata.width < targetWidth || metadata.height < targetHeight) {
-            return res.status(400).json({ message: "Las imágenes deben tener al menos 1280px de ancho y 720px de alto." });
+    // Consulta para obtener el nombre de la receta y la imagen actual
+    db.get('SELECT recipe_name, image FROM Recipe WHERE username = ? AND id_recipe = ?', [username, id_recipe], async (err, row) => {
+        if (err) {
+            console.error('Error al obtener datos de la receta:', err);
+            return res.status(500).json({ error: 'Error en el servidor' });
+        }
+        if (!row) {
+            return res.status(404).json({ message: "Receta no encontrada" });
         }
 
-        if (fileExtension === ".webp") {
-            // Si es webp, solo redimensionamos si es necesario
-            await sharp(req.file.buffer)
-                .resize(targetWidth, targetHeight)
-                .toFile(outputPath);
-        } else {
-            // Convertimos a webp y redimensionamos si no es webp
-            await sharp(req.file.buffer)
+        // Determinar si el nombre de la receta ha cambiado
+        const recipeNameChanged = recipeName !== row.recipe_name;
+
+        // Si hay un archivo nuevo, validar y procesarlo
+        if (req.file) {
+            const fileExtension = path.extname(req.file.originalname).toLowerCase();
+
+            if (req.file.size > MAX_FILE_SIZE) {
+                return res.status(400).json({ error: 'El archivo es demasiado grande' });
+            }
+
+            const metadata = await sharp(req.file.buffer).metadata();
+            if (metadata.width < targetWidth || metadata.height < targetHeight) {
+                return res.status(400).json({ message: "Las imágenes deben tener al menos 1280px de ancho y 720px de alto." });
+            }
+
+            // Construir el nuevo nombre de archivo y ruta de guardado
+            const safeRecipeName = safeString(recipeName);
+            const safeUsername = safeString(username);
+            const outputFileName = `${safeUsername}-${safeRecipeName}-${Date.now()}.webp`;
+            const outputPath = path.join("../dist/uploads", outputFileName);
+
+            // Eliminar la imagen anterior si existe
+            const imagenDBCompleto = row.image;
+            const nombreImagen = imagenDBCompleto.replace('/uploads/', '');
+            const imagenPath = path.join('../dist/uploads', nombreImagen);
+            if (imagenDBCompleto === "/assets/imagenDefault.webp"){
+                    await sharp(req.file.buffer)
+                    .resize(targetWidth, targetHeight)
+                    .toFormat('webp')
+                    .webp({ quality: 80 })
+                    .toFile(outputPath);
+    
+                    // Guardar la ruta relativa
+                    const relativePath = path.join('uploads', outputFileName).replace(/\\/g, '/');
+                    req.file.path = relativePath; // Almacenar la ruta relativa en req
+                    return next(); // Continuar al siguiente middleware
+            }
+
+            if (fs.existsSync(imagenPath)) {
+                fs.unlinkSync(imagenPath); // Eliminar la imagen anterior
+                            // Procesar y guardar la nueva imagen
+                await sharp(req.file.buffer)
                 .resize(targetWidth, targetHeight)
                 .toFormat('webp')
-                .webp({ quality: 70 })
+                .webp({ quality: 80 })
                 .toFile(outputPath);
-        }
 
-        // Guardar la ruta relativa
-        const relativePath = path.join('uploads', outputFileName).replace(/\\/g, '/'); 
-        req.file.path = relativePath; // Almacenar la ruta relativa
-        next();
-    } catch (error) {
-        console.error('Error al procesar la imagen:', error);
-        res.status(500).json({ error: 'Error al procesar la imagen' });
-    }
+                // Guardar la ruta relativa
+                const relativePath = path.join('uploads', outputFileName).replace(/\\/g, '/');
+                req.file.path = relativePath; // Almacenar la ruta relativa en req
+                return next(); // Continuar al siguiente middleware
+            }
+
+        } else if (recipeNameChanged) {
+            // Si solo cambia el nombre de la receta y no se sube nueva imagen, renombrar la existente
+            if (row.image === "/assets/imagenDefault.webp"){
+                return next();
+            }
+            const imagenDBCompleto = row.image;
+            const nombreImagen = imagenDBCompleto.replace('/uploads/', '');
+            const imagenPath = path.join('../dist/uploads', nombreImagen);
+
+            if (fs.existsSync(imagenPath)) {
+                const safeRecipeName = safeString(recipeName);
+                const safeUsername = safeString(username);
+                const newFileName = `${safeUsername}-${safeRecipeName}-${Date.now()}.webp`;
+                const newPath = path.join('../dist/uploads', newFileName);
+
+                fs.renameSync(imagenPath, newPath);
+
+                // Guardar la nueva ruta relativa en req
+                req.file = { path: path.join('uploads', newFileName).replace(/\\/g, '/') };
+            }
+            return next(); // Continuar al siguiente middleware
+
+        } else {
+            // Si no se cambió el nombre de la receta ni se subió una nueva imagen, continuar sin cambios
+            return next(); // Continuar al siguiente middleware
+        }
+    });
 };
 
 
@@ -1133,7 +1193,7 @@ app.put('/api/actualizarReceta', upload.single('image'), resizeImageEdited, asyn
             const stepsString = stepsArray.join(', ');
             const categoriesString = categoriesArray.join(', ');
 
-            const newImagePath = req.file ? `../../server/uploads/${path.basename(req.file.path)}` : row.image;
+            const newImagePath = req.file ? `/uploads/${path.basename(req.file.path)}` : row.image;
 
             const updateQuery = `UPDATE Recipe SET recipe_name = ?, difficulty = ?, description = ?, ingredients = ?, steps = ?, categories = ?, tiempo = ?, image = ? WHERE id_recipe = ?`;
 
@@ -1158,6 +1218,82 @@ app.put('/api/actualizarReceta', upload.single('image'), resizeImageEdited, asyn
         res.status(500).json({ error: error.message });
     }
 });
+
+
+
+app.post("/api/eliminarReceta", (req, res) => {
+    const { contraseña, id_recipe, username } = req.body;
+    const id_user = req.cookies.id_user;
+
+    if (!contraseña || !id_user || !id_recipe) {
+        return res.status(400).json({ message: "Falta indicar datos." });
+    }
+
+    const getPasswordFromUsers = "SELECT password FROM Users WHERE id_user = ?";
+    const getRecipeImageQuery = "SELECT image FROM Recipe WHERE id_recipe = ?";
+    const deleteQueryRecipeTable = "DELETE FROM Recipe WHERE id_recipe = ?";
+
+    // Primero, obtenemos la contraseña del usuario para verificarla.
+    db.get(getPasswordFromUsers, [id_user], (err, userRow) => {
+        if (err) {
+            return res.status(500).json({ message: "Error al obtener los datos del usuario." });
+        }
+
+        if (!userRow) {
+            return res.status(404).json({ message: "No se encontró el usuario." });
+        }
+
+        // Verificar si la contraseña es correcta
+        bcrypt.compare(contraseña, userRow.password, (err, match) => {
+            if (err) {
+                return res.status(500).json({ message: "Error al comparar la contraseña." });
+            }
+
+            if (!match) {
+                return res.status(400).json({ message: "Contraseña incorrecta." });
+            }
+
+            // Ahora que la contraseña es correcta, buscamos la ruta de la imagen asociada a la receta.
+            db.get(getRecipeImageQuery, [id_recipe], (err, row) => {
+                if (err) {
+                    return res.status(500).json({ message: "Error al obtener la imagen de la DB." });
+                }
+
+                if (!row || !row.image || row.image === "/assets/imagenDefault.webp") {
+                    // Si no hay imagen asociada, podemos proceder con la eliminación de la receta sin borrar la imagen.
+                    db.run(deleteQueryRecipeTable, [id_recipe], (err) => {
+                        if (err) {
+                            console.log("Error al intentar eliminar la receta:", err);
+                            return res.status(500).json({ message: "Error al intentar eliminar la receta." });
+                        }
+                        return res.status(200).json({ message: "Se eliminó correctamente la receta." });
+                    });
+                } else {
+                    console.log(row.image);
+                        const imagenPath = path.join('../', 'dist', row.image);  // row.image ya tiene la ruta completa
+                        const imagenRespaldo = path.join('../public', row.image);
+
+                    // Eliminar la imagen si existe
+                    if (fs.existsSync(imagenPath)) {
+                        fs.unlinkSync(imagenPath);
+                    } else {
+                        console.log("No se encontró la imagen en el sistema de archivos:", imagenPath);  // No se encontró la imagen
+                    }
+
+                    // Eliminar la receta de la base de datos
+                    db.run(deleteQueryRecipeTable, [id_recipe], (err) => {
+                        if (err) {
+                            console.log("Error al intentar eliminar la receta:", err);
+                            return res.status(500).json({ message: "Error al intentar eliminar la receta." });
+                        }
+                        return res.status(200).json({ message: "Se eliminó correctamente la receta y la imagen." });
+                    });
+                    }
+                }
+            )});
+        });
+    });
+
 
 
 
@@ -1191,7 +1327,6 @@ app.post('/api/receta-id', (req, res) => {
         });
     });
 });
-
 
 
 

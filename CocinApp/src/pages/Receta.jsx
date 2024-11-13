@@ -24,6 +24,8 @@ const Receta = () => {
         image: null,
     });  
     const [show, setShow] = useState(false);
+    const [imagenRecipe, setImagenRecipe] = useState(null);
+    const [cargandoReceta, setCargandoReceta] = useState(true);
 
     useEffect(() => {
         const llamadoInfoUsuario = async () => {
@@ -67,6 +69,7 @@ const Receta = () => {
                 const eliminarReceta = await axios.post("/api/eliminarReceta", {
                     contraseña,
                     id_recipe: id,
+                    username: localUsername,
                 });
                 if (eliminarReceta.status === 200){
                     window.alert(eliminarReceta.data.message);
@@ -105,22 +108,30 @@ const Receta = () => {
             const recetaData = response.data;
     
             // Convertimos los ingredientes, pasos y categorías
-            setReceta({
-                ...recetaData,
-                ingredients: recetaData.ingredients || [],
-                steps: recetaData.steps || [],
-                categories: recetaData.categories || []
-            });
+            if (response.status === 200){
+                setReceta({
+                    ...recetaData,
+                    ingredients: recetaData.ingredients || [],
+                    steps: recetaData.steps || [],
+                    categories: recetaData.categories || []
+                });
+    
+                setImagenRecipe(recetaData.image);
+                return (true);
+            }
         } catch (err) {
             console.error("Error al obtener la receta:", err);
         }
     };
     
-    
+    useEffect(()=>{
+        setCargandoReceta(false);
+    },[imagenRecipe])
     
     
     const actualizarReceta = async (e) => {
         e.preventDefault();
+
         try {
             const formDataToSend = new FormData();
             formDataToSend.append("username", localUsername);
@@ -140,9 +151,20 @@ const Receta = () => {
             }
     
             const response = await axios.put("/api/actualizarReceta", formDataToSend, { withCredentials: true });
+            let mensajeOK = "Se obtuvo la info";
+            let conseguido = 'successful';
+            // let advertencia = "warning";
     
             if (response.status === 200) {
                 showAlert(`Se actualizó ${formData.recipe_name}`, 'successful');
+                let info = obtenerReceta();
+
+                if (info){
+                    editRecipe();
+                    setInterval(showAlert(mensajeOK, conseguido));
+                } else {
+                    showAlert('no se obtuvo la info', 'warning');
+                }
             }
         } catch (err) {
             err.response?.data?.message
@@ -226,177 +248,179 @@ const Receta = () => {
 
     return (
         <div>
-            {show ? (
+            {cargandoReceta ? (
+                <div>
+                    <h1>Cargando Receta....</h1>
+                </div>
+            ) : show ? (
                 <div className="form-content">
-                <form id="formularioAgregarReceta" onSubmit={(e) => actualizarReceta(e)}>
-                    <label className="lbl-title-form" htmlFor="recipeName">Nombre de la Receta:</label>
-                    <input
-                        type="text"
-                        className="inptFormRecipeName"
-                        id="recipe_name"
-                        value={formData.recipe_name}
-                        onChange={handleInputChange}
-                        required
-                    />
-
-                    <label className='lbl-title-form' htmlFor="recipeImage">Imagen de receta:</label>
-                            <input
-                                id="fileInput" 
-                                type="file"
-                                name="recipeImage"
-                                onChange={handleFileChange}
-                                accept="image/*"
-                            />
-
-                    <label className='lbl-title-form' htmlFor="difficulty">Dificultad:</label>
-                    <select
-                        id="difficulty"
-                        className="selectRecipe"
-                        value={formData.difficulty}
-                        onChange={handleInputChange}
-                        required
-                    >
-                        <option value="">Dificultad</option>
-                        <option value="Fácil">Fácil</option>
-                        <option value="Medio">Medio</option>
-                        <option value="Difícil">Difícil</option>
-                    </select>
-
-                    <label className='lbl-title-form'>Categoría (máx. 4):</label>
-                    <div className="categorias">
-                        {["Entrada", "Sopa", "Caldo", "Ensalada", "Plato Principal", "Guarnición", "Postre", "Bebida", "Vegetariana", "Saludable"].map((category) => (
-                            <label key={category} className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.categories.includes(category)}
-                                    onChange={() => handleCheckboxChange(category)}
-                                />
-                                {category}
-                            </label>
-                        ))}
-                    </div>
-
-                    <label className='lbl-title-form' htmlFor="description">Descripción de la Receta:</label>
-                    <textarea
-                        id="description"
-                        className="textAreaDesc"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        required
-                    ></textarea>
-
-                    <label className='lbl-title-form'>Ingredientes:</label>
-                    {formData.ingredients.map((ingredient, index) => (
-                        <div key={index}>
-                            <div className="inpDel">
-                            <button type="button" className="btn-del" onClick={() => handleRemoveIngredient(index)}>
-                                    <img src={delIco}/>
-                            </button>
-                            <input
-                                className="inptFormRecipe"
-                                type="text"
-                                placeholder={`Ingrediente ${index + 1} (sin "," porfavor.)`}
-                                value={ingredient}
-                                pattern="[^,]*"
-                                onChange={(e) => handleIngredientChange(index, e)}
-                                required
-                            />
-                            </div>
-                        </div>
-                    ))}
-                    <button type="button" aria-label="Agregar Campo de Ingrediente" className="btn-add" onClick={addIngredient}>
-                        <img src={addIco} alt="Añadir Ingrediente" />
-                    </button>
-
-                    <label className='lbl-title-form'>Pasos para la elaboración:</label>
-                    {formData.steps.map((step, index) => (
-                        <div key={index}>
-                        <div className="inpDel">
-                        <button type="button"  className="btn-del" onClick={()=> handleRemoveStep(index)}>
-                                <img src={delIco}/>
-                        </button>
+                    <form id="formularioAgregarReceta" onSubmit={(e) => actualizarReceta(e)}>
+                        <label className="lbl-title-form" htmlFor="recipeName">Nombre de la Receta:</label>
                         <input
-                            className="inptFormRecipe"
                             type="text"
-                            placeholder={`Paso ${index + 1} (sin "," porfavor.)`}
-                            value={step}
-                            pattern="[^,]*"
-                            onChange={(e) => handleStepChange(index, e)}
+                            className="inptFormRecipeName"
+                            id="recipe_name"
+                            value={formData.recipe_name}
+                            onChange={handleInputChange}
                             required
                         />
+    
+                        <label className='lbl-title-form' htmlFor="recipeImage">Imagen de receta:</label>
+                        <input
+                            id="fileInput"
+                            type="file"
+                            name="recipeImage"
+                            onChange={handleFileChange}
+                            accept="image/*"
+                        />
+    
+                        <label className='lbl-title-form' htmlFor="difficulty">Dificultad:</label>
+                        <select
+                            id="difficulty"
+                            className="selectRecipe"
+                            value={formData.difficulty}
+                            onChange={handleInputChange}
+                            required
+                        >
+                            <option value="">Dificultad</option>
+                            <option value="Fácil">Fácil</option>
+                            <option value="Medio">Medio</option>
+                            <option value="Difícil">Difícil</option>
+                        </select>
+    
+                        <label className='lbl-title-form'>Categoría (máx. 4):</label>
+                        <div className="categorias">
+                            {["Entrada", "Sopa", "Caldo", "Ensalada", "Plato Principal", "Guarnición", "Postre", "Bebida", "Vegetariana", "Saludable"].map((category) => (
+                                <label key={category} className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.categories.includes(category)}
+                                        onChange={() => handleCheckboxChange(category)}
+                                    />
+                                    {category}
+                                </label>
+                            ))}
                         </div>
-                    </div>
-                    ))}
-                    <button type="button" aria-label="Agregar Campo de Paso" className="btn-add" onClick={addStep}>
-                        <img src={addIco} alt="Añadir Paso" />
-                    </button>
-
-                    <label className='lbl-title-form' htmlFor="tiempo">Tiempo de preparación:</label>
-                    <input
-                        type="text"
-                        id="tiempo"
-                        className="inptFormTiempo"
-                        value={formData.tiempo}
-                        onChange={handleInputChange}
-                        required
-                    />
-
-                    <button className="btnAdd" type="submit">Enviar</button>
-                </form>
+    
+                        <label className='lbl-title-form' htmlFor="description">Descripción de la Receta:</label>
+                        <textarea
+                            id="description"
+                            className="textAreaDesc"
+                            value={formData.description}
+                            onChange={handleInputChange}
+                            required
+                        ></textarea>
+    
+                        <label className='lbl-title-form'>Ingredientes:</label>
+                        {formData.ingredients.map((ingredient, index) => (
+                            <div key={index} className="inpDel">
+                                <button type="button" className="btn-del" onClick={() => handleRemoveIngredient(index)}>
+                                    <img src={delIco} alt="Eliminar"/>
+                                </button>
+                                <input
+                                    className="inptFormRecipe"
+                                    type="text"
+                                    placeholder={`Ingrediente ${index + 1} (sin "," por favor.)`}
+                                    value={ingredient}
+                                    pattern="[^,]*"
+                                    onChange={(e) => handleIngredientChange(index, e)}
+                                    required
+                                />
+                            </div>
+                        ))}
+                        <button type="button" aria-label="Agregar Campo de Ingrediente" className="btn-add" onClick={addIngredient}>
+                            <img src={addIco} alt="Añadir Ingrediente" />
+                        </button>
+    
+                        <label className='lbl-title-form'>Pasos para la elaboración:</label>
+                        {formData.steps.map((step, index) => (
+                            <div key={index} className="inpDel">
+                                <button type="button" className="btn-del" onClick={() => handleRemoveStep(index)}>
+                                    <img src={delIco} alt="Eliminar"/>
+                                </button>
+                                <input
+                                    className="inptFormRecipe"
+                                    type="text"
+                                    placeholder={`Paso ${index + 1} (sin "," por favor.)`}
+                                    value={step}
+                                    pattern="[^,]*"
+                                    onChange={(e) => handleStepChange(index, e)}
+                                    required
+                                />
+                            </div>
+                        ))}
+                        <button type="button" aria-label="Agregar Campo de Paso" className="btn-add" onClick={addStep}>
+                            <img src={addIco} alt="Añadir Paso" />
+                        </button>
+    
+                        <label className='lbl-title-form' htmlFor="tiempo">Tiempo de preparación:</label>
+                        <input
+                            type="text"
+                            id="tiempo"
+                            className="inptFormTiempo"
+                            value={formData.tiempo}
+                            onChange={handleInputChange}
+                            required
+                        />
+    
+                        <button className="btnAdd" type="submit">Enviar</button>
+                    </form>
                 </div>
             ) : (
                 <div className="content">
-                <div className="recipe">
-                <h2 className="recipe-title">{receta?.recipe_name}</h2>
-                <section className="recipe-img-cont frame-content">
-                    <img
-                        src={receta?.image || "https://placehold.co/600x400/000000/FFFFFF/png"}
-                        alt={receta?.recipe_name}
-                        className="recipe-img"
-                    />
-                </section>
-                <section className="recipe-ingredients-cont frame-content">
-                    <h3 className="subtitle">Ingredientes:</h3>
-                    <ul>
-                        {receta?.ingredients?.map((ingredient, index) => (
-                            <li key={index}>{ingredient}</li>
-                        ))}
-                    </ul>
-                </section>
-                <section className="recipe-data-cont frame-content">
-                    <h3 className="subtitle">Tiempo de preparacion:</h3>
-                    <p>{receta?.tiempo}</p>
-                    <h3 className="subtitle">Dificultad:</h3>
-                    <p>{receta?.difficulty}</p>
-                </section>
-                <section className="recipe-steps-cont frame-content">
-                    <h3 className="subtitle">Pasos:</h3>
-                    <ol>
-                        {receta?.steps?.map((step, index) => (
-                            <li className="recipe-step" key={index}>
-                                {step}
-                            </li>
-                        ))}
-                    </ol>
-                    <h3 className="subtitle">Descripción:</h3>
-                    <p className="pasos">{receta?.description}</p>
-                </section>
-                {showMessage && <p>Regístrese para poder dar like</p>}
-                <div className="btn_recipe">
-                    {localUsername === receta?.username ? (
-                        <div className="buttons">
-                        <button onClick={editRecipe}>EDITAR</button>
-                        <button onClick={deleteRecipe}>ELIMINAR</button>
-                        </div>
-                    ) : (
-                        <span>Aquí iría el botón de favoritos.</span>
-                    )}
+                    <div className="recipe">
+                        <h2 className="recipe-title">{receta?.recipe_name}</h2>
+                        <section className="recipe-img-cont frame-content">
+                            <img
+                                src={imagenRecipe}
+                                alt={receta?.recipe_name}
+                                className="recipe-img"
+                            />
+                        </section>
+                        <section className="recipe-ingredients-cont frame-content">
+                            <h3 className="subtitle">Ingredientes:</h3>
+                            <ul className="ingredientesReceta">
+                                {receta?.ingredients?.map((ingredient, index) => (
+                                    <li className="recipe-ingredient" key={index}>
+                                        {ingredient}
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                        <section className="recipe-data-cont frame-content">
+                            <h3 className="subtitle">Tiempo de preparación:</h3>
+                            <p>{receta?.tiempo}</p>
+                            <h3 className="subtitle">Dificultad:</h3>
+                            <p>{receta?.difficulty}</p>
+                        </section>
+                        <section className="recipe-steps-cont frame-content">
+                            <h3 className="subtitle">Pasos:</h3>
+                            <ol className="pasosReceta">
+                                {receta?.steps?.map((step, index) => (
+                                    <li className="recipe-step" key={index}>
+                                        {step}
+                                    </li>
+                                ))}
+                            </ol>
+                            <div className="contenedorDescripcion">
+                                <h3 className="subtitle">Descripción:</h3>
+                                <p className="pasos">{receta?.description}</p>
+                            </div>
+                        </section>
+                        {showMessage && <p>Regístrese para poder dar like</p>}
+                        {localUsername === receta?.username && (
+                            <div className="btn_recipe">
+                                <div className="buttons">
+                                    <button className="btn_author-recipe" onClick={editRecipe}>EDITAR</button>
+                                    <button className="btn_author-recipe" onClick={deleteRecipe}>ELIMINAR</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-        </div>
             )}
         </div>
     );
-};
+}
 
 export default Receta;

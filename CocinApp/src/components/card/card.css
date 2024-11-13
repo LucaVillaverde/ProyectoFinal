@@ -15,14 +15,14 @@
     background-color: var(--secondary-color);
     border-radius: 8px;
     box-shadow: 0 4px 6px #0009;
-    min-height: 475px;
+    min-height: 446px;
 }
 .card-content-image {
     width: 100%;
 }
 .card-image {
     width: 100%;
-    max-height: 180px;
+    max-height: 160px;
     border-radius: 8px 8px 0 0;
 }
 
@@ -35,6 +35,7 @@
     background-color: #ffffff94;
     box-shadow: 0 0 5px #0009;
     min-height: 250px;
+    border-radius: 5px;
 }
 
 .title-card {
@@ -57,13 +58,21 @@
 
 @media (min-width: 375px) {
     .card{
-        min-height: 515px;
+        min-height: 473px;
+    }
+
+    .card-image{
+        max-height: 180px;
     }
 }
 
 @media (min-width: 425px) {
     .card{
-        min-height: 540px;
+        min-height: 490px;
+    }
+
+    .card-image{
+        min-height: 200px;
     }
 }
 
@@ -86,9 +95,14 @@
     /* Tarjetas */
     .card { 
         max-width: 320px; 
-        min-height: 500px;
+        min-height: 494px;
         max-height: 540px;  
     }
+
+    .card-image{
+        max-height: 175px;
+    }
+
     .card-content {
         min-height: 260px;
         max-height: 265px;
@@ -118,7 +132,7 @@
 
     .card {
         max-width: 340px;
-        min-height: 462px;
+        min-height: 450px;
         max-height: 462px
     }
 
@@ -143,7 +157,6 @@
     }
     .card{
         max-width: 350px;
-        min-height: 467px;
         max-height: 500px;
     }
     .card-subtitle{
@@ -157,7 +170,7 @@
     }
     .card{
         max-width: 325px;
-        min-height: 468px;
+        min-height: 460px;
         height: auto;
         max-height: 488px;
         margin: 15px 0;
