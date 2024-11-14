@@ -27,17 +27,25 @@ export const Message = ({ message, type}) => {
 };
 
 
-export const ConfirmPromp = ({ close }) => {
-    const { setPassword, closeConfirm } = useAlert();
+export const ConfirmPromp = () => {
+    const [input,setInput] =useState();
+    const { setPassword,closeConfirm, handleConfirm } = useAlert();
+
 
     const handlePasswordChange = (e) => {
-        setPassword(e.target.value); // Actualiza directamente el contexto con el valor del input
+        setInput(e.target.value); // Actualiza directamente el contexto con el valor del input
     };
+    
+    const handleClick = ()=>{
+        setPassword(input);
+        handleConfirm();
+    }
+
 
     return (
         <div className='promp-alert'>
             <div className="promp-alert-header">
-                <button className='header-close' onClick={close}>X</button>
+                <button className='header-close' onClick={closeConfirm}>X</button>
             </div>
             <h3>Confirme contraseña para borrar.</h3>
             <div className='promp-alert-inputCont'>
@@ -51,9 +59,7 @@ export const ConfirmPromp = ({ close }) => {
             <div className="promp-alert-confirm">
                 <button
                     className='promp-alert-confirm'
-                    onClick={() => {
-                        closeConfirm(); // Cierra el diálogo sin ninguna acción adicional
-                    }}
+                    onClick={handleClick}
                 >
                     Borrar
                 </button>

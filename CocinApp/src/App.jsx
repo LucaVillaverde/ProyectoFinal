@@ -18,6 +18,7 @@ import Page404 from "./pages/404";
 import GestioRecetas from "./pages/GestionarRecetas";
 // Otros
 import "./css/app.css";
+import 'animate.css/animate.min.css';
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {

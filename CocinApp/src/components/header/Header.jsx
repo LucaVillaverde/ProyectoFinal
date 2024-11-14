@@ -7,10 +7,12 @@ import logoPerfilM from "../../assets/LogoPerfilMovil.jpg";
 import logoPerfilP from "../../assets/LogoPerfilPC.jpg";
 import menuIcon from "../../assets/menuUser.svg";
 import menuHamburguesa from "../../assets/btn_burgerIcon.png";
+import { useAlert } from "../../context/messageContext";
 
 const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
     const [visible, setMenuVisible] = useState(false);
     const [movil, setMovil] = useState(true);
+    const {showConfirm} = useAlert();
 
     const links = [
         { href: "/", label: "INICIO" },
@@ -29,8 +31,6 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                 setMovil(true);
             }
         };
-        console.log(movil)
-
         verificarAncho();
         window.addEventListener("resize", verificarAncho);
 
@@ -57,9 +57,8 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
         }
     };
 
-    const deleteUser = async (e) => {
-        e.preventDefault();
-        const contraUser = prompt("Confirme su contraseña");
+    const deleteUser = async (contraUser) => {
+        // const contraUser = prompt("Confirme su contraseña");
 
         if (contraUser) {
             const confirmacion = window.confirm("¿Estás seguro de borrar tu cuenta?");
@@ -144,7 +143,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                         <UserMenu
                             username={localUsername}
                             logout={logout}
-                            del_profile={deleteUser}
+                            del_profile={()=>showConfirm(deleteUser)}
                         />
                     ) : (
                         <div className="btn_user-move">
