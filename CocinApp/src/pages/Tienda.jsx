@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import "../css/tienda.css";
-// import image_soon from "../assets/PaginaEnConstruccion.png";
 import Product from "../components/Product/Product";
 import carritoImg from "../assets/carrito.svg";
 
@@ -84,17 +83,17 @@ const Tienda = () => {
   const Datos = [
     {
       id: 21,
-      nombre: "Fefo",
+      nombre: "Crock-Pot Olla de cocción lenta manual",
       imagen: "Posible imagen",
       precio: 390,
-      descripcion: "El Fefo, que mas queres?",
+      descripcion: "Nuestra olla de cocción lenta: sabor sin esfuerzo. ¡Elige la temperatura y listo!",
     },
     {
       id: 22,
-      nombre: "Luca",
+      nombre: "Tostadora CocinApp Deluxe",
       imagen: "Posible imagen",
       precio: 330,
-      descripcion: "El Luca, que mas queres?",
+      descripcion: "Una tostadora de alta calidad que te brindara unas tostadas crocantes.",
     },
     {
       id: 23,
@@ -215,7 +214,7 @@ const Tienda = () => {
             key={id}
             id={id}
             nombre={nombre}
-            imagen={imagen}
+            imagen={"../src/assets/Olla_Express_PNG.png"}
             precio={precio}
             descripcion={descripcion}
             agregarAlCarrito={agregarAlCarrito}

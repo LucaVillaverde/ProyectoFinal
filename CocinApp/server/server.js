@@ -976,7 +976,7 @@ const resizeImage = (req, res, next) => {
                         // Convertimos a webp y redimensionamos si no es webp
                         await sharp(imagen.buffer)
                             .resize(targetWidth, targetHeight)
-                            .webp({ quality: 80 })
+                            .webp({ quality: 70 })
                             .toFile(outputPath)
                     }
                     

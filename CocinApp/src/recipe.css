@@ -140,7 +140,11 @@
     width: 90%;
     text-align: start;
     word-wrap: break-word;
-    /* max-width: 250px; */
+  }
+
+  .contenedorDescripcion{
+    width: 100%;
+    word-wrap: break-word;
   }
   
   @keyframes ripple {
@@ -162,20 +166,12 @@
   .frame-content{
     max-width: 350px;
   }
-
-  /* .ingredientesReceta, .pasosReceta{
-    max-width: 272px;
-  } */
 }
 
 @media (min-width: 425px){
   .frame-content{
     max-width: 400px;
   }
-
-  /* .ingredientesReceta, .pasosReceta{
-    max-width: 320px;
-  } */
 }
 
 @media (min-width:768px) {
@@ -185,7 +181,6 @@
   .btn_recipe{
     width: 90%;
   }
-
 }
 
 @media (min-width: 1024px) {

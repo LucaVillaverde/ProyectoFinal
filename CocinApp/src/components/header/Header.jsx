@@ -5,11 +5,12 @@ import "./header.css";
 import logoimg from "../../assets/logo1.png";
 import logoPerfilM from "../../assets/LogoPerfilMovil.jpg";
 import logoPerfilP from "../../assets/LogoPerfilPC.jpg";
+import menuIcon from "../../assets/menuUser.svg";
 import menuHamburguesa from "../../assets/btn_burgerIcon.png";
 
 const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
     const [visible, setMenuVisible] = useState(false);
-    const [movil, setMovil] = useState(null);
+    const [movil, setMovil] = useState(true);
 
     const links = [
         { href: "/", label: "INICIO" },
@@ -28,6 +29,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                 setMovil(true);
             }
         };
+        console.log(movil)
 
         verificarAncho();
         window.addEventListener("resize", verificarAncho);
@@ -35,7 +37,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
         return () => {
             window.removeEventListener("resize", verificarAncho);
         };
-    }, []); // Evitar agregar `movil` aquí
+    }, [movil]); 
 
     const logout = async (e) => {
         e.preventDefault();
@@ -90,14 +92,14 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
             <div className="nav-user">
                 <div className="seccion">
                     {isLoggedIn ? (
-                        <UserMenu
-                            username={localUsername}
-                            logout={logout}
-                            del_profile={deleteUser}
-                            movil={movil}
-                        />
+                            <UserMenu
+                                username={localUsername}
+                                logout={logout}
+                                del_profile={deleteUser}
+                                movil={movil}
+                            />
                     ) : (
-                        <button className="btn_user" onClick={() => showForm("login")}>
+                        <button className="btn_user animate_animated animate__pulse" onClick={() => showForm("login")}>
                             INGRESO / REGISTRO
                         </button>
                     )}
@@ -113,7 +115,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                         </p>
                     </div>
                     <a href="/">
-                        <img className="logo_img" src={logoimg} alt="LOGO" />
+                        <img className="logo_img animate__animated animate__rubberBand" src={logoimg} alt="LOGO" />
                     </a>
                     <div id="menu" className={`hamburger-menu ${visible ? "" : "rotate"}`} onClick={showMenu}>
                         <img src={menuHamburguesa} alt="Menu hamburguesa" />
@@ -121,7 +123,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                 </div>
                 <nav className={`links ${visible ? "" : "menuClose"}`}>
                     {links.map((link, index) => (
-                        <a key={index} href={link.href} className="link">
+                        <a key={index} href={link.href} className="link ">
                             {link.label}
                         </a>
                     ))}
@@ -133,10 +135,10 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
             <div className="header_content">
                 <div className="header-l">
                     <a href="/" id="logoContainer">
-                        <img className="logo_img" src={logoimg} alt="LOGO" />
+                        <img className="logo_img animate__animated animate__backInLeft" src={logoimg} alt="LOGO" />
                     </a>
                     <div className="containerEslogan">
-                        <p className="eslogan">Tus recetas simplificadas</p>
+                        <p className="eslogan animate__animated animate__backInRight">Tus recetas simplificadas</p>
                     </div>
                     {isLoggedIn ? (
                         <UserMenu
@@ -199,6 +201,12 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                                     src={logoPerfilM}
                                     alt="avatar"
                                 />
+                                <img
+                                    src={menuIcon}
+                                    id="menuIcon"
+                                    className='animate__animated animate__shakeY'
+                                    alt="Desplegar menu usuario."
+                                />
                             </button>
                             {isOpen && (
                                 <div className="menu-content">
@@ -230,7 +238,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
             ) : (
                 <div className="menu-container-move">
                         <div className="menu-container" onClick={closeMenu}>
-                            <div className="menu">
+                            <div className="menu ">
                                 <button
                                     className="menu-button"
                                     onClick={toggleMenu}
@@ -239,6 +247,11 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                                         className="btn_user-avatar"
                                         src={logoPerfilP}
                                         alt="avatar"
+                                    />
+                                    <img
+                                        src={menuIcon}
+                                        id="menuIcon"
+                                        alt="Desplegar menu usuario."
                                     />
                                 </button>
                                 {isOpen && (

@@ -1,9 +1,10 @@
 import React from "react";
 import "./card.css";
 
+
 const SimpleCard = ({ tiempo, image, title, author, dificulty, category }) => {
     return (
-            <>
+            <div className='animate__animated'>
                 <div className="card-content-image">
                     <img src={image} width={"1280px"} height={"720px"} alt={title} className="card-image" />
                 </div>
@@ -26,7 +27,7 @@ const SimpleCard = ({ tiempo, image, title, author, dificulty, category }) => {
                         {tiempo}
                     </p>
                 </div>
-            </>
+            </div>
     );
 };
 

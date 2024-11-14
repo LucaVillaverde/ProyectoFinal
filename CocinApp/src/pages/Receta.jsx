@@ -4,6 +4,10 @@ import axios from "axios";
 import "../recipe.css";
 import addIco from '../assets/add.svg';
 import delIco from '../assets/del.svg';
+import editIco from '../assets/edit.svg';
+import delRecipe from '../assets/delRecipe.svg';
+import imgUpload from '../assets/imgUpl.svg';
+import sendIco from '../assets/send.svg';
 import { useAlert } from '../context/messageContext';
 import "../css/form.css";
 
@@ -264,15 +268,11 @@ const Receta = () => {
                             onChange={handleInputChange}
                             required
                         />
-    
-                        <label className='lbl-title-form' htmlFor="recipeImage">Imagen de receta:</label>
-                        <input
-                            id="fileInput"
-                            type="file"
-                            name="recipeImage"
-                            onChange={handleFileChange}
-                            accept="image/*"
-                        />
+
+                        <div className="containerImgDiff">
+                        <h3 className="lbl-title-form">Subir Imagen:</h3>
+                        <label className='lbl-title-form' id="fileButton" htmlFor="fileInput"><img src={imgUpload} alt="Subir Imagen portada de la receta"/></label>
+                        <input id="fileInput" style={{display: "none"}} type="file" name="recipeImage" onChange={handleFileChange} accept="image/*"></input>
     
                         <label className='lbl-title-form' htmlFor="difficulty">Dificultad:</label>
                         <select
@@ -287,7 +287,8 @@ const Receta = () => {
                             <option value="Medio">Medio</option>
                             <option value="Difícil">Difícil</option>
                         </select>
-    
+                        </div>
+
                         <label className='lbl-title-form'>Categoría (máx. 4):</label>
                         <div className="categorias">
                             {["Entrada", "Sopa", "Caldo", "Ensalada", "Plato Principal", "Guarnición", "Postre", "Bebida", "Vegetariana", "Saludable"].map((category) => (
@@ -301,7 +302,7 @@ const Receta = () => {
                                 </label>
                             ))}
                         </div>
-    
+                       
                         <label className='lbl-title-form' htmlFor="description">Descripción de la Receta:</label>
                         <textarea
                             id="description"
@@ -363,7 +364,7 @@ const Receta = () => {
                             required
                         />
     
-                        <button className="btnAdd" type="submit">Enviar</button>
+                        <button className="btnAdd" type="submit"><img src={sendIco}></img></button>
                     </form>
                 </div>
             ) : (
@@ -404,15 +405,19 @@ const Receta = () => {
                             </ol>
                             <div className="contenedorDescripcion">
                                 <h3 className="subtitle">Descripción:</h3>
-                                <p className="pasos">{receta?.description}</p>
+                                <p className="descripcion">{receta?.description}</p>
                             </div>
                         </section>
                         {showMessage && <p>Regístrese para poder dar like</p>}
                         {localUsername === receta?.username && (
                             <div className="btn_recipe">
                                 <div className="buttons">
-                                    <button className="btn_author-recipe" onClick={editRecipe}>EDITAR</button>
-                                    <button className="btn_author-recipe" onClick={deleteRecipe}>ELIMINAR</button>
+                                    <button className="btn_author-recipe" onClick={editRecipe}>
+                                        <img src={editIco} alt="Editar Receta" />
+                                    </button>
+                                    <button className="btn_author-recipe" onClick={deleteRecipe}>
+                                        <img src={delRecipe} alt="Eliminar Receta"/>
+                                    </button>
                                 </div>
                             </div>
                         )}

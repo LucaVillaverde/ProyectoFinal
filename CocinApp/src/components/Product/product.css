@@ -1,105 +1,103 @@
-.product{
-    width: 95%;
+/* From Uiverse.io by alexruix */ 
+.product-card {
+    width: 270px;
     height: auto;
-    overflow: hidden;
-    border-radius: 7px;
-    margin: 20px auto;
-    background-color: var(--secondary-color);
-    color: var(--fourth-color);
-    border: 5px solid #6c6c6c;
-    display: grid;
-    margin: 10px;
-}
-.product-titulo{
-    margin: 0;
+    border-radius: 20px;
+    background: var(--secondary-color);
+    position: relative;
+    padding: 1.8rem;
+    /* border: 2px solid #c3c6ce; */
+    transition: 0.5s ease-out;
+    box-shadow: 0px 0px 10px var(--fourth-color);
+    overflow: visible;
+   }
+   
+   .product-card-img{
+    width: 100%;
+   }
+
+
+   .product-card-details {
     color: black;
-}
-
-#frase{font-size: 25px;}
-.carritoCantidad{
-    font-size: 12px;
-    float: right;
-}
-
-.cont{
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-    height: 200px;
-    border-bottom: 5px solid var(--fourth-color);
-    justify-content: center;
-}
-.cont p{
-    margin: 0;
-    height: 15%;
-}
-.imagenProducto{
-    width: 100%;
-    height: 85%;
-    /* border-radius: 18px 0 0 18px ; */
-}
-.contenidoProducto{
-    width: 100%;
-    height: auto;
-
-}
-.descripcion{
-    height: 100%;
-    padding: 0 15px;
-}
-.descripcion p{
-    margin: 0;
-    font-size: 22px;
-    text-align: justify;
-}
-
-.btnProducto{
-    background-color: var(--primary-color);
+    gap: 20px;
+    display: grid;
+    justify-items: center;
+    align-content: space-between;
+    place-content: center;
+   }
+   
+   .product-card-button {
+    transform: translate(-50%, 125%);
+    width: 60%;
+    border-radius: 1rem;
     border: none;
-}
-.btnProducto:hover{
-    background-color: var(--third-color);
-    cursor: pointer;
-}
-.contenedorProductos{
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    background-color: var(--primary-color);
+    color: #fff;
+    font-size: 1rem;
+    padding: .5rem 1rem;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    opacity: 0;
+    box-shadow: 0px 0px 20px #000000b1;
+    transition: 0.3s ease-out;
+   }
+   
+   .text-body {
+    width: 100%;
+    height: 54px;
+    margin: 0;
+    color: #000;
+    word-wrap: break-word;
+   }
+   
+.card-price{
+    font-weight: bold;
+    text-align: center;
 }
 
 
-@media (min-width: 350px){
-    .product{
-        width: 80%;
-        height: 400px;
+   /*Text*/
+   .text-title {
+    margin: 0;
+    margin-bottom: 10%;
+    font-size: 1.5em;
+    text-align: center;
+    font-weight: bold;
+    height: 84px;
+   }
+   
+   /*Hover*/
+   .product-card:hover {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0px 50px 0 var(--primary-color);
+   }
+   
+   .product-card:hover .product-card-button {
+    transform: translate(-50%, 50%);
+    opacity: 1;
+    }
+
+
+@media (min-width: 375px){
+    .product-card {
+        width: 320px;
     }
 }
 
 @media (min-width: 425px){
-    .contenedorProductos{
-        display: grid;
-        grid-template-columns: 400px;
-        justify-items: center;
-    }
-    .product{
-        width: 75%;
+    .product-card{
+        width: 330px;
     }
 }
 
 @media (min-width: 600px){
-    .contenedorProductos{
-        grid-template-columns: 450px;
-    }
-    .product{
-        height: 450px;
+    .product-card {
+        width: 235px;
     }
 }
 
 @media (min-width: 768px){
-    .contenedorProductos{
-        clear: both;
-        display: flex;
-    }
     .cont{
         width: 22%;
         height: 100%;
@@ -121,6 +119,10 @@
     .descripcion p{
         font-size: 18px;
     }
+
+    .product-card {
+        width: 270px;
+    }
 }
 
 @media (min-width: 1024px){
@@ -137,29 +139,21 @@
     }
 }
 
-@media (min-width: 1440px){
-    .contenedorProductos{
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 60px;
-    }
-    
-    .product{
-        width: 90%;
-        height: 100%;
-    }
-
-    .cont{
-        width: 20%;
+@media (min-width: 1432px){
+    .product-card{
+        width: 260px;
     }
 }
 
-@media (min-width: 1600px){
 
-    .contenedorProductos{
-        gap: 70px;
+@media (min-width: 1592px){
+    .product-card{
+        width: 250px;
     }
-    .cont{
-        width: 17%;
+}
+
+@media (min-width: 1920px){
+    .product-card{
+        width: 270px;
     }
 }

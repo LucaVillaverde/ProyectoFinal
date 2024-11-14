@@ -1,9 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./product.css";
 import cartAdd from '../../assets/addcart.svg';
 
 
-const Producto = ({ nombre, imagen, precio, id, agregarAlCarrito, descripcion }) => {
+const Producto = ({ nombre, imagen, precio, id, agregarAlCarrito, descripcion}) => {
+  const [movil, setMovil] = useState();
+
+  useEffect(() => {
+    const determinarAncho = (ancho) => (ancho > 720 ? 1 : 0);
+
+    const verificarAncho = () => {
+        const anchoBoolean = determinarAncho(window.innerWidth);
+        if (anchoBoolean === 1) {
+            setMovil(false);
+        } else {
+            setMovil(true);
+        }
+    };
+
+    verificarAncho();
+    window.addEventListener("resize", verificarAncho);
+
+    return () => {
+        window.removeEventListener("resize", verificarAncho);
+    };
+}, []); 
+
   const agregarProducto = () => {
     localProductos()
     const nuevoProducto = { id, nombre, precio, imagen, descripcion };
@@ -36,30 +58,14 @@ function localProductos() {
 
 
   return (
-    <div className="product">
-      <div className="cont">
-        <img
-          src="https://placehold.co/100x100/000000/FFFFFF/png"
-          alt={imagen}
-          className="imagenProducto"
-        />
-        <p>Precio: ${precio}</p>
+    <div class="product-card">
+        <h2 class="text-title ">{nombre}</h2>
+      <div class="product-card-details">
+        <img src={imagen} width={'80px'} className="product-card-img" />
+        <p class="text-body">{descripcion}</p>
+        <p class="card-price">US${precio}</p>
       </div>
-      <div className="contenidoProducto">
-        <h2 className='producto-titulo'>{nombre}</h2>
-        <div className="descripcion">
-          <p>
-            {descripcion}
-          </p>
-        </div>
-      </div>
-      <button onClick={agregarProducto} className="btnProducto">
-        <img
-          src={cartAdd}
-          className='cartShopping'
-          alt="Carrito de compras para sumar"
-        />
-      </button>
+      <button class="product-card-button" onClick={agregarProducto}>Comprar</button>
     </div>
   );
 };
