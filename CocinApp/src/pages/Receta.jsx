@@ -70,8 +70,7 @@ const Receta = () => {
         const miDominio = window.location.origin;
 
         if(contraseña || contraseña.length === 0){
-            // const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
-            const confirmacion = showConfirm2('PRUEBA SI - NO');
+            const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
             if (confirmacion){
                 try{
                     const eliminarReceta = await axios.post("/api/eliminarReceta", {
@@ -388,6 +387,28 @@ const Receta = () => {
                                 className="recipe-img"
                             />
                         </section>
+                        <section className="recipe-steps-cont frame-content">
+                    
+                            <div className="contenedorDescripcion">
+                                <h3 className="subtitle">Categoria/s:</h3>
+                                <ul className="ingredientesReceta">
+                                {receta?.categories?.map((category, index) => (
+                                    <li className="recipe-ingredient" key={index}>
+                                        {category}
+                                    </li>
+                                ))}
+                            </ul>
+                                <h3 className="subtitle">Descripción:</h3>
+                                <p className="descripcion">{receta?.description}</p>
+                            </div>
+                        </section>
+                        <section className="recipe-data-cont frame-content">
+                            <h3 className="subtitle">Tiempo de preparación:</h3>
+                            <p>{receta?.tiempo}</p>
+                            <h3 className="subtitle">Dificultad:</h3>
+                            <p>{receta?.difficulty}</p>
+                        </section>
+
                         <section className="recipe-ingredients-cont frame-content">
                             <h3 className="subtitle">Ingredientes:</h3>
                             <ul className="ingredientesReceta">
@@ -397,14 +418,6 @@ const Receta = () => {
                                     </li>
                                 ))}
                             </ul>
-                        </section>
-                        <section className="recipe-data-cont frame-content">
-                            <h3 className="subtitle">Tiempo de preparación:</h3>
-                            <p>{receta?.tiempo}</p>
-                            <h3 className="subtitle">Dificultad:</h3>
-                            <p>{receta?.difficulty}</p>
-                        </section>
-                        <section className="recipe-steps-cont frame-content">
                             <h3 className="subtitle">Pasos:</h3>
                             <ol className="pasosReceta">
                                 {receta?.steps?.map((step, index) => (
@@ -413,11 +426,8 @@ const Receta = () => {
                                     </li>
                                 ))}
                             </ol>
-                            <div className="contenedorDescripcion">
-                                <h3 className="subtitle">Descripción:</h3>
-                                <p className="descripcion">{receta?.description}</p>
-                            </div>
                         </section>
+                        
                         {showMessage && <p>Regístrese para poder dar like</p>}
                         {localUsername === receta?.username && (
                             <div className="btn_recipe">

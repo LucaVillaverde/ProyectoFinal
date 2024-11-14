@@ -73,19 +73,21 @@
     align-items: center;
     width: 70%;
     height: 60%;
-    background-color: rgb(61, 61, 61);
+    color: var(--fourth-color);
+    border-radius: 20px 50px;
+    background-color: var(--secondary-color);
   }
   
   .btncomprar{
     width: 70%;
     height: 40px;
-    background-color: green;
+    background-color: var(--primary-color);
     border: none;
     box-shadow: 0 0 50px rgb(39, 80, 0);
     margin-bottom: 10%;
     transition: box-shadow 1.1s;
   }
-  .btncomprar:hover{box-shadow: 0 0 50px rgb(82, 168, 2);}
+  .btncomprar:hover{box-shadow: 0 0 50px rgb(168, 115, 2);}
 
 /*------------MEDIA QUERIES------------*/
 

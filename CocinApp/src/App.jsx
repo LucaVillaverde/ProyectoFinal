@@ -26,17 +26,11 @@ function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
-    const [isAuthenticated, setIsAuthenticated] = useState(null)
-    const primerRenderizado = useRef(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(null);
     const { alert, confirm, check } = useAlert();
 
 
-    useEffect(() => {
-        if (primerRenderizado.current) {
-          primerRenderizado.current = false;
-          return;
-        }
-    
+    useEffect(() => {    
         const checkAuth = async () => {
           try {
             const response = await axios.get("/api/protection");

@@ -17,6 +17,11 @@
 }
 
 
+
+.frame-content p {
+  margin-left: 30px;
+}
+
 .recipe-img-cont{
       text-align: center;
 }

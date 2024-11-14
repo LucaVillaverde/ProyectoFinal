@@ -214,7 +214,7 @@ const Tienda = () => {
             key={id}
             id={id}
             nombre={nombre}
-            imagen={"../src/assets/Olla_Express_PNG.png"}
+            imagen={"../assets/Olla_Express_PNG.png"}
             precio={precio}
             descripcion={descripcion}
             agregarAlCarrito={agregarAlCarrito}

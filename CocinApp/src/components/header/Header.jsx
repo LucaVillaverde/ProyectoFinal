@@ -41,6 +41,8 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
 
     const logout = async (e) => {
         e.preventDefault();
+        const referrer = document.referrer;
+        const miDominio = window.location.origin;
         try {
             const response = await axios.post(`/api/logout`);
             if (response.status === 200) {
@@ -48,12 +50,20 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                     {}
                 );
                 if (cookieDelete.status === 200){
-                    location.reload();
+                    if (referrer.startsWith(miDominio)){
+                        window.location.replace(referrer);
+                    }else{
+                        window.location.replace(`/`);
+                    }
                 }
             }
         } catch (err){
             console.error(err);
-            location.reload();
+            if (referrer.startsWith(miDominio)){
+                window.location.replace(referrer);
+            }else{
+                window.location.replace(`/`);
+            }
         }
     };
 
