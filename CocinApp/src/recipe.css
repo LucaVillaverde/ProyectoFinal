@@ -26,6 +26,11 @@
     border-radius: 8%;
 }
 
+.imgDiff{
+  width: 100%;
+  justify-self: self-start;
+}
+
 .subtitle{
     text-decoration: underline;
 }

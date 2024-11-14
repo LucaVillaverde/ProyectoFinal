@@ -63,6 +63,7 @@
     position: fixed;
     z-index: 3;
     left: 50%; 
+    top: 5%;
     transform: translateX(-50%);
     padding: 15px;
     background-color: var(--secondary-color);
@@ -91,11 +92,15 @@
     
 
 }
+
+.promp-alert > h3{text-align: center;}
+
 .promp-alert-confirm{
     width: 55%;
     height: 25px;
     background-color: var(--primary-color);
     border: none;
+    text-align: center;
     box-shadow: 1px 2px 0.8px #d17d00e3;
     font-weight: bold;
 }
@@ -107,3 +112,6 @@
 .promp-alert-confirm:hover{
     box-shadow: 1px 2px 0.8px #fc9701d3;
 }
+
+
+/*/  Confirmacion Yes / No  /*/

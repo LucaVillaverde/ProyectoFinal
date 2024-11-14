@@ -29,7 +29,7 @@ export const Message = ({ message, type}) => {
 
 export const ConfirmPromp = () => {
     const [input,setInput] =useState();
-    const { setPassword,closeConfirm, handleConfirm } = useAlert();
+    const {closeConfirm, handleConfirm } = useAlert();
 
 
     const handlePasswordChange = (e) => {
@@ -37,8 +37,7 @@ export const ConfirmPromp = () => {
     };
     
     const handleClick = ()=>{
-        setPassword(input);
-        handleConfirm();
+        handleConfirm(input);
     }
 
 
@@ -56,7 +55,7 @@ export const ConfirmPromp = () => {
                     placeholder="Ingrese su contraseña"
                 />
             </div>
-            <div className="promp-alert-confirm">
+            <div className="promp-alert-confirmCont">
                 <button
                     className='promp-alert-confirm'
                     onClick={handleClick}
@@ -67,6 +66,39 @@ export const ConfirmPromp = () => {
         </div>
     );
 };
+
+export const Confirm = () => {
+    const { Confirm, closeConfirm } = useAlert(); // Asegúrate de incluir closeConfirm
+    const [confirmValue, setConfirmValue] = useState('');
+
+    const handleClick = (value) => {
+        setConfirmValue(value);
+        Confirm(value); // Llama a la función Confirm con el valor proporcionado
+    }
+
+    return (
+        <div className='promp-alert'>
+            <div className="promp-alert-header">
+                <button className='header-close' onClick={closeConfirm}>X</button>
+            </div>
+            <p>{mensaje}</p>
+            <div className="promp-alert-confirmCont">
+                <button
+                    className='promp-alert-confirm'
+                    onClick={() => handleClick(true)}
+                >
+                    Aceptar
+                </button>
+                <button
+                    className='promp-alert-confirm'
+                    onClick={() => handleClick(false)}
+                >
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    );
+}
 
 
 

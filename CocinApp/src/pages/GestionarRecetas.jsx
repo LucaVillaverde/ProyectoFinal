@@ -7,6 +7,10 @@ import "../css/form.css";
 import img404 from '../assets/image_404.png';
 import addIco from '../assets/add.svg';
 import delIco from '../assets/del.svg';
+import editIco from '../assets/edit.svg';
+import delRecipeIco from '../assets/delRecipe.svg';
+import imgUpload from '../assets/imgUpl.svg';
+import sendIco from '../assets/send.svg';
 const useDebounce = (callback, delay) => {
     const timerRef = React.useRef();
 
@@ -54,29 +58,26 @@ const AddForm = memo(({
             required
         />
 
-        <label className='lbl-title-form' htmlFor="image">Imagen de receta:</label>
-        <input
-            id="fileInput" 
-            type="file"
-            name="image"
-            onChange={handleFileChange}
-            accept="image/*"
-        />
+        <div className="containerImgDiff">
+            <h3 className="lbl-title-form imgDiff">Subir Imagen:</h3>
+            <label className='lbl-title-form' id="fileButton" htmlFor="fileInput"><img src={imgUpload} alt="Subir Imagen portada de la receta"/></label>
+            <input id="fileInput" style={{display: "none"}} type="file" name="recipeImage" onChange={handleFileChange} accept="image/*"></input>
 
-        <label className='lbl-title-form' htmlFor="difficulty">Dificultad:</label>
-        <select
-            name="recipeDiff"
-            className="selectRecipe"
-            id="difficulty"
-            value={formData.difficulty}
-            onChange={handleInputChange}
-            required
-        >
-            <option value="">Dificultad</option>
-            <option value="Fácil">Fácil</option>
-            <option value="Medio">Medio</option>
-            <option value="Difícil">Difícil</option>
-        </select>
+            <label className='lbl-title-form imgDiff' htmlFor="difficulty">Dificultad:</label>
+            <select
+                name="recipeDiff"
+                className="selectRecipe"
+                id="difficulty"
+                value={formData.difficulty}
+                onChange={handleInputChange}
+                required
+            >
+                <option value="">Dificultad</option>
+                <option value="Fácil">Fácil</option>
+                <option value="Medio">Medio</option>
+                <option value="Difícil">Difícil</option>
+            </select>
+        </div>
 
         <label className='lbl-title-form'>Categoría (máx. 4):</label>
         <div className="categorias">
@@ -162,9 +163,7 @@ const AddForm = memo(({
             required
         />
 
-        <button className="btnAdd" type="submit">
-            Enviar
-        </button>
+        <button className="btnSend" type="submit"><img src={sendIco}></img></button>
     </form>
 ));
 
@@ -248,7 +247,6 @@ const GestioRecetas = ({ nombreUsuario }) => {
         if (formData.steps.length < 12) {
             setFormData(prevData => {
                 const updatedSteps = [...prevData.steps, ""];
-                console.log("Pasos actualizados:", updatedSteps);
                 return {
                     ...prevData,
                     steps: updatedSteps,
@@ -300,9 +298,6 @@ const GestioRecetas = ({ nombreUsuario }) => {
         }
     }, [recetas]);
 
-    useEffect(()=>{
-        console.log(primeraCarga);
-    }, [primeraCarga])
 
     useEffect(() => {
         if (nombreUsuario) {
@@ -420,11 +415,6 @@ const GestioRecetas = ({ nombreUsuario }) => {
     );
     
     
-    
-    useEffect(()=>{
-        console.log(formData);
-    }, [formData])
-    
 
     const llamado = useCallback((nombre, page, ancho) => { 
         const llamadoPersonal = async () => {
@@ -448,7 +438,6 @@ const GestioRecetas = ({ nombreUsuario }) => {
                 }
                 
             } catch (error) {
-                console.log("Error en la llamada a la API:", error);
             }
         };
         llamadoPersonal();

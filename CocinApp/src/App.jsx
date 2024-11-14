@@ -7,7 +7,7 @@ import axios from "axios";
 // Componentes
 import Header from "./components/header/Header";
 import LoginRegister from "./components/LoginRegister/LoginRegister";
-import {Message, ConfirmPromp} from "./components/Message/Message";
+import {Message, ConfirmPromp,Confirm} from "./components/Message/Message";
 import Footer from "./components/footer/Footer";
 // Pages
 import Home from "./pages/Home";
@@ -28,7 +28,7 @@ function App() {
     const [localUsername, setLocalUsername] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(null)
     const primerRenderizado = useRef(true);
-    const { alert, confirm, closeConfirm } = useAlert();
+    const { alert, confirm, check } = useAlert();
 
 
     useEffect(() => {
@@ -69,7 +69,9 @@ function App() {
                     {alert && <Message message={alert.message} type={alert.type} />}
                 </div>
             </div>
-            {confirm && <ConfirmPromp close={closeConfirm} />}
+            {confirm &&<ConfirmPromp/>}
+            {check   && <Confirm mensaje={check.mensaje} />}
+
             <>
                 {/* >-------------------- Login-Register --------------------< */}
                 <LoginRegister

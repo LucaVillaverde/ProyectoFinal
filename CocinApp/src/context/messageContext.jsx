@@ -6,7 +6,7 @@ export const useAlert = () => useContext(AlertContext);
 export const AlertProvider = ({ children }) => {
     const [alert, setAlert] = useState(null); 
     const [confirm, setConfirm] = useState(null); 
-    const [password, setPassword] = useState(''); 
+    const [check, setCheck] = useState(null);
 
     const showAlert = (message, type) => {
         setAlert({ message, type });
@@ -19,19 +19,30 @@ export const AlertProvider = ({ children }) => {
         console.log('Se muestra form');
         setConfirm(() => onConfirm);
     };
-
-    const handleConfirm = () => {
-        if (confirm) {
-            if (password) {
-                confirm(password); 
-                closeConfirm(); 
-                console.log("Llego passwd");
-            } else {
-                console.log(password)
-                console.log("no llego passwd");
-            }
+    
+    const handleConfirm = (passwd) => {
+        if (passwd) {
+            confirm(passwd); 
+            closeConfirm(); 
+        } else {
+            console.log(passwd)
         }
     };
+    
+    // ------------------------------------- Confirmacion simple Si / No -----------------------------------
+    const showConfirm2= (mensaje) => {
+        setConfirm({mensaje});
+    };
+    const Confirm = (check) => {
+        if (check) {
+            // confirm(check); 
+            console.log("valor", check);
+            closeConfirm(); 
+        } else {
+            console.log(passwd)
+            console.log("valor", check);
+        }
+};
  
     const closeConfirm = () => {
         setConfirm(null);
@@ -39,7 +50,7 @@ export const AlertProvider = ({ children }) => {
     };
 
     return (
-        <AlertContext.Provider value={{ alert, showAlert, confirm, showConfirm, handleConfirm, closeConfirm, password, setPassword }}>
+        <AlertContext.Provider value={{ alert, showAlert, confirm, showConfirm,showConfirm2, handleConfirm, closeConfirm,Confirm}}>
             {children}
         </AlertContext.Provider>
     );

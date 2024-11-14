@@ -12,7 +12,7 @@ import { useAlert } from "../../context/messageContext";
 const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
     const [visible, setMenuVisible] = useState(false);
     const [movil, setMovil] = useState(true);
-    const {showConfirm} = useAlert();
+    const {showConfirm, showAlert} = useAlert();
 
     const links = [
         { href: "/", label: "INICIO" },
@@ -62,11 +62,10 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
 
         if (contraUser) {
             const confirmacion = window.confirm("¿Estás seguro de borrar tu cuenta?");
-            const borrarRecetas = window.confirm(
-                "Aceptar para borrar tus recetas del sistema o Cancelar para que se pongan a nombre de CocinApp."
-            );
-
             if (confirmacion) {
+                const borrarRecetas = window.confirm(
+                    "Aceptar para borrar tus recetas del sistema o Cancelar para que se pongan a nombre de CocinApp."
+                );
                 try {
                     const deleteResponse = await axios.post(`/api/verifpassword`, {
                         contraUser,
@@ -76,6 +75,8 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                         setIsLoggedIn(false);
                     }
                 } catch (err) {
+                    const errorMessage = err.response?.data?.message || 'Error de conexión';
+                    showAlert(errorMessage, 'warning');
                     console.error(err.response ? err.response.data.message : "Error al eliminar el usuario.");
                 }
             }

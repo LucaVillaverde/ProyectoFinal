@@ -5,18 +5,19 @@ import "../recipe.css";
 import addIco from '../assets/add.svg';
 import delIco from '../assets/del.svg';
 import editIco from '../assets/edit.svg';
-import delRecipe from '../assets/delRecipe.svg';
+import delRecipeIco from '../assets/delRecipe.svg';
 import imgUpload from '../assets/imgUpl.svg';
 import sendIco from '../assets/send.svg';
 import { useAlert } from '../context/messageContext';
 import "../css/form.css";
 
 const Receta = () => {
-    const {showAlert} = useAlert();
     const [localUsername, setLocalUsername] = useState(null);
     const { id } = useParams();
     const [receta, setReceta] = useState(null);
     const [showMessage, setShowMessage] = useState(false);
+    const {showConfirm} = useAlert();
+    const {showAlert, showConfirm2} = useAlert();
     const [formData, setFormData] = useState({
         recipe_name: '',
         difficulty: '',
@@ -63,31 +64,37 @@ const Receta = () => {
         }
     }
 
-    const deleteRecipe = async () => {
-        const contraseña = prompt("Confirme su contraseña");
+    const deleteRecipe = async (contraseña) => {
+        // const contraseña = prompt("Confirme su contraseña");
         const referrer = document.referrer;
         const miDominio = window.location.origin;
-        if(contraseña){
-            const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
+
+        if(contraseña || contraseña.length === 0){
+            // const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
+            const confirmacion = showConfirm2('PRUEBA SI - NO');
             if (confirmacion){
-                const eliminarReceta = await axios.post("/api/eliminarReceta", {
-                    contraseña,
-                    id_recipe: id,
-                    username: localUsername,
-                });
-                if (eliminarReceta.status === 200){
-                    window.alert(eliminarReceta.data.message);
-                    if (referrer.startsWith(miDominio)){
-                        window.location.replace(referrer);
-                    }else{
-                        window.location.replace(`/`);
+                try{
+                    const eliminarReceta = await axios.post("/api/eliminarReceta", {
+                        contraseña,
+                        id_recipe: id,
+                    });
+                    if (eliminarReceta.status === 200){
+                        if (referrer.startsWith(miDominio)){
+                            window.location.replace(referrer);
+                        }else{
+                            window.location.replace(`/`);
+                        }
                     }
-                }
-            }else{
-                window.alert("Esta bien, no te eliminamos la receta.");
+                } catch (err) {
+                    if (err.response.data.message === "Contraseña incorrecta."){
+                        showAlert(err.response.data.message, 'warning');
+                    } else {
+                        showAlert(err.response.data.message, 'danger');
+                    }
+                }  
             }
         }else{
-            window.alert("No indicaste ninguna contraseña.");
+            
         }
     }
 
@@ -257,6 +264,8 @@ const Receta = () => {
                     <h1>Cargando Receta....</h1>
                 </div>
             ) : show ? (
+                <div>
+                <h3 id="editarReceta">Formulario Editar Receta</h3>
                 <div className="form-content">
                     <form id="formularioAgregarReceta" onSubmit={(e) => actualizarReceta(e)}>
                         <label className="lbl-title-form" htmlFor="recipeName">Nombre de la Receta:</label>
@@ -270,11 +279,11 @@ const Receta = () => {
                         />
 
                         <div className="containerImgDiff">
-                        <h3 className="lbl-title-form">Subir Imagen:</h3>
+                        <h3 className="lbl-title-form imgDiff">Subir Imagen:</h3>
                         <label className='lbl-title-form' id="fileButton" htmlFor="fileInput"><img src={imgUpload} alt="Subir Imagen portada de la receta"/></label>
                         <input id="fileInput" style={{display: "none"}} type="file" name="recipeImage" onChange={handleFileChange} accept="image/*"></input>
     
-                        <label className='lbl-title-form' htmlFor="difficulty">Dificultad:</label>
+                        <label className='lbl-title-form imgDiff' htmlFor="difficulty">Dificultad:</label>
                         <select
                             id="difficulty"
                             className="selectRecipe"
@@ -364,8 +373,9 @@ const Receta = () => {
                             required
                         />
     
-                        <button className="btnAdd" type="submit"><img src={sendIco}></img></button>
+                        <button className="btnSend" type="submit"><img src={sendIco}></img></button>
                     </form>
+                </div>
                 </div>
             ) : (
                 <div className="content">
@@ -415,8 +425,8 @@ const Receta = () => {
                                     <button className="btn_author-recipe" onClick={editRecipe}>
                                         <img src={editIco} alt="Editar Receta" />
                                     </button>
-                                    <button className="btn_author-recipe" onClick={deleteRecipe}>
-                                        <img src={delRecipe} alt="Eliminar Receta"/>
+                                    <button className="btn_author-recipe" onClick={()=>showConfirm(deleteRecipe)}>
+                                        <img src={delRecipeIco} alt="Eliminar Receta"/>
                                     </button>
                                 </div>
                             </div>
