@@ -29,27 +29,13 @@ export const AlertProvider = ({ children }) => {
             console.log(passwd)
         }
     };
-    
-    // ------------------------------------- Confirmacion simple Si / No -----------------------------------
-    const showConfirm2 = (mensaje) => {
-        return new Promise((resolve) => {
-            setCheck({
-                mensaje,
-                onConfirm: () => resolve(true),    
-                onCancel: () => resolve(false),    
-            });
-        });
-    };
- 
+
     const closeConfirm = () => {
         setConfirm(null);        
     };
-    const closeCheck = ()=>{
-        setCheck(null);
-    }
 
     return (
-        <AlertContext.Provider value={{ alert, showAlert, confirm, showConfirm,showConfirm2, handleConfirm, closeConfirm,closeCheck,check,confirm,mensaje}}>
+        <AlertContext.Provider value={{ alert, showAlert, confirm, showConfirm, handleConfirm, closeConfirm}}>
             {children}
         </AlertContext.Provider>
     );

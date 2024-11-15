@@ -44,7 +44,7 @@ export const ConfirmPromp = () => {
     return (
         <div className='promp-alert'>
             <div className="promp-alert-header">
-                <button className='header-close' onClick={closeConfirm}>X</button>
+                <button className='promp-alert-header-close' onClick={closeConfirm}>X</button>
             </div>
             <h3>Confirme contraseña para borrar.</h3>
             <div className='promp-alert-inputCont'>
@@ -67,26 +67,17 @@ export const ConfirmPromp = () => {
     );
 };
 
-export const Confirm = () => {
-    const { mensaje, onConfirm, onCancel, closeCheck } = useAlert(); // Aquí obtiene los valores desde el contexto
-
-    const handleClick = (value) => {
-        if (value && typeof onConfirm === "function") {
-            onConfirm();   
-        } else if (typeof onCancel === "function") {
-            onCancel();    
-        closeCheck();      
-    };
+export const Confirm = ({ message, onConfirm, onCancel }) => {
 
     return (
         <div className='promp-alert'>
-            <div className="promp-alert-header">
-                <button className='header-close' onClick={() => handleClick(false)}>X</button>
-            </div>
-            <p>{mensaje}</p>
-            <div className="promp-alert-confirmCont">
-                <button className='promp-alert-confirm' onClick={() => handleClick(true)}>Aceptar</button>
-                <button className='promp-alert-confirm' onClick={() => handleClick(false)}>Cancelar</button>
+            {/* <div className="promp-alert-header">
+                <button className='promp-alert-header-close' onClick={() => handleClick(false)}>X</button>
+            </div> */}
+            <h2 className="promp-alert-confirm-msg">{message}</h2>
+            <div className="promp-alert-confirmBTN">
+                <button className='promp-alert-confirmBTN-confirm' onClick={() => onConfirm(true)}>Aceptar</button>
+                <button className='promp-alert-confirmBTN-cancel' onClick={() => onCancel(false)}>Cancelar</button>
             </div>
         </div>
     );
@@ -94,6 +85,5 @@ export const Confirm = () => {
 
 
 
-}
 
 
