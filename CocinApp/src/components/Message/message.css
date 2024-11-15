@@ -57,6 +57,7 @@
 /* Alerta con promp (para confirmar password) */
 
 .promp-alert{
+    border: 2px solid var(--fourth-color);
     width: 100%;
     max-width: 500px;
     height: auto;
@@ -75,9 +76,10 @@
     background-color: transparent;
     border: none;
     font-size: 18px;
+    scale: 1;
     
 }
-.promp-alert-header-close:hover{color: rgba(192, 0, 0, 0.664);}
+.promp-alert-header-close:hover{color: rgba(192, 0, 0, 0.664); scale: 1.1;}
 .promp-alert-title{
     text-align: center;
     margin: 5px auto
@@ -96,6 +98,7 @@
 .promp-alert > h3{text-align: center;}
 
 .promp-alert-confirm{
+    
     width: 55%;
     height: 25px;
     background-color: var(--primary-color);
@@ -116,4 +119,47 @@
 
 /*/  Confirmacion Yes / No  /*/
 
+
+.promp-alert-confirmBTN{
+    width: 90%;
+    margin: auto;
+    display: flex;
+    justify-content: space-around;
+}
+
+.promp-alert-confirm-msg{
+    text-align: center;
+    font-size: 1.2em;
+    width: 100%;
+    padding: 20px;
+
+}
+
+.promp-alert-confirmBTN-confirm, .promp-alert-confirmBTN-cancel{
+    width: 32%;
+    min-height: 35px;
+    border-radius: 15px;
+    font-weight: bold;
+    color: black;
+    background-color: var(--primary-color);
+    box-shadow: 0 0 10px #0009;
+}
+
+
+/* /* .promp-alert-confirmBTN-confirm{
+    background-color: #34b600;
+} */
+/* .promp-alert-confirmBTN-cancel{
+    color: #f1f1f1;
+    background-color: #b60000;
+} */ */
+.promp-alert-confirmBTN-confirm:hover{
+    background-color: #7fef4b;
+    box-shadow: 0 0 10px rgba(179, 226, 173, 0.6);
+}
+.promp-alert-confirmBTN-cancel:hover{
+    color: #f1f1f1;
+    background-color: #ef4b4b;
+    box-shadow: 0 0 10px #e2adad99;
+}
 

@@ -1,8 +1,9 @@
 // Importaciones de Librerias
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
-import { useAlert } from './context/messageContext';
 import axios from "axios";
+// Contexto
+import { useAlert } from './context/messageContext';
 
 // Componentes
 import Header from "./components/header/Header";
@@ -27,7 +28,7 @@ function App() {
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(null);
-    const { confirm, alert, check} = useAlert();
+    const { confirm, alert} = useAlert();
 
 
     useEffect(() => {
@@ -63,19 +64,15 @@ function App() {
         formulario.className = formulario.className === "displayNone" ? "backgroundForm" : "displayNone";
 
     };
-    
-        console.log(check)
     return (
         <Router>
             {/* >-------------------- ALERTAS CUSTOM--------------------< */}
-            <div className="cont-notificaciones">
-                <div className="notificaciones">
-                    {alert && <Message message={alert.message} type={alert.type} />}
+                <div className="cont-notificaciones">
+                    <div className="notificaciones">
+                        {alert && <Message message={alert.message} type={alert.type} />}
+                    </div>
                 </div>
-            </div>
-            {confirm &&<ConfirmPromp/>}
-            {check   && <Confirm mensaje={check.mensaje} />}
-
+                {confirm &&<ConfirmPromp/>}
             <>
                 {/* >-------------------- Login-Register --------------------< */}
                 <LoginRegister

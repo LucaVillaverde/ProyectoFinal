@@ -1,23 +1,26 @@
 import { React, useCallback, useEffect, useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import axios from "axios";
-import "../recipe.css";
+// Imagenes
 import addIco from '../assets/add.svg';
 import delIco from '../assets/del.svg';
 import editIco from '../assets/edit.svg';
 import delRecipeIco from '../assets/delRecipe.svg';
 import imgUpload from '../assets/imgUpl.svg';
 import sendIco from '../assets/send.svg';
-import { useAlert } from '../context/messageContext';
+//  Otros
+import "../recipe.css";
 import "../css/form.css";
+import { useAlert } from '../context/messageContext';
+import {useConfirm} from "../context/confirmContext";
 
 const Receta = () => {
     const [localUsername, setLocalUsername] = useState(null);
     const { id } = useParams();
     const [receta, setReceta] = useState(null);
-    const [showMessage, setShowMessage] = useState(false);
     const {showConfirm} = useAlert();
-    const {showAlert, showConfirm2} = useAlert();
+    const {openConfirm} = useConfirm();
+
     const [formData, setFormData] = useState({
         recipe_name: '',
         difficulty: '',
@@ -67,37 +70,39 @@ const Receta = () => {
     }
 
     const deleteRecipe = async (contraseña) => {
-        // const contraseña = prompt("Confirme su contraseña");
         const referrer = document.referrer;
         const miDominio = window.location.origin;
 
-        
+
 
         if(contraseña || contraseña.length === 0){
             // const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
-            const confirmacion = await showConfirm2("¿Estás seguro de borrar la receta? Esta es la última confirmación.");
+            const confirmacion = await openConfirm('SI o NO');
+            
+
+
             console.log(confirmacion);
-            if (confirmacion){
-                try{
-                    const eliminarReceta = await axios.post("/api/eliminarReceta", {
-                        contraseña,
-                        id_recipe: id,
-                    });
-                    if (eliminarReceta.status === 200){
-                        if (referrer.startsWith(miDominio)){
-                            window.location.replace(referrer);
-                        }else{
-                            window.location.replace(`/`);
-                        }
-                    }
-                } catch (err) {
-                    if (err.response.data.message === "Contraseña incorrecta."){
-                        showAlert(err.response.data.message, 'warning');
-                    } else {
-                        showAlert(err.response.data.message, 'danger');
-                    }
-                }  
-            }
+            // if (confirmacion){
+            //     try{
+            //         const eliminarReceta = await axios.post("/api/eliminarReceta", {
+            //             contraseña,
+            //             id_recipe: id,
+            //         });
+            //         if (eliminarReceta.status === 200){
+            //             if (referrer.startsWith(miDominio)){
+            //                 window.location.replace(referrer);
+            //             }else{
+            //                 window.location.replace(`/`);
+            //             }
+            //         }
+            //     } catch (err) {
+            //         if (err.response.data.message === "Contraseña incorrecta."){
+            //             showAlert(err.response.data.message, 'warning');
+            //         } else {
+            //             showAlert(err.response.data.message, 'danger');
+            //         }
+            //     }  
+            // }
         }else{
             
         }
@@ -454,7 +459,6 @@ const Receta = () => {
                             </ol>
                         </section>
                         
-                        {showMessage && <p>Regístrese para poder dar like</p>}
                         {localUsername === receta?.username && (
                             <div className="btn_recipe">
                                 <div className="buttons">
