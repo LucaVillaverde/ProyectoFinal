@@ -58,14 +58,14 @@ function localProductos() {
 
 
   return (
-    <div class="product-card">
-        <h2 class="text-title ">{nombre}</h2>
-      <div class="product-card-details">
+    <div className="product-card">
+        <h2 className="text-title ">{nombre}</h2>
+      <div className="product-card-details">
         <img src={imagen} width={'80px'} className="product-card-img" />
-        <p class="text-body">{descripcion}</p>
-        <p class="card-price">US${precio}</p>
+        <p className="text-body">{descripcion}</p>
+        <p className="card-price">US${precio}</p>
       </div>
-      <button class="product-card-button" onClick={agregarProducto}>Comprar</button>
+      <button className="product-card-button" onClick={agregarProducto}>Comprar</button>
     </div>
   );
 };

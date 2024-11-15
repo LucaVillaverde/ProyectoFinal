@@ -8,11 +8,13 @@ import logoPerfilP from "../../assets/LogoPerfilPC.jpg";
 import menuIcon from "../../assets/menuUser.svg";
 import menuHamburguesa from "../../assets/btn_burgerIcon.png";
 import { useAlert } from "../../context/messageContext";
+import {useConfirm} from "../../context/confirmContext";
 
 const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
     const [visible, setMenuVisible] = useState(false);
     const [movil, setMovil] = useState(true);
     const {showConfirm, showAlert} = useAlert();
+    const {openConfirm} = useConfirm();
 
     const links = [
         { href: "/", label: "INICIO" },
@@ -76,11 +78,9 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
         // const contraUser = prompt("Confirme su contraseña");
 
         if (contraUser) {
-            const confirmacion = window.confirm("¿Estás seguro de borrar tu cuenta?");
+            const confirmacion = await openConfirm('¿Estás seguro de borrar tu cuenta?');
             if (confirmacion) {
-                const borrarRecetas = window.confirm(
-                    "Aceptar para borrar tus recetas del sistema o Cancelar para que se pongan a nombre de CocinApp."
-                );
+                const borrarRecetas = await openConfirm("Aceptar para borrar tus recetas del sistema o Cancelar para que se pongan a nombre de CocinApp.");
                 try {
                     const deleteResponse = await axios.post(`/api/verifpassword`, {
                         contraUser,

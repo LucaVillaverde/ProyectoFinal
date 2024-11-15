@@ -2,6 +2,7 @@
     display: grid;
     grid-template-columns: 16% 84%;
     width: 100%;
+    max-width: 524px;
     color: #000;
     font-weight: bold;
     justify-items: center;
@@ -30,6 +31,7 @@
     display: flex;
     height: auto;
     width: 100%;
+    align-items: center;
     row-gap: 10px;
     flex-wrap: wrap;
     flex-direction: column;
@@ -37,7 +39,7 @@
 
 .parrafoMensaje{
     width: 100%;
-    text-align: end;
+    text-align: center;
     margin-right: 8%;
 }
 
@@ -117,7 +119,7 @@
 }
 
 
-/*/  Confirmacion Yes / No  /*/
+/*/  Confirmacion Aceptar / Cancel  /*/
 
 
 .promp-alert-confirmBTN{
@@ -146,13 +148,14 @@
 }
 
 
-/* /* .promp-alert-confirmBTN-confirm{
+/* .promp-alert-confirmBTN-confirm{
     background-color: #34b600;
-} */
-/* .promp-alert-confirmBTN-cancel{
+}  
+.promp-alert-confirmBTN-cancel{
     color: #f1f1f1;
     background-color: #b60000;
-} */ */
+}
+*/
 .promp-alert-confirmBTN-confirm:hover{
     background-color: #7fef4b;
     box-shadow: 0 0 10px rgba(179, 226, 173, 0.6);

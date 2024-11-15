@@ -18,7 +18,7 @@ export const Message = ({ message, type}) => {
   const { className, imgSrc } = alertConfig[type] || alertConfig['danger'];
 
   return (
-      <div id="alertContainer" className={`cont-alert ${className}`}>
+      <div id="alertContainer" className={`cont-alert animate__slideInDown animate__animated ${className}`}>
           <img id="icon" src={imgSrc} alt={message} />
           <p className="parrafoMensaje">{message}</p>
 
@@ -42,7 +42,7 @@ export const ConfirmPromp = () => {
 
 
     return (
-        <div className='promp-alert'>
+        <div className='promp-alert '>
             <div className="promp-alert-header">
                 <button className='promp-alert-header-close' onClick={closeConfirm}>X</button>
             </div>
@@ -74,10 +74,18 @@ export const Confirm = ({ message, onConfirm, onCancel }) => {
             {/* <div className="promp-alert-header">
                 <button className='promp-alert-header-close' onClick={() => handleClick(false)}>X</button>
             </div> */}
-            <h2 className="promp-alert-confirm-msg">{message}</h2>
+            <h2 className="promp-alert-confirm-msg  animate__animated">{message}</h2>
             <div className="promp-alert-confirmBTN">
-                <button className='promp-alert-confirmBTN-confirm' onClick={() => onConfirm(true)}>Aceptar</button>
-                <button className='promp-alert-confirmBTN-cancel' onClick={() => onCancel(false)}>Cancelar</button>
+                <button 
+                className='promp-alert-confirmBTN-confirm animate__animated animate__bounceIn' 
+                onClick={() => onConfirm(true)}
+                >Aceptar
+                </button>
+                <button 
+                className='promp-alert-confirmBTN-cancel animate__animated animate__bounceIn' 
+                onClick={() => onCancel(false)}
+                >Cancelar
+                </button>
             </div>
         </div>
     );

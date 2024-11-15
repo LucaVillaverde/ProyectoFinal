@@ -69,7 +69,8 @@ function App() {
             {/* >-------------------- ALERTAS CUSTOM--------------------< */}
                 <div className="cont-notificaciones">
                     <div className="notificaciones">
-                        {alert && <Message message={alert.message} type={alert.type} />}
+                        {alert && <Message message={alert.message} type={alert.type} />} 
+
                     </div>
                 </div>
                 {confirm &&<ConfirmPromp/>}

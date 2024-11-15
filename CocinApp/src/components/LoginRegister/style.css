@@ -26,6 +26,12 @@
   justify-content: center;
   flex-direction: column;
 }
+
+.form-user{
+  animation: zoomIn; 
+  animation-duration: .8s; 
+}
+
 .form-head{
   width: 100%;
   padding: 8px;
@@ -49,7 +55,12 @@
   font-size: 16px;
 }
 
-.form-btnClose:hover{color: black;transform: scale(1)}
+.form-btnClose:hover{
+  color: black;
+  transform: scale(1);
+  animation: bounceIn; 
+  animation-duration: 1s; 
+}
 
 .form-user-content{
   width: 100%;
@@ -89,11 +100,15 @@
   margin: auto;
   border: none;
   border-radius: 10px;
-  box-shadow: 1px 2px #0009;
+  box-shadow: 0 0 10px #0009;
   font-size: 18px;
   background-color: var(--secondary-color);
 }
-.btn-form:hover{box-shadow: 1px 2px var(--secondary-color);}
+.btn-form:hover{
+  box-shadow: 0 0 9px var(--secondary-color);
+  animation: bounceIn; 
+  animation-duration: 2s; 
+}
 
 @media (min-width: 430px){
   .form-user{

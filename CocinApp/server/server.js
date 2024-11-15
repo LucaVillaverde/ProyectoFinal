@@ -463,88 +463,106 @@ app.get("/api/info-usuario", async (req, res) => {
   }
 });
 
-app.post("/api/token-register", async (req, res) => {
-  const { usernameNH } = req.body;
 
-  // Generador de token
-  const generateToken = () => {
-    const min = 100;
-    const max = 3000;
-    let token = "";
-    for (let i = 0; i < 300; i++) {
-      const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-      token += randomNumber.toString();
+  app.post("/api/token-register", async (req, res) => {
+    const { usernameNH } = req.body;
+  
+    // Validar entrada
+    if (!usernameNH || typeof usernameNH !== "string") {
+      return res.status(400).json({ message: "El username es inválido." });
     }
-    return token;
-  };
+  
+      // Generador de token
+    const generateToken = () => {
+      const min = 100;
+      const max = 3000;
+      let token = "";
+      for (let i = 0; i < 300; i++) {
+        const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+        token += randomNumber.toString();
+      }
+      return token;
+    };
 
-  try {
-    const tokenNH = generateToken();
-    const tokenH = await bcrypt.hash(tokenNH, 10);
-    const usernameH = await bcrypt.hash(usernameNH, 10); // Asegúrate de pasar la "salt"
-    const createdAt = new Date().toISOString();
-
-    db.get(
-      "SELECT id_user FROM Users WHERE username = ?",
-      [usernameNH],
-      function (err, row) {
-        if (err) {
-          return res.status(500).json({
-            message: "Error interno del servidor al obtener id del usuario.",
-          });
-        }
-        if (!row) {
-          return res
-            .status(404)
-            .json({ message: "No se ha encontrado el id del usuario." });
-        }
-
-        const id_user = row.id_user;
-        db.run(
-          "INSERT INTO Tokens (username, cookieToken, id_user, created_at) VALUES (?, ?, ?, ?)",
-          [usernameNH, tokenNH, id_user, createdAt],
-          function (err) {
-            if (err) {
-              return res.status(500).json({
-                message:
-                  "Error interno del servidor al intentar colocar los datos del registro (Tokens).",
-              });
-            }
-            res.cookie("token", tokenH, {
-              httpOnly: true,
-              expires: new Date(Date.now() + 86400000),
-            });
-            res.cookie("username", usernameH, {
-              httpOnly: true,
-              expires: new Date(Date.now() + 86400000),
-            });
-            res.cookie("id_user", id_user, {
-              httpOnly: true,
-              expires: new Date(Date.now() + 86400000),
-            });
-            return res.status(201).json({
-              message: "Se ha creado el token de la cookie con éxito.",
+    try {
+      // Generación de token y hashes
+      const tokenNH = generateToken(); // Tu lógica actual
+      const tokenH = await bcrypt.hash(tokenNH, 10);
+      const nombreMinusculasNH = usernameNH.toLowerCase();
+      const usernameH = await bcrypt.hash(nombreMinusculasNH, 10);
+      const createdAt = new Date().toISOString();
+  
+      // Buscar usuario en la base de datos
+      db.get(
+        "SELECT id_user FROM Users WHERE username = ?",
+        [nombreMinusculasNH],
+        function (err, row) {
+          if (err) {
+            return res.status(500).json({
+              message: "Error interno del servidor al obtener id del usuario.",
             });
           }
-        );
-      }
-    );
-  } catch (err) {
-    console.error(err);
-    return res
-      .status(500)
-      .json({ message: "Error interno del servidor.", error: err.message });
-  }
-});
+          if (!row) {
+            return res
+              .status(404)
+              .json({ message: "No se ha encontrado el id del usuario." });
+          }
+  
+          const id_user = row.id_user;
+  
+          // Insertar datos en la tabla Tokens
+          db.run(
+            "INSERT INTO Tokens (username, cookieToken, id_user, created_at) VALUES (?, ?, ?, ?)",
+            [nombreMinusculasNH, tokenNH, id_user, createdAt],
+            function (err) {
+              if (err) {
+                return res.status(500).json({
+                  message:
+                    "Error interno del servidor al intentar colocar los datos del registro (Tokens).",
+                });
+              }
+  
+              // Configurar cookies
+              res.cookie("token", tokenH, {
+                httpOnly: true,
+                expires: new Date(Date.now() + 86400000),
+              });
+              res.cookie("username", usernameH, {
+                httpOnly: true,
+                expires: new Date(Date.now() + 86400000),
+              });
+              res.cookie("id_user", id_user, {
+                httpOnly: true,
+                expires: new Date(Date.now() + 86400000),
+              });
+  
+              // Respuesta exitosa
+              return res.status(201).json({
+                message: "Se ha creado el token de la cookie con éxito.",
+              });
+            }
+          );
+        }
+      );
+    } catch (err) {
+      console.error(err);
+      return res
+        .status(500)
+        .json({ message: "Error interno del servidor.", error: err.message });
+    }
+  });
+  
 
 app.post("/api/token-login", async (req, res) => {
   const { usernameNH } = req.body;
+
+  const nombreMinusculas = usernameNH.toLowerCase();
 
   try {
     // Verificamos el valor de cookieToken en la base de datos
     db.get(
       "SELECT cookieToken FROM Tokens WHERE username = ?",
-      [usernameNH],
+      [nombreMinusculas],
       async (err, row) => {
         if (err) {
           return res.status(500).json({
@@ -553,7 +571,7 @@ app.post("/api/token-login", async (req, res) => {
         }
         if (!row) {
           return res.status(400).json({
-            message: `No se ha encontrado el cookieToken del usuario: ${usernameNH}`,
+            message: `No se ha encontrado el cookieToken del usuario: ${nombreMinusculas}`,
           });
         }
 
@@ -574,22 +592,22 @@ app.post("/api/token-login", async (req, res) => {
 
           const tokenNH = generateToken();
           const tokenH = await bcrypt.hash(tokenNH, 10);
-          const usernameH = await bcrypt.hash(usernameNH, 10);
+          const usernameH = await bcrypt.hash(nombreMinusculas, 10);
           const createdAt = new Date().toISOString();
 
           // Buscamos el id_user para almacenar junto al token
           db.get(
             "SELECT id_user FROM Users WHERE username = ?",
-            [usernameNH],
+            [nombreMinusculas],
             (err, userRow) => {
               if (err) {
                 return res.status(500).json({
-                  message: `Error interno del servidor al buscar el usuario ${usernameNH}.`,
+                  message: `Error interno del servidor al buscar el usuario ${nombreMinusculas}.`,
                 });
               }
               if (!userRow) {
                 return res.status(404).json({
-                  message: `No hay datos sobre este usuario: ${usernameNH}.`,
+                  message: `No hay datos sobre este usuario: ${nombreMinusculas}.`,
                 });
               }
 
@@ -598,7 +616,7 @@ app.post("/api/token-login", async (req, res) => {
               // Actualizamos el token y la fecha de creación
               db.run(
                 "UPDATE Tokens SET cookieToken = ?, created_at = ? WHERE username = ?",
-                [tokenNH, createdAt, usernameNH],
+                [tokenNH, createdAt, nombreMinusculas],
                 function (err) {
                   if (err) {
                     return res.status(500).json({
@@ -650,9 +668,11 @@ app.post("/api/login", (req, res) => {
       .json({ message: "No se ha indicado un nombre o contraseña." });
   }
 
+  const nombreMinusculas = username.toLowerCase();
+
   const passwordQuery = "SELECT password FROM Users WHERE username = ?";
 
-  db.get(passwordQuery, [username], async (err, row) => {
+  db.get(passwordQuery, [nombreMinusculas], async (err, row) => {
     if (err) {
       console.error("Error al buscar la contraseña del usuario:", err.message); // Log adicional
       return res
@@ -694,6 +714,7 @@ app.post("/api/register", (req, res) => {
       .json({ message: "Asegurese de repetir bien la contraseña. 400" });
   }
 
+  const nombreMinisculas = usernameR.toLowerCase();
   const validacionUsuario = validarEntrada(usernameR);
   const validacionPassword = validarEntrada(passwordR);
 
@@ -723,8 +744,9 @@ app.post("/api/register", (req, res) => {
   }
 
   const query = "SELECT * FROM Users WHERE username = ?";
+  const insertQuery = "INSERT INTO Users (username, password, money) VALUES (?, ?, ?)";
   try {
-    db.get(query, [usernameR], async (err, row) => {
+    db.get(query, [nombreMinisculas], async (err, row) => {
       if (err) {
         return res
           .status(500)
@@ -738,8 +760,8 @@ app.post("/api/register", (req, res) => {
         try {
           const hashedPasswordR = await bcrypt.hash(passwordR, 10);
           db.run(
-            "INSERT INTO Users (username, password) VALUES (?, ?)",
-            [usernameR, hashedPasswordR],
+            insertQuery,
+            [nombreMinisculas, hashedPasswordR, 3000],
             function (err) {
               if (err) {
                 console.error("Error al crear usuario:", err.message);
@@ -1636,6 +1658,26 @@ app.post("/api/receta-id", (req, res) => {
     });
   });
 });
+
+// --------------------------------- API's Producto/s-----------------------------------
+
+app.get('/api/productos', (req, res) => {
+  const query = "SELECT * FROM Products"
+  db.all(query, (err, rows) => {
+    if (err) {
+      return res.status(500).json({ message: "Ha ocurrido un error al intentar mostrar los productos." });
+    }
+    if (!rows){
+      return res.status(404).json({ message: "No hay productos disponibles." });
+    }
+    else {
+      return res.status(200).json({
+        message: "Se han encontrado los productos.",
+        products: rows,
+      });
+    }
+  })
+})
 
 process.on("SIGINT", () => {
   db.close();

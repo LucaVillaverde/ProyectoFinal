@@ -9,6 +9,7 @@ export const ConfirmProvider = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [resolvePromise, setResolvePromise] = useState(null);
+  
 
   const openConfirm = (msg) => {
     console.log("openConfirm llamado con mensaje:", msg);

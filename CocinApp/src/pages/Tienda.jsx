@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "../css/tienda.css";
 import Product from "../components/Product/Product";
 import carritoImg from "../assets/carrito.svg";
@@ -20,10 +21,32 @@ const Tienda = () => {
   const [carrito, setCarrito] = useState([]);
   const [listaCarrito, setListaCarrito] = useState(false);
   const cantidadTotalProductos = localStorage.getItem("productos");
+  const [productosData, setProductosData] = useState(null);
   window.addEventListener("beforeunload", () => {
     localStorage.removeItem("productos");
   });
   let aPagar = 0;
+
+  useEffect(() => {
+    listaProductos();
+  },[])
+
+  useEffect(() => {
+    console.log(productosData);
+  },[productosData])
+
+  const listaProductos = async () => {
+    try{
+      const productsResponse = await axios.get('/api/productos');
+      if (productsResponse.status === 200){
+        setProductosData(productsResponse.data.products);
+        console.log(productsResponse.data.products)
+      }
+    }catch(error){
+      console.error(error);
+      // error.response.data.message ? showAlert(error.response.data.message,'warning'):showAlert('Error de conexion','danger');  
+    }
+  }
 
   useEffect(() => {
     const bg = document.getElementById("bglistaPopOver");
@@ -207,20 +230,23 @@ const Tienda = () => {
           </button>
         </div>
       </div>
-
-      <div className="contenedorProductos">
-        {Datos.map(({ id, nombre, imagen, precio, descripcion }) => (
+      {productosData === null ? (
+        <h2>No hay productos</h2>
+      ) : (
+        <div className="contenedorProductos">
+        {productosData.map(({ id_product, product_name, product_image, product_price, product_description }) => (
           <Product
-            key={id}
-            id={id}
-            nombre={nombre}
-            imagen={"../assets/Olla_Express_PNG.png"}
-            precio={precio}
-            descripcion={descripcion}
+            key={id_product}
+            id={id_product}
+            nombre={product_name}
+            imagen={product_image}
+            precio={product_price}
+            descripcion={product_description}
             agregarAlCarrito={agregarAlCarrito}
           />
         ))}
       </div>
+      )}
     </div>
   );
 };

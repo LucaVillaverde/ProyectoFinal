@@ -85,7 +85,6 @@ const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
                 }
             }
         } catch (error) {
-            console.error("Error en el Re:", error);
             error.response.data.message ? showAlert(error.response.data.message,'warning'):showAlert('Error de conexion','danger');       
         }
     };
@@ -143,10 +142,9 @@ const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
     };
 
 
-
     return (
         <div className="displayNone" id="form_login">
-            <div className="form-user">
+            <div className="form-user animate__animated animate__zoomIn">
                 <div className="form-head">
                     <div className="form-change bts">
                         <button className="form-btnChange" onClick={changeForm}>

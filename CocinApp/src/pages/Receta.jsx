@@ -76,8 +76,7 @@ const Receta = () => {
 
 
         if(contraseña || contraseña.length === 0){
-            // const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
-            const confirmacion = await openConfirm('SI o NO');
+            const confirmacion = await openConfirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
             
 
 
