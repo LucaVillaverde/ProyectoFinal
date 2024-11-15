@@ -33,7 +33,7 @@ export const ConfirmPromp = () => {
 
 
     const handlePasswordChange = (e) => {
-        setInput(e.target.value); // Actualiza directamente el contexto con el valor del input
+        setInput(e.target.value); 
     };
     
     const handleClick = ()=>{
@@ -60,7 +60,7 @@ export const ConfirmPromp = () => {
                     className='promp-alert-confirm'
                     onClick={handleClick}
                 >
-                    Borrar
+                Borrar
                 </button>
             </div>
         </div>
@@ -68,39 +68,32 @@ export const ConfirmPromp = () => {
 };
 
 export const Confirm = () => {
-    const { Confirm, closeConfirm } = useAlert(); // Asegúrate de incluir closeConfirm
-    const [confirmValue, setConfirmValue] = useState('');
+    const { mensaje, onConfirm, onCancel, closeCheck } = useAlert(); // Aquí obtiene los valores desde el contexto
 
     const handleClick = (value) => {
-        setConfirmValue(value);
-        Confirm(value); // Llama a la función Confirm con el valor proporcionado
-    }
+        if (value && typeof onConfirm === "function") {
+            onConfirm();   
+        } else if (typeof onCancel === "function") {
+            onCancel();    
+        closeCheck();      
+    };
 
     return (
         <div className='promp-alert'>
             <div className="promp-alert-header">
-                <button className='header-close' onClick={closeConfirm}>X</button>
+                <button className='header-close' onClick={() => handleClick(false)}>X</button>
             </div>
             <p>{mensaje}</p>
             <div className="promp-alert-confirmCont">
-                <button
-                    className='promp-alert-confirm'
-                    onClick={() => handleClick(true)}
-                >
-                    Aceptar
-                </button>
-                <button
-                    className='promp-alert-confirm'
-                    onClick={() => handleClick(false)}
-                >
-                    Cancelar
-                </button>
+                <button className='promp-alert-confirm' onClick={() => handleClick(true)}>Aceptar</button>
+                <button className='promp-alert-confirm' onClick={() => handleClick(false)}>Cancelar</button>
             </div>
         </div>
     );
+};
+
+
+
 }
-
-
-
 
 

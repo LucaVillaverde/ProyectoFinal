@@ -27,7 +27,7 @@ function App() {
     const [form, setForm] = useState("login");
     const [localUsername, setLocalUsername] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(null);
-    const { alert, confirm, check } = useAlert();
+    const { confirm, alert, check} = useAlert();
 
 
     useEffect(() => {    
@@ -53,8 +53,7 @@ function App() {
         formulario.className = formulario.className === "displayNone" ? "backgroundForm" : "displayNone";
 
     };
-
-
+        console.log(check)
     return (
         <Router>
             {/* >-------------------- ALERTAS CUSTOM--------------------< */}

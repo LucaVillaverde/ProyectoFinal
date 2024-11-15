@@ -83,7 +83,7 @@
     height: 40px;
     background-color: var(--primary-color);
     border: none;
-    box-shadow: 0 0 50px rgb(39, 80, 0);
+    box-shadow: 0 0 50px #ffce7a;
     margin-bottom: 10%;
     transition: box-shadow 1.1s;
   }

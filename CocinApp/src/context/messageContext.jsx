@@ -6,7 +6,8 @@ export const useAlert = () => useContext(AlertContext);
 export const AlertProvider = ({ children }) => {
     const [alert, setAlert] = useState(null); 
     const [confirm, setConfirm] = useState(null); 
-    const [check, setCheck] = useState(null);
+    const [check, setCheck] = useState({ mensaje: "", onConfirm: null, onCancel: null });
+    const mensaje = '';
 
     const showAlert = (message, type) => {
         setAlert({ message, type });
@@ -30,27 +31,25 @@ export const AlertProvider = ({ children }) => {
     };
     
     // ------------------------------------- Confirmacion simple Si / No -----------------------------------
-    const showConfirm2= (mensaje) => {
-        setConfirm({mensaje});
+    const showConfirm2 = (mensaje) => {
+        return new Promise((resolve) => {
+            setCheck({
+                mensaje,
+                onConfirm: () => resolve(true),    
+                onCancel: () => resolve(false),    
+            });
+        });
     };
-    const Confirm = (check) => {
-        if (check) {
-            // confirm(check); 
-            console.log("valor", check);
-            closeConfirm(); 
-        } else {
-            console.log(passwd)
-            console.log("valor", check);
-        }
-};
  
     const closeConfirm = () => {
-        setConfirm(null);
-        
+        setConfirm(null);        
     };
+    const closeCheck = ()=>{
+        setCheck(null);
+    }
 
     return (
-        <AlertContext.Provider value={{ alert, showAlert, confirm, showConfirm,showConfirm2, handleConfirm, closeConfirm,Confirm}}>
+        <AlertContext.Provider value={{ alert, showAlert, confirm, showConfirm,showConfirm2, handleConfirm, closeConfirm,closeCheck,check,confirm,mensaje}}>
             {children}
         </AlertContext.Provider>
     );

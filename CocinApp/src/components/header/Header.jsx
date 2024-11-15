@@ -195,6 +195,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
             setIsOpen(false);
         }
     };
+
  
     return (
         <div id="contenedorUserMenu">
@@ -205,6 +206,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                             <button
                                 className="menu-button"
                                 onClick={toggleMenu}
+                                id="menuButtonM"
                             >
                                 <img
                                     className="btn_user-avatar"
@@ -213,8 +215,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                                 />
                                 <img
                                     src={menuIcon}
-                                    id="menuIcon"
-                                    className='animate__animated animate__shakeY'
+                                    className={`menuIcon ${isOpen ? "menuIconRotate" : ""}`}
                                     alt="Desplegar menu usuario."
                                 />
                             </button>
@@ -252,6 +253,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                                 <button
                                     className="menu-button"
                                     onClick={toggleMenu}
+                                    id="menuButtonPC"
                                 >
                                     <img
                                         className="btn_user-avatar"
@@ -260,7 +262,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                                     />
                                     <img
                                         src={menuIcon}
-                                        id="menuIcon"
+                                        className={`menuIcon ${isOpen ? "menuIconRotate" : ""}`}
                                         alt="Desplegar menu usuario."
                                     />
                                 </button>

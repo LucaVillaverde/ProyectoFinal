@@ -1477,13 +1477,13 @@ app.put(
           : ingredients.split(",").map((item) => item.trim());
         const stepsArray = Array.isArray(steps)
           ? steps
-          : steps.split(",").map((item) => item.trim());
+          : steps.split("-").map((item) => item.trim());
         const categoriesArray = Array.isArray(categories)
           ? categories
           : categories.split(",").map((item) => item.trim());
 
         const ingredientsString = ingredientsArray.join(", ");
-        const stepsString = stepsArray.join(", ");
+        const stepsString = stepsArray.join("-");
         const categoriesString = categoriesArray.join(", ");
 
         const newImagePath = req.file

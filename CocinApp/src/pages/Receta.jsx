@@ -27,10 +27,12 @@ const Receta = () => {
         steps: [],
         tiempo: '',
         image: null,
+        author: null,
     });  
     const [show, setShow] = useState(false);
     const [imagenRecipe, setImagenRecipe] = useState(null);
     const [cargandoReceta, setCargandoReceta] = useState(true);
+    const [testing, setTesting] = useState(true);
 
     useEffect(() => {
         const llamadoInfoUsuario = async () => {
@@ -69,8 +71,12 @@ const Receta = () => {
         const referrer = document.referrer;
         const miDominio = window.location.origin;
 
+        
+
         if(contraseña || contraseña.length === 0){
-            const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
+            // const confirmacion = window.confirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
+            const confirmacion = await showConfirm2("¿Estás seguro de borrar la receta? Esta es la última confirmación.");
+            console.log(confirmacion);
             if (confirmacion){
                 try{
                     const eliminarReceta = await axios.post("/api/eliminarReceta", {
@@ -108,6 +114,7 @@ const Receta = () => {
                 steps: Array.isArray(receta.steps) ? receta.steps : [], // Verifica que sea array
                 tiempo: receta.tiempo || '',
                 image: receta.image,
+                author: receta.username,
             });
         }
     }, [receta]);
@@ -118,22 +125,32 @@ const Receta = () => {
             const recetaData = response.data;
     
             // Convertimos los ingredientes, pasos y categorías
-            if (response.status === 200){
+            if (response.status === 200) {
+                // Se convierte en un array a steps (separado por "," cada elemento del array).
+                const pasosFormato = recetaData.steps.join(',');
+                
+                // tomamos el array dividido por coma cada paso y en cada paso especifico remplazamos el guion por una coma con espacio.
+                const pasosSeparados = pasosFormato.split(',').map((step) => step.trim().replace(/-/g, ", "));
+                                
                 setReceta({
                     ...recetaData,
                     ingredients: recetaData.ingredients || [],
-                    steps: recetaData.steps || [],
-                    categories: recetaData.categories || []
+                    steps: pasosSeparados || [],
+                    categories: recetaData.categories || [],
+                    author: recetaData.username,
                 });
     
                 setImagenRecipe(recetaData.image);
-                return (true);
+                return true;
             }
         } catch (err) {
             console.error("Error al obtener la receta:", err);
         }
     };
     
+    
+
+
     useEffect(()=>{
         setCargandoReceta(false);
     },[imagenRecipe])
@@ -141,45 +158,54 @@ const Receta = () => {
     
     const actualizarReceta = async (e) => {
         e.preventDefault();
+        console.log(`Modo testeo: ${testing}`);
+        const stepsFormales = formData.steps.map((step) => step.replaceAll(",", "-"));
 
-        try {
-            const formDataToSend = new FormData();
-            formDataToSend.append("username", localUsername);
-            formDataToSend.append("id_recipe", id); // Enviar el id de la receta para actualizarla
-            formDataToSend.append("recipeName", formData.recipe_name);
-            formDataToSend.append("difficulty", formData.difficulty);
-            formDataToSend.append("description", formData.description);
-            formDataToSend.append("tiempo", formData.tiempo);
-    
-            // Convertir los arrays a cadenas separadas por comas para enviar al back end
-            formDataToSend.append("ingredients", formData.ingredients);
-            formDataToSend.append("steps", formData.steps);
-            formDataToSend.append("categories", formData.categories);
-    
-            if (formData.image) {
-                formDataToSend.append("image", formData.image);
-            }
-    
-            const response = await axios.put("/api/actualizarReceta", formDataToSend, { withCredentials: true });
-            let mensajeOK = "Se obtuvo la info";
-            let conseguido = 'successful';
-            // let advertencia = "warning";
-    
-            if (response.status === 200) {
-                showAlert(`Se actualizó ${formData.recipe_name}`, 'successful');
-                let info = obtenerReceta();
-
-                if (info){
-                    editRecipe();
-                    setInterval(showAlert(mensajeOK, conseguido));
-                } else {
-                    showAlert('no se obtuvo la info', 'warning');
+        if (!testing){
+            console.log("Testeando mi gente.");
+        } else {
+            try {
+                const formDataToSend = new FormData();
+                formDataToSend.append("username", localUsername);
+                formDataToSend.append("id_recipe", id); // Enviar el id de la receta para actualizarla
+                formDataToSend.append("recipeName", formData.recipe_name);
+                formDataToSend.append("difficulty", formData.difficulty);
+                formDataToSend.append("description", formData.description);
+                formDataToSend.append("tiempo", formData.tiempo);
+        
+                // Convertir los arrays a cadenas separadas por comas para enviar al back end
+                formDataToSend.append("ingredients", formData.ingredients);
+                formDataToSend.append("steps", stepsFormales);
+                formDataToSend.append("categories", formData.categories);
+                
+                // const stepsFormales = formData.steps.map((step) => step.replace(",", "-"));
+                
+                
+                if (formData.image) {
+                    formDataToSend.append("image", formData.image);
                 }
+        
+                const response = await axios.put("/api/actualizarReceta", formDataToSend, { withCredentials: true });
+                let mensajeOK = "Se obtuvo la info";
+                let conseguido = 'successful';
+                // let advertencia = "warning";
+        
+                if (response.status === 200) {
+                    showAlert(`Se actualizó ${formData.recipe_name}`, 'successful');
+                    let info = obtenerReceta();
+    
+                    if (info){
+                        editRecipe();
+                        setInterval(showAlert(mensajeOK, conseguido));
+                    } else {
+                        showAlert('no se obtuvo la info', 'warning');
+                    }
+                }
+            } catch (err) {
+                err.response?.data?.message
+                ? showAlert(err.response.data.message, 'warning')
+                : showAlert('Error de conexión', 'danger');
             }
-        } catch (err) {
-            err.response?.data?.message
-            ? showAlert(err.response.data.message, 'warning')
-            : showAlert('Error de conexión', 'danger');
         }
     };
     
@@ -205,6 +231,7 @@ const Receta = () => {
             showAlert('Maximo 12 Pasos', 'warning');
         }
     };
+
 
 
     const handleRemoveIngredient = (index) => {
@@ -241,7 +268,7 @@ const Receta = () => {
     };
 
     const handleFileChange = (event) => {
-        setFormData({ ...formData, image: event.target.files[0] });
+        setFormData({ ...formData, image: event.target.files[0]});
     };
 
     const handleIngredientChange = (index, event) => {
@@ -250,11 +277,11 @@ const Receta = () => {
         setFormData({ ...formData, ingredients: newIngredients });
     };
 
-    const handleStepChange = (index, event) => {
+    const handleStepChange = (index, e) => {
         const newSteps = [...formData.steps];
-        newSteps[index] = event.target.value;
+        newSteps[index] = e.target.value;
         setFormData({ ...formData, steps: newSteps });
-    };
+      };
 
     return (
         <div>
@@ -331,7 +358,7 @@ const Receta = () => {
                                     type="text"
                                     placeholder={`Ingrediente ${index + 1} (sin "," por favor.)`}
                                     value={ingredient}
-                                    pattern="[^,]*"
+                                    pattern="^[1-9][^,]*"
                                     onChange={(e) => handleIngredientChange(index, e)}
                                     required
                                 />
@@ -345,16 +372,15 @@ const Receta = () => {
                         {formData.steps.map((step, index) => (
                             <div key={index} className="inpDel">
                                 <button type="button" className="btn-del" onClick={() => handleRemoveStep(index)}>
-                                    <img src={delIco} alt="Eliminar"/>
+                                <img src={delIco} alt="Eliminar"/>
                                 </button>
                                 <input
-                                    className="inptFormRecipe"
-                                    type="text"
-                                    placeholder={`Paso ${index + 1} (sin "," por favor.)`}
-                                    value={step}
-                                    pattern="[^,]*"
-                                    onChange={(e) => handleStepChange(index, e)}
-                                    required
+                                className="inptFormRecipe"
+                                type="text"
+                                placeholder={`Paso ${index + 1} (sin "-" por favor.)`}
+                                value={step} // Muestra el paso con comas en lugar de guiones
+                                onChange={(e) => handleStepChange(index, e)} // Maneja el cambio de texto
+                                required
                                 />
                             </div>
                         ))}
@@ -379,7 +405,7 @@ const Receta = () => {
             ) : (
                 <div className="content">
                     <div className="recipe">
-                        <h2 className="recipe-title">{receta?.recipe_name}</h2>
+                        <h2 className="recipe-title">{`${receta?.recipe_name} by ${receta?.author}`}</h2>
                         <section className="recipe-img-cont frame-content">
                             <img
                                 src={imagenRecipe}
