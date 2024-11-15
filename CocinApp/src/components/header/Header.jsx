@@ -41,8 +41,9 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
 
     const logout = async (e) => {
         e.preventDefault();
-        const referrer = document.referrer;
-        const miDominio = window.location.origin;
+        const referrer = document.referrer; //la url previa a la que estoy actualmente
+        const miDominio = window.location.origin; //la parte "http://pruebita.webhop.me:5173" de la url.
+
         try {
             const response = await axios.post(`/api/logout`);
             if (response.status === 200) {
@@ -51,7 +52,11 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                 );
                 if (cookieDelete.status === 200){
                     if (referrer.startsWith(miDominio)){
-                        window.location.replace(referrer);
+                        if(referrer.includes("/Panel-de-Recetas/")){
+                            window.location.replace(`/`);
+                        } else {
+                            window.location.replace(referrer);
+                        }
                     }else{
                         window.location.replace(`/`);
                     }
@@ -109,13 +114,13 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                                 movil={movil}
                             />
                     ) : (
-                        <button className="btn_user animate_animated animate__pulse" onClick={() => showForm("login")}>
+                        <button className="animate__animated animate__backInDown btn_user" onClick={() => showForm("login")}>
                             INGRESO / REGISTRO
                         </button>
                     )}
                 </div>
             </div>
-            <div className="header_content">
+            <div className="header_content animate__animated animate__rubberBand">
                 <div className="header-l">
                     <div className="eslogan">
                         <p>
@@ -125,7 +130,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                         </p>
                     </div>
                     <a href="/">
-                        <img className="logo_img animate__animated animate__rubberBand" src={logoimg} alt="LOGO" />
+                        <img className="logo_img" src={logoimg} alt="LOGO" />
                     </a>
                     <div id="menu" className={`hamburger-menu ${visible ? "" : "rotate"}`} onClick={showMenu}>
                         <img src={menuHamburguesa} alt="Menu hamburguesa" />
@@ -148,7 +153,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                         <img className="logo_img animate__animated animate__backInLeft" src={logoimg} alt="LOGO" />
                     </a>
                     <div className="containerEslogan">
-                        <p className="eslogan animate__animated animate__backInRight">Tus recetas simplificadas</p>
+                        <p className="eslogan animate__animated animate__backInDown">Tus recetas simplificadas</p>
                     </div>
                     {isLoggedIn ? (
                         <UserMenu
@@ -157,7 +162,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                             del_profile={()=>showConfirm(deleteUser)}
                         />
                     ) : (
-                        <div className="btn_user-move">
+                        <div className="animate__animated animate__backInRight btn_user-move">
                             <button className="btn_user" onClick={() => showForm("login")}>
                                 INGRESO
                             </button>
@@ -200,9 +205,9 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
     return (
         <div id="contenedorUserMenu">
             {movil ? (
-                <>
+                <div className="menu-container-move">
                     <div className="menu-container" onClick={closeMenu}>
-                        <div className="menu">
+                        <div className="menu animate__animated animate__backInDown">
                             <button
                                 className="menu-button"
                                 onClick={toggleMenu}
@@ -219,6 +224,7 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                                     alt="Desplegar menu usuario."
                                 />
                             </button>
+                        </div>
                             {isOpen && (
                                 <div className="menu-content">
                                     <span className="menu-span">
@@ -243,11 +249,10 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                                     </button>
                                 </div>
                             )}
-                        </div>
                     </div>
-                </>
+                </div>
             ) : (
-                <div className="menu-container-move">
+                <div className="animate__animated animate__backInRight menu-container-move">
                         <div className="menu-container" onClick={closeMenu}>
                             <div className="menu ">
                                 <button

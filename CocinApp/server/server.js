@@ -186,7 +186,7 @@ app.get("/api/protection", (req, res) => {
   const id_user = req.cookies.id_user;
 
   if (!tokenH || !id_user) {
-    return res.status(401).json({ message: "No estás logueado." });
+    return res.status(500).json({ message: "Ha ocurrido un error." });
   } else {
     try {
       db.get(
@@ -723,7 +723,6 @@ app.post("/api/register", (req, res) => {
   }
 
   const query = "SELECT * FROM Users WHERE username = ?";
-
   try {
     db.get(query, [usernameR], async (err, row) => {
       if (err) {

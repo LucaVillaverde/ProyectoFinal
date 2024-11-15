@@ -30,6 +30,17 @@ function App() {
     const { confirm, alert, check} = useAlert();
 
 
+    useEffect(() => {
+        const metaViewport = document.createElement('meta');
+        metaViewport.name = "viewport";
+        metaViewport.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
+        document.getElementsByTagName('head')[0].appendChild(metaViewport);
+        
+        return () => {
+            document.getElementsByTagName('head')[0].removeChild(metaViewport);
+        };
+    }, []);
+
     useEffect(() => {    
         const checkAuth = async () => {
           try {
@@ -37,8 +48,7 @@ function App() {
             if (response.status === 200) {
               setIsAuthenticated(true);
             }
-          } catch (err) {
-            console.error(err);
+          } catch {
             setIsAuthenticated(false);
           }
         };
@@ -53,6 +63,7 @@ function App() {
         formulario.className = formulario.className === "displayNone" ? "backgroundForm" : "displayNone";
 
     };
+    
         console.log(check)
     return (
         <Router>

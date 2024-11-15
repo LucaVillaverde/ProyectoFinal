@@ -168,14 +168,14 @@ header{
     width: 32px;
     height: 32px;
     transform: rotate(180deg);
-    transition: transform .7s;
+    transition: transform .5s;
 }
 
 .menuIconRotate{
     width: 32px;
     height: 32px;
     transform: rotate(0deg);
-    transition: transform .7s;
+    transition: transform .5s;
 }
 
 .menu-button {
@@ -191,6 +191,8 @@ header{
     cursor: pointer;
     height: 100%;
 }
+
+
 
 .menu-content {
     position: absolute;
