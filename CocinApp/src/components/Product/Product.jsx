@@ -1,72 +1,94 @@
 import React, { useEffect, useState } from "react";
 import "./product.css";
 import cartAdd from '../../assets/addcart.svg';
+import { useAlert } from '../../context/messageContext';
 
-
-const Producto = ({ nombre, imagen, precio, id, agregarAlCarrito, descripcion}) => {
+const Producto = ({ nombre, imagen, precio, id, agregarAlCarrito, descripcion, setCantidadTotalProductos, cantidadTotalProductos }) => {
   const [movil, setMovil] = useState();
+  const [productos, setProductos] = useState(0); // Estado para persistir la cantidad de productos
+  const {showAlert} = useAlert();
 
   useEffect(() => {
     const determinarAncho = (ancho) => (ancho > 720 ? 1 : 0);
 
     const verificarAncho = () => {
-        const anchoBoolean = determinarAncho(window.innerWidth);
-        if (anchoBoolean === 1) {
-            setMovil(false);
-        } else {
-            setMovil(true);
-        }
+      const anchoBoolean = determinarAncho(window.innerWidth);
+      if (anchoBoolean === 1) {
+        setMovil(false);
+      } else {
+        setMovil(true);
+      }
     };
 
     verificarAncho();
     window.addEventListener("resize", verificarAncho);
 
     return () => {
-        window.removeEventListener("resize", verificarAncho);
+      window.removeEventListener("resize", verificarAncho);
     };
-}, []); 
+  }, []);
 
   const agregarProducto = () => {
-    localProductos()
-    const nuevoProducto = { id, nombre, precio, imagen, descripcion };
-    agregarAlCarrito(nuevoProducto); // Llamamos a la función del padre
+    if (navigator.vibrate){
+      navigator.vibrate(200); // 200ms de vibracion
+      if (cantidadTotalProductos < 6){
+        const audioAgregar = new Audio('src/assets/AgregarAlCarrito.mp3');
+        audioAgregar.play();
+        localProductos();
+        const nuevoProducto = { id, nombre, precio, imagen, descripcion };
+        agregarAlCarrito(nuevoProducto); // Llamamos a la función del padre
+      }else{
+        const audioError = new Audio('src/assets/WarningSound.mp3');
+        audioError.play();
+        showAlert("No puedes agregar mas de 6 productos", "warning");
+      }
+    }
+    else {
+      if (cantidadTotalProductos < 6){
+        const audioAgregar = new Audio('src/assets/AgregarAlCarrito.mp3');
+        audioAgregar.play();
+        localProductos();
+        const nuevoProducto = { id, nombre, precio, imagen, descripcion };
+        agregarAlCarrito(nuevoProducto); // Llamamos a la función del padre
+      }else{
+        const audioError = new Audio('src/assets/WarningSound.mp3');
+        audioError.play();
+        showAlert("No puedes agregar mas de 6 productos", "warning");
+      }
+    }
   };
- // Inicializar productos en localStorage si no existe
-if (!localStorage.getItem("productos")) {
-  localStorage.setItem("productos", 0);
-}
 
-function localProductos() {
-  let productos = localStorage.getItem("productos");
-  let productosParch = parseInt(productos);
+  useEffect(()=>{
+    console.log(cantidadTotalProductos);
+  },[cantidadTotalProductos])
 
-  // Si es NaN (no se pudo convertir a número), reinicializamos a 0
-  if (isNaN(productosParch)) {
-    productosParch = 0;
-  }
-
-  // Verificar si es 0 o actualizar sumando 1
-  if (productosParch === 0) {
-    localStorage.setItem("productos", 1);
-  } else if (productosParch > 0 && productosParch < 20){
-    productosParch += 1; // Sumar 1 correctamente
-    localStorage.setItem("productos", productosParch);
-  } else {
-    console.log(`No puedes tener mas de ${productosParch} cantidad de productos simultaneos.`);
-  }
-}
-
+  const localProductos = () => {
+    if (productos === 0) {
+      setProductos(1);
+      setCantidadTotalProductos(1);
+    } else if (productos > 0 && productos < 6) {
+      const nuevosProductos = productos + 1;
+      setProductos(nuevosProductos);
+      setCantidadTotalProductos(nuevosProductos);
+    } else {
+      console.log("No puedes tener más de 6 productos simultáneos.");
+      return;
+    }
+  };
 
   return (
     <div className="product-card">
-        <h2 className="text-title ">{nombre}</h2>
+      <h2 className="text-title">{nombre}</h2>
       <div className="product-card-details">
         <img src={imagen} width={'80px'} className="product-card-img" />
         <p className="text-body">{descripcion}</p>
         <p className="card-price">US${precio}</p>
       </div>
-      <button className="product-card-button" onClick={agregarProducto}>Comprar</button>
+      <button className="product-card-button" onClick={agregarProducto}>
+        Agregar al Carrito
+      </button>
     </div>
   );
 };
+
 export default Producto;

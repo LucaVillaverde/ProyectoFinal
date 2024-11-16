@@ -7,6 +7,8 @@
   --font-title     : font-family: sans-serif;
   --font-paragrph  : font-family: Georgia;
 }
+
+
 *{
   box-sizing: border-box;
 }
@@ -19,6 +21,11 @@ body{
   overflow-x: hidden;
   background-color: var(--third-color);
   color: var(--fourth-color); 
+}
+
+main{
+  margin-top: 20px;
+  z-index: 1;
 }
 
 h1{

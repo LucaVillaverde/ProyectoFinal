@@ -17,6 +17,27 @@
     justify-content: center;
 }
 
+.productos{
+    width: 93%;
+    display: grid;
+    grid-template-columns: repeat(1,1fr);
+    row-gap: 20px;
+}
+
+.productosListado{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    row-gap: 15px;
+    align-items: center;
+    justify-items: center;
+    background-color: var(--third-color);
+    padding: 4px;
+    border-radius: 10px;
+}
+
+.nombreProdList{
+    justify-self: start;
+}
 
 
 .btnCarrito{ 
@@ -31,7 +52,8 @@
     align-items: center;
   }
   .btnCarrito:hover{cursor: pointer;}
-  #contenedorCarrito{
+
+  #contenedorCarrito {
     z-index: 10;
     display: flex;
     width: 64px;
@@ -41,9 +63,12 @@
     position: fixed;
     justify-content: center;
     opacity: 1;
-    top: 130px;
-    left: 10px;
+    top: auto;
+    left: auto;
+    bottom: 20px; /* Asegura que esté pegado al fondo */
+    right: 20px; /* Asegura que esté pegado a la derecha */
   }
+
   #carrito{
     width: 32px;
     height: 32px;
@@ -63,7 +88,7 @@
     position: fixed;
     z-index: 9;
     width: 100%;
-    height: 100vh;
+    height: 100%;
     color: #e4e4e4;
     background-color: #0000009f;
   }
@@ -71,10 +96,10 @@
     display: grid;
     justify-items: center;
     align-items: center;
-    width: 70%;
-    height: 60%;
+    width: 100%;
+    height: auto;
     color: var(--fourth-color);
-    border-radius: 20px 50px;
+    border-radius: 20px;
     background-color: var(--secondary-color);
   }
   
@@ -86,27 +111,46 @@
     box-shadow: 0 0 50px #ffce7a;
     margin-bottom: 10%;
     transition: box-shadow 1.1s;
+    border-radius: 20px;
   }
   .btncomprar:hover{box-shadow: 0 0 50px rgb(168, 115, 2);}
 
 /*------------MEDIA QUERIES------------*/
+  
 
-@media (min-width: 375px){
-    .contenedorProductos{
-        margin-top: 8%;
-        margin-bottom: 8%;
-        row-gap: 50px;
+@media (min-width: 375px) {
+    .contenedorProductos {
+      margin-top: 8%;
+      margin-bottom: 8%;
+      row-gap: 50px;
     }
-}
-
-@media (min-width: 425px){
-    .contenedorProductos{
-        display: grid;
-        grid-template-columns: 400px;
-        justify-items: center;
+  }
+  
+  @media (min-width: 425px) {
+    .contenedorProductos {
+      display: grid;
+      grid-template-columns: 400px;
+      justify-items: center;
     }
-}
-
+  }
+  
+  @media (max-width: 425px) {
+    #contenedorCarrito {
+      position: fixed; /* Aseguramos que quede fijo */
+      bottom: 20px; /* Pegado al fondo */
+      right: 20px; /* Pegado a la derecha */
+      top: auto; /* Eliminamos cualquier valor de top */
+      left: auto; /* Eliminamos cualquier valor de left */
+    }
+  }
+  
+  @media (max-width: 375px) {
+    #contenedorCarrito {
+      bottom: 15px; /* Ajustamos el espacio para pantallas más pequeñas */
+      right: 15px;
+    }
+  }
+  
 @media (min-width: 600px){
     .contenedorProductos{
         grid-template-columns: repeat(2, 1fr);
@@ -116,15 +160,34 @@
 }
 
 @media (min-width: 768px){
+    .listaCarrito{
+        width: 70%;
+    }
+
     .contenedorProductos{
-        margin-top: 5%;
+        margin-top: 10vh;
         margin-bottom: 5%;
         grid-template-columns: repeat(2, 42%);
         row-gap: 60px;
     }   
+
+    #contenedorCarrito {
+      right: 10px; /* Pegado a la derecha */
+    }
 }
 
-@media (min-width: 1024px){
+@media (min-width: 1020px){
+    .listaCarrito{
+        width: 60%;
+        min-height: 400px;
+        max-height: 500px;
+    }
+
+    #contenedorCarrito {
+        bottom: 20px; /* Pegado al fondo */
+        right: 20px; /* Pegado a la derecha */
+      }
+
     .contenedorProductos{
         display: grid;
         grid-template-columns: repeat(3, 28%);
@@ -135,13 +198,17 @@
 
 @media (min-width: 1440px){
     .contenedorProductos{
-        margin-top: 3%;
         margin-bottom: 3%;
         display: grid;
         grid-template-columns: repeat(4, 21%);
         row-gap: 60px;
         column-gap: 30px;
     }
+
+    #contenedorCarrito {
+        bottom: 20px; /* Pegado al fondo */
+        right: 10px; /* Pegado a la derecha */
+      }
 }
 
 @media (min-width: 1650px){

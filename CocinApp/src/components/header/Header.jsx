@@ -15,12 +15,27 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
     const [movil, setMovil] = useState(true);
     const {showConfirm, showAlert} = useAlert();
     const {openConfirm} = useConfirm();
+    const [dineroUser, setDineroUser] = useState(0);
 
     const links = [
         { href: "/", label: "INICIO" },
         { href: "/Buscar", label: "BUSCAR" },
         { href: "/tienda", label: "TIENDA" },
     ];
+
+    useEffect(() => {
+        const fefoResponse = async () => {
+            try{
+                const response = await axios.post('/api/dinero-cantidad', {});
+                if (response.status === 200){
+                    setDineroUser(response.data.money);
+                }
+            }catch{
+                console.log("Hola soy un error.");
+            }
+        }
+        fefoResponse();
+    },[])
 
     useEffect(() => {
         const determinarAncho = (ancho) => (ancho > 720 ? 1 : 0);
@@ -105,6 +120,9 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
     return movil ? (
         <header>
             <div className="nav-user">
+                <div className="animate__animated animate__backInDown dineroUsuario">
+                    <span>US${dineroUser}</span>
+                </div>
                 <div className="seccion">
                     {isLoggedIn ? (
                             <UserMenu

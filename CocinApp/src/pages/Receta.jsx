@@ -18,7 +18,7 @@ const Receta = () => {
     const [localUsername, setLocalUsername] = useState(null);
     const { id } = useParams();
     const [receta, setReceta] = useState(null);
-    const {showConfirm} = useAlert();
+    const {showConfirm, showAlert} = useAlert();
     const {openConfirm} = useConfirm();
 
     const [formData, setFormData] = useState({
@@ -70,43 +70,55 @@ const Receta = () => {
     }
 
     const deleteRecipe = async (contraseña) => {
-        const referrer = document.referrer;
-        const miDominio = window.location.origin;
-
-
-
-        if(contraseña || contraseña.length === 0){
-            const confirmacion = await openConfirm('¿Esta seguro de borrar la receta? ésta es la última confirmación.');
-            
-
-
-            console.log(confirmacion);
-            // if (confirmacion){
-            //     try{
-            //         const eliminarReceta = await axios.post("/api/eliminarReceta", {
-            //             contraseña,
-            //             id_recipe: id,
-            //         });
-            //         if (eliminarReceta.status === 200){
-            //             if (referrer.startsWith(miDominio)){
-            //                 window.location.replace(referrer);
-            //             }else{
-            //                 window.location.replace(`/`);
-            //             }
-            //         }
-            //     } catch (err) {
-            //         if (err.response.data.message === "Contraseña incorrecta."){
-            //             showAlert(err.response.data.message, 'warning');
-            //         } else {
-            //             showAlert(err.response.data.message, 'danger');
-            //         }
-            //     }  
-            // }
-        }else{
-            
+        try {
+            const referrer = document.referrer || `/`;
+            const miDominio = window.location.origin;
+    
+            if (!contraseña || contraseña.trim() === "") {
+                showAlert("La contraseña es obligatoria", "warning");
+                return;
+            }
+    
+            const confirmacion = await openConfirm(
+                "¿Está seguro de borrar la receta? Ésta es la última confirmación."
+            );
+    
+            if (confirmacion) {
+                const eliminarReceta = await axios.post("/api/eliminarReceta", {
+                    contraseña,
+                    id_recipe: id,
+                });
+    
+                if (eliminarReceta.status === 200) {
+                    // Redirigir dependiendo del dominio
+                    const audioSuccess = new Audio('/src/assets/SuccessSound.mp3');
+                    audioSuccess.play();
+                    navigator.vibrate([100, 300, 100]);
+                    setInterval(redireccion(), 2000);
+                    const redireccion = () => {
+                        if (referrer.startsWith(miDominio)) {
+                            window.location.replace(referrer);
+                        } else {
+                            window.location.replace(`/`);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            // Manejo de errores generales
+            const audioDanger = new Audio('/src/assets/DangerSound.mp3');
+            const audioWarning = new Audio('/src/assets/WarningSound.mp3');
+            const errorMessage = error.response?.data?.message || "Error de conexión";
+            if (errorMessage === "Contraseña incorrecta."){
+                showAlert(errorMessage, "warning");
+                audioWarning.play();
+            }else{
+                showAlert(errorMessage, "danger");
+                audioDanger.play();
+            }
         }
-    }
-
+    };
+    
     useEffect(() => {
         if (receta) {
             setFormData({

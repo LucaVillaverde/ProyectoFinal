@@ -25,23 +25,36 @@ header{
 
 
 
-.links{
+.links {
     display: flex;
     width: 100%;
-    z-index: 5;
     background-color: var(--secondary-color);
-    padding: 5px 10px; 
+    padding: 5px 10px;
     flex-direction: column;
-    position: absolute;
+    position: relative;
+    z-index: 81;
     border-top: 1px solid;
     row-gap: 10px;
-    transition: opacity 2s; 
-}
-.menuClose{
-    display: none;
-}
-
-.link{
+    max-height: 0; /* Colapsado inicialmente */
+    opacity: 0; /* Oculto */
+    overflow: hidden;
+    visibility: hidden; /* Escondido visualmente pero aún ocupa espacio para la animación */
+    transition: max-height 0.8s ease, opacity 0.9s ease, visibility 0.5s;
+  }
+  
+  .links.menuClose {
+    max-height: 0; /* Oculto */
+    opacity: 0;
+    visibility: hidden; /* Oculto completamente */
+  }
+  
+  .links:not(.menuClose) {
+    max-height: 300px; /* Altura suficiente para el contenido */
+    opacity: 1; /* Visible */
+    visibility: visible; /* Lo hace visible */
+  }
+  
+  .link {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -55,7 +68,8 @@ header{
     box-shadow: none;
     transition: color 1s, border 1s, box-shadow 1.2s;
     background-color: var(--primary-color);
-}
+  }
+  
 
 .link:hover{
     transition: box-shadow 1.2s;
@@ -63,16 +77,23 @@ header{
 }
 
 .nav-user{
-    display: flex;
-    justify-content: end;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     width: 100%;
     height: auto;
+    align-items: center;
     background-color: var(--secondary-color);
 }
 .seccion{
     display: flex;
-    justify-content: center;
+    justify-content: end;
 }
+
+.dineroUsuario{
+    font-size: 20px;
+    margin-left: 5%;
+}
+
 .btn_user{
     height: 37px;
     background-color: transparent;
@@ -253,6 +274,22 @@ header{
         padding: 0;
         grid-template-columns: 20% 60% 20%;
     }
+
+    .links {
+        max-height: auto; 
+        opacity: 1; /* Oculto */
+        overflow: visible;
+        visibility: visible; 
+        transition: max-height 0.8s ease, opacity 0.9s ease, visibility 0.5s;
+      }
+      
+      .links.menuClose {
+        max-height: 100px; /* Oculto */
+        opacity: 1;
+        visibility: visible; /* Oculto completamente */
+      }
+
+
 
     #logoContainer{
         justify-self: start;

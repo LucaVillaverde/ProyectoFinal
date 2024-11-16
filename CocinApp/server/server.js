@@ -1584,7 +1584,7 @@ app.post("/api/eliminarReceta", (req, res) => {
           .json({ message: "Error al obtener la imagen de la DB." });
       }
 
-      if (!row || !row.image || row.image === "/assets/imagenDefault.webp") {
+      if (!row || !row.image || row.image === "/assets/imagenDefault.webp" || row.image === "../src/assets/imagenDefault.webp") {
         // Si no hay imagen asociada, podemos proceder con la eliminación de la receta sin borrar la imagen.
         db.run(deleteQueryRecipeTable, [id_recipe], (err) => {
           if (err) {
@@ -1601,6 +1601,22 @@ app.post("/api/eliminarReceta", (req, res) => {
         console.log(row.image);
         const imagenPath = path.join("../", "dist", row.image); // row.image ya tiene la ruta completa
         const imagenRespaldo = path.join("../public", row.image);
+
+        if(imagenPath.includes("imagenDefault.webp")){
+          console.log("la receta es la por defecto de la pagina, por lo que no se borrara.");
+          // Eliminar la receta de la base de datos
+          db.run(deleteQueryRecipeTable, [id_recipe], (err) => {
+            if (err) {
+              console.log("Error al intentar eliminar la receta:", err);
+              return res
+                .status(500)
+                .json({ message: "Error al intentar eliminar la receta." });
+            }
+            return res.status(200).json({
+              message: "Se eliminó correctamente la receta y la imagen.",
+            });
+          });
+        }
 
         // Eliminar la imagen si existe
         if (fs.existsSync(imagenPath)) {
@@ -1712,6 +1728,26 @@ app.post('/api/comprar', (req, res) => {
       }
     }
   })
+})
+
+app.post('/api/dinero-cantidad', (req, res) => {
+  const id_user = req.cookies.id_user;
+  const moneyQuery = "SELECT money FROM Users WHERE id_user = ?";
+    try{
+      db.get(moneyQuery, [id_user], (err, row) => {
+        if (err) {
+          return res.status(500);
+        }
+        if (!row) {
+          return res.status(404);
+        }
+        else {
+          return res.status(200).json({ money: row.money });
+        }
+      })
+    }catch{
+
+    }
 })
 
 process.on("SIGINT", () => {

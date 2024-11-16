@@ -106,8 +106,6 @@
 }
 .btn-form:hover{
   box-shadow: 0 0 9px var(--secondary-color);
-  animation: bounceIn; 
-  animation-duration: 2s; 
 }
 
 @media (min-width: 430px){

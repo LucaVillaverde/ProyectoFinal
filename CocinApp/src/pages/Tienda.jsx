@@ -22,11 +22,9 @@ const Tienda = () => {
   //Funciones
   const [carrito, setCarrito] = useState([]);
   const [listaCarrito, setListaCarrito] = useState(false);
-  const cantidadTotalProductos = localStorage.getItem("productos");
+  const [cantidadTotalProductos, setCantidadTotalProductos] = useState(0);
   const [productosData, setProductosData] = useState(null);
-  window.addEventListener("beforeunload", () => {
-    localStorage.removeItem("productos");
-  });
+  const [disabled, setDisabled] = useState(false);
   let aPagar = 0;
 
   useEffect(() => {
@@ -62,145 +60,90 @@ const Tienda = () => {
     }
   };
   const comprar = async () => {
-    try{
-      const compraResponse = await axios.post("/api/comprar", {
-        costo: aPagar,
-      })
-      if (compraResponse.status === 200){
-        showAlert(compraResponse.data.message, 'successful');
+    setDisabled(true);
+    if (navigator.vibrate){
+      navigator.vibrate(100); // 200ms de vibracion
+      try{
+        const compraResponse = await axios.post("/api/comprar", {
+          costo: aPagar,
+        })
+        if (compraResponse.status === 200){
+          setDisabled(true);
+          showAlert(compraResponse.data.message, 'successful');
+          const audioSuccess = new Audio('/src/assets/SuccessSound.mp3');
+          audioSuccess.play();
+          navigator.vibrate([100, 300, 100]);
+          setInterval(() => location.reload(), 2000);
+        }
+      }catch(err){
+        setDisabled(false);
+        const errorMessage = err.response?.data?.message || 'Error de conexión';
+        showAlert(errorMessage, 'danger');
+        const audioError = new Audio('/src/assets/DangerSound.mp3');
+        audioError.play();
+        navigator.vibrate(300);
       }
-    }catch(err){
-      const errorMessage = err.response?.data?.message || 'Error de conexión';
-      showAlert(errorMessage, 'danger');
+    } else {
+      try{
+        const compraResponse = await axios.post("/api/comprar", {
+          costo: aPagar,
+        })
+        if (compraResponse.status === 200){
+          showAlert(compraResponse.data.message, 'successful');
+          const audioSuccess = new Audio('/src/assets/SuccessSound.mp3');
+          audioSuccess.play();
+          navigator.vibrate([100, 300, 100]);
+          setInterval(() => location.reload(), 2000);
+        }
+      }catch(err){
+        const errorMessage = err.response?.data?.message || 'Error de conexión';
+        showAlert(errorMessage, 'danger');
+        const audioError = new Audio('/src/assets/DangerSound.mp3');
+        audioError.play();
+      }
     }
   };
 
   const agregarAlCarrito = (producto) => {
     setCarrito((carritoActual) => {
-      let cantidadTotalProductos = 0;
-
-      if (cantidadTotalProductos > 5){
-        showAlert("No puedes agregar tanto producto", "warning");
-        return;
+      // Calculamos la cantidad total actual de productos en el carrito
+      const nuevaCantidadTotal = carritoActual.reduce(
+        (total, item) => total + item.cantidad,
+        0
+      );
+  
+      // Si ya alcanzamos el límite, mostramos una alerta y no hacemos cambios
+      if (nuevaCantidadTotal >= 6) {
+        showAlert("No puedes agregar más productos", "warning");
+        return carritoActual; // Devolver el carrito sin cambios
       }
-
-      // Usar forEach para calcular la cantidad total de productos en el carrito
-      carritoActual.forEach((item) => {
-        cantidadTotalProductos += item.cantidad;
-      });
-
+  
       const productoExistente = carritoActual.find(
         (item) => item.id === producto.id
       );
-
+  
+      let nuevoCarrito;
+  
       if (productoExistente) {
-        return carritoActual.map((item) =>
+        // Si el producto ya existe, incrementar su cantidad
+        nuevoCarrito = carritoActual.map((item) =>
           item.id === producto.id
-            ? {
-                ...item,
-                // Verifica si la cantidad del producto actual + total no supera 20
-                cantidad:
-                  item.cantidad < 6 && cantidadTotalProductos < 6
-                    ? item.cantidad + 1
-                    : item.cantidad,
-              }
+            ? { ...item, cantidad: item.cantidad + 1 }
             : item
         );
       } else {
-        // Verificar si al agregar un nuevo producto la cantidad total no supera 20
-        return cantidadTotalProductos < 6
-          ? [...carritoActual, { ...producto, cantidad: 1 }]
-          : carritoActual;
+        // Si es un producto nuevo, agregarlo al carrito
+        nuevoCarrito = [...carritoActual, { ...producto, cantidad: 1 }];
       }
+  
+      // Actualizamos el total de productos en el estado global
+      setCantidadTotalProductos(nuevaCantidadTotal + 1);
+  
+      return nuevoCarrito;
     });
   };
+  
 
-  const Datos = [
-    {
-      id: 21,
-      nombre: "Crock-Pot Olla de cocción lenta manual",
-      imagen: "Posible imagen",
-      precio: 390,
-      descripcion: "Nuestra olla de cocción lenta: sabor sin esfuerzo. ¡Elige la temperatura y listo!",
-    },
-    {
-      id: 22,
-      nombre: "Tostadora CocinApp Deluxe",
-      imagen: "Posible imagen",
-      precio: 330,
-      descripcion: "Una tostadora de alta calidad que te brindara unas tostadas crocantes.",
-    },
-    {
-      id: 23,
-      nombre: "Nadia",
-      imagen: "Posible imagen",
-      precio: 100,
-      descripcion: "La Nadia, que mas queres?",
-    },
-    {
-      id: 24,
-      nombre: "NoPollo",
-      imagen: "Posible imagen",
-      precio: 743,
-      descripcion: "El NoPollo, que mas queres?",
-    },
-    {
-      id: 25,
-      nombre: "Fefo",
-      imagen: "Posible imagen",
-      precio: 390,
-      descripcion: "El Fefo, que mas queres?",
-    },
-    {
-      id: 26,
-      nombre: "Luca",
-      imagen: "Posible imagen",
-      precio: 330,
-      descripcion: "El Luca, que mas queres?",
-    },
-    {
-      id: 27,
-      nombre: "Nadia",
-      imagen: "Posible imagen",
-      precio: 100,
-      descripcion: "La Nadia, que mas queres?",
-    },
-    {
-      id: 28,
-      nombre: "NoPollo",
-      imagen: "Posible imagen",
-      precio: 743,
-      descripcion: "El NoPollo, que mas queres?",
-    },
-    {
-      id: 29,
-      nombre: "Fefo",
-      imagen: "Posible imagen",
-      precio: 390,
-      descripcion: "El Fefo, que mas queres?",
-    },
-    {
-      id: 30,
-      nombre: "Luca",
-      imagen: "Posible imagen",
-      precio: 330,
-      descripcion: "El Luca, que mas queres?",
-    },
-    {
-      id: 31,
-      nombre: "Nadia",
-      imagen: "Posible imagen",
-      precio: 100,
-      descripcion: "La Nadia, que mas queres?",
-    },
-    {
-      id: 32,
-      nombre: "NoPollo",
-      imagen: "Posible imagen",
-      precio: 743,
-      descripcion: "El NoPollo, que mas queres?",
-    },
-  ];
 
   return (
     <div className="contentenido">
@@ -219,9 +162,11 @@ const Tienda = () => {
           <h3>Lista de compras</h3>
           <div className="productos">
             {carrito.map(({ nombre, precio, cantidad }, index) => (
-              <p key={index}>
-                {nombre} &nbsp; | &nbsp; ${precio} &nbsp; | &nbsp; ({cantidad}x)
-              </p>
+              <div className="productosListado" key={index}>
+                <span className="nombreProdList">{nombre}</span>
+                <span className="precioProdList">${precio}</span> 
+                <span className="cantidadProdList">({cantidad}x)</span>
+              </div>
             ))}
           </div>
 
@@ -233,11 +178,11 @@ const Tienda = () => {
                 0
               );
               aPagar = total;
-              return <p>Total del carrito: ${total}</p>; // Mostrar el total
+              return <p>Total del carrito: US${total}</p>; // Mostrar el total
             })()}
           </div>
-          <button className="btncomprar" onClick={comprar}>
-            COMPRAR
+          <button className="btncomprar" onClick={comprar} disabled={disabled}>
+            {disabled ? "Procesando" : "Comprar"}
           </button>
         </div>
       </div>
@@ -254,6 +199,8 @@ const Tienda = () => {
             precio={product_price}
             descripcion={product_description}
             agregarAlCarrito={agregarAlCarrito}
+            setCantidadTotalProductos={setCantidadTotalProductos}
+            cantidadTotalProductos={cantidadTotalProductos}
           />
         ))}
       </div>
