@@ -301,6 +301,11 @@ header{
         margin-right: 20%;
     }
 
+    .dineroUsuario{
+        margin-left: 0;
+        text-align: center;
+    }
+
     .btn_user-avatar{
         width: 38px;
         height: 38px;

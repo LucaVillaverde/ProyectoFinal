@@ -761,7 +761,7 @@ app.post("/api/register", (req, res) => {
           const hashedPasswordR = await bcrypt.hash(passwordR, 10);
           db.run(
             insertQuery,
-            [nombreMinisculas, hashedPasswordR, 3000],
+            [nombreMinisculas, hashedPasswordR, 6000],
             function (err) {
               if (err) {
                 console.error("Error al crear usuario:", err.message);
@@ -1703,6 +1703,10 @@ app.post('/api/comprar', (req, res) => {
   const id_user = req.cookies.id_user;
   const queryMoneyUser = "SELECT money FROM Users WHERE id_user = ?";
   const queryMoneyUpdate = "UPDATE Users SET money = ? WHERE id_user = ?";
+
+  if(!id_user){
+    return res.status(400).json({ message: "No se encuentra logueado." });
+  }
 
   db.get(queryMoneyUser, [id_user], (err, row) => {
     if (err) {

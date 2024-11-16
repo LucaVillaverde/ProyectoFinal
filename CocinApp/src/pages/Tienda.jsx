@@ -4,8 +4,12 @@ import "../css/tienda.css";
 import { useAlert } from '../context/messageContext';
 import Product from "../components/Product/Product";
 import carritoImg from "../assets/carrito.svg";
+import delIco from '../assets/minus.svg';
+import addIco from '../assets/add.svg';
+import discordIn from '../assets/Discord_Join.mp3';
+import discordLeave from '../assets/Discord_Leave.mp3';
 
-const Tienda = () => {
+const Tienda = ({ setDineroUser }) => {
   const {showAlert} = useAlert();
   useEffect(() => {
     const metaDescription = document.createElement("meta");
@@ -25,11 +29,22 @@ const Tienda = () => {
   const [cantidadTotalProductos, setCantidadTotalProductos] = useState(0);
   const [productosData, setProductosData] = useState(null);
   const [disabled, setDisabled] = useState(false);
+  const [disabledMessage, setDisabledMessage] = useState(null);
   let aPagar = 0;
 
   useEffect(() => {
     listaProductos();
   },[])
+
+  useEffect(() => {
+    if(carrito.length === 0){
+      setDisabled(true);
+      setDisabledMessage("Seleccione Algun Producto");
+    }else{
+      setDisabled(false);
+      setDisabledMessage("Comprar")
+    }
+  },[carrito])
 
   const listaProductos = async () => {
     try{
@@ -59,52 +74,59 @@ const Tienda = () => {
       setListaCarrito(true);
     }
   };
+
   const comprar = async () => {
     setDisabled(true);
-    if (navigator.vibrate){
-      navigator.vibrate(100); // 200ms de vibracion
-      try{
-        const compraResponse = await axios.post("/api/comprar", {
-          costo: aPagar,
-        })
-        if (compraResponse.status === 200){
-          setDisabled(true);
-          showAlert(compraResponse.data.message, 'successful');
-          const audioSuccess = new Audio('/src/assets/SuccessSound.mp3');
-          audioSuccess.play();
-          navigator.vibrate([100, 300, 100]);
-          setInterval(() => location.reload(), 2000);
+    setDisabledMessage("Procesando Compra");
+    if (navigator.vibrate) navigator.vibrate(100); // 100ms de vibración
+
+    try {
+      const compraResponse = await axios.post("/api/comprar", { costo: aPagar });
+      if (compraResponse.status === 200) {
+        showAlert(compraResponse.data.message, "successful");
+
+        // Sonido de éxito
+        const audioSuccess = new Audio("/src/assets/SuccessSound.mp3");
+        audioSuccess.play();
+        if (navigator.vibrate) navigator.vibrate([100, 300, 100]);
+
+        // Actualizar dinero del usuario
+        const response = await axios.post("/api/dinero-cantidad", {});
+        if (response.status === 200) {
+          setDineroUser(response.data.money);
+          setTimeout(() => location.reload(), 2000);
         }
-      }catch(err){
-        setDisabled(false);
-        const errorMessage = err.response?.data?.message || 'Error de conexión';
-        showAlert(errorMessage, 'danger');
-        const audioError = new Audio('/src/assets/DangerSound.mp3');
-        audioError.play();
-        navigator.vibrate(300);
       }
-    } else {
-      try{
-        const compraResponse = await axios.post("/api/comprar", {
-          costo: aPagar,
-        })
-        if (compraResponse.status === 200){
-          showAlert(compraResponse.data.message, 'successful');
-          const audioSuccess = new Audio('/src/assets/SuccessSound.mp3');
-          audioSuccess.play();
-          navigator.vibrate([100, 300, 100]);
-          setInterval(() => location.reload(), 2000);
-        }
-      }catch(err){
-        const errorMessage = err.response?.data?.message || 'Error de conexión';
-        showAlert(errorMessage, 'danger');
-        const audioError = new Audio('/src/assets/DangerSound.mp3');
-        audioError.play();
-      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Error de conexión";
+      showAlert(errorMessage, "danger");
+      setDisabled(false);
+      // Sonido de error
+      const audioError = new Audio("/src/assets/DangerSound.mp3");
+      audioError.play();
+      if (navigator.vibrate) navigator.vibrate(300);
     }
   };
 
+  const quitarDelCarrito = (id) => {
+    setCarrito((carritoActual) => {
+      const nuevoCarrito = carritoActual.map((item) => 
+        item.id === id ? { ...item, cantidad: item.cantidad - 1 } : item
+      ).filter((item) => item.cantidad > 0); // Filtrar productos con cantidad > 0
+
+      // Actualizar el total de productos en el estado global
+      const nuevaCantidadTotal = nuevoCarrito.reduce(
+        (total, item) => total + item.cantidad,
+        0
+      );
+      setCantidadTotalProductos(nuevaCantidadTotal);
+
+      return nuevoCarrito;
+    });
+  };
+
   const agregarAlCarrito = (producto) => {
+    const audioWarning = new Audio('/src/assets/WarningSound.mp3');
     setCarrito((carritoActual) => {
       // Calculamos la cantidad total actual de productos en el carrito
       const nuevaCantidadTotal = carritoActual.reduce(
@@ -114,9 +136,13 @@ const Tienda = () => {
   
       // Si ya alcanzamos el límite, mostramos una alerta y no hacemos cambios
       if (nuevaCantidadTotal >= 6) {
+        audioWarning.play();
         showAlert("No puedes agregar más productos", "warning");
         return carritoActual; // Devolver el carrito sin cambios
       }
+
+      const audioAgregadoLista = new Audio(discordIn);
+      audioAgregadoLista.play();
   
       const productoExistente = carritoActual.find(
         (item) => item.id === producto.id
@@ -161,15 +187,33 @@ const Tienda = () => {
         <div className="listaCarrito">
           <h3>Lista de compras</h3>
           <div className="productos">
-            {carrito.map(({ nombre, precio, cantidad }, index) => (
+            {carrito.map(({ id, nombre, precio, cantidad }, index) => (
               <div className="productosListado" key={index}>
                 <span className="nombreProdList">{nombre}</span>
-                <span className="precioProdList">${precio}</span> 
+                <span className="precioProdList">${precio}</span>
                 <span className="cantidadProdList">({cantidad}x)</span>
+                <button
+                    className="btnAgregar"
+                    onClick={() => {
+                      const producto = carrito.find((item) => item.id === id);
+                      agregarAlCarrito(producto);
+                    }}
+                  >
+                    <img src={addIco}></img>
+                </button>
+                <button
+                  className="btnQuitar"
+                  onClick={() => {
+                    const audioBorrado = new Audio(discordLeave);
+                    audioBorrado.play();
+                    quitarDelCarrito(id)
+                  }}
+                >
+                  <img src={delIco}></img>
+                </button>
               </div>
             ))}
           </div>
-
           {/* Calcular el total del carrito */}
           <div>
             {(() => {
@@ -182,7 +226,7 @@ const Tienda = () => {
             })()}
           </div>
           <button className="btncomprar" onClick={comprar} disabled={disabled}>
-            {disabled ? "Procesando" : "Comprar"}
+            {disabledMessage}
           </button>
         </div>
       </div>
