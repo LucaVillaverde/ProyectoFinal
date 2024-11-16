@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../css/tienda.css";
+import { useAlert } from '../context/messageContext';
 import Product from "../components/Product/Product";
 import carritoImg from "../assets/carrito.svg";
 
 const Tienda = () => {
+  const {showAlert} = useAlert();
   useEffect(() => {
     const metaDescription = document.createElement("meta");
     document.title = "CocinApp: Tienda";
@@ -31,16 +33,11 @@ const Tienda = () => {
     listaProductos();
   },[])
 
-  useEffect(() => {
-    console.log(productosData);
-  },[productosData])
-
   const listaProductos = async () => {
     try{
       const productsResponse = await axios.get('/api/productos');
       if (productsResponse.status === 200){
         setProductosData(productsResponse.data.products);
-        console.log(productsResponse.data.products)
       }
     }catch(error){
       console.error(error);
@@ -64,13 +61,28 @@ const Tienda = () => {
       setListaCarrito(true);
     }
   };
-  const comprar = () => {
-    console.log(`Usted ha pagado: ${aPagar}`);
+  const comprar = async () => {
+    try{
+      const compraResponse = await axios.post("/api/comprar", {
+        costo: aPagar,
+      })
+      if (compraResponse.status === 200){
+        showAlert(compraResponse.data.message, 'successful');
+      }
+    }catch(err){
+      const errorMessage = err.response?.data?.message || 'Error de conexión';
+      showAlert(errorMessage, 'danger');
+    }
   };
 
   const agregarAlCarrito = (producto) => {
     setCarrito((carritoActual) => {
       let cantidadTotalProductos = 0;
+
+      if (cantidadTotalProductos > 5){
+        showAlert("No puedes agregar tanto producto", "warning");
+        return;
+      }
 
       // Usar forEach para calcular la cantidad total de productos en el carrito
       carritoActual.forEach((item) => {
@@ -88,7 +100,7 @@ const Tienda = () => {
                 ...item,
                 // Verifica si la cantidad del producto actual + total no supera 20
                 cantidad:
-                  item.cantidad < 20 && cantidadTotalProductos < 20
+                  item.cantidad < 6 && cantidadTotalProductos < 6
                     ? item.cantidad + 1
                     : item.cantidad,
               }
@@ -96,7 +108,7 @@ const Tienda = () => {
         );
       } else {
         // Verificar si al agregar un nuevo producto la cantidad total no supera 20
-        return cantidadTotalProductos < 20
+        return cantidadTotalProductos < 6
           ? [...carritoActual, { ...producto, cantidad: 1 }]
           : carritoActual;
       }
@@ -221,7 +233,6 @@ const Tienda = () => {
                 0
               );
               aPagar = total;
-              console.log("Total del carrito:", total); // Para debug, si lo necesitas
               return <p>Total del carrito: ${total}</p>; // Mostrar el total
             })()}
           </div>

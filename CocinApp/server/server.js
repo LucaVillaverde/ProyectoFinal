@@ -1679,6 +1679,41 @@ app.get('/api/productos', (req, res) => {
   })
 })
 
+app.post('/api/comprar', (req, res) => {
+  const { costo } = req.body;
+  if (costo === 0){
+    return res.status(400).json({ message: "No has seleccionado ningun producto." });
+  }
+  const id_user = req.cookies.id_user;
+  const queryMoneyUser = "SELECT money FROM Users WHERE id_user = ?";
+  const queryMoneyUpdate = "UPDATE Users SET money = ? WHERE id_user = ?";
+
+  db.get(queryMoneyUser, [id_user], (err, row) => {
+    if (err) {
+      return res.status(500).json({ message: "No se obtuvo el monto de la DB" });
+    }
+    if (!row) {
+      return res.status(404).json({ message: "No se encuentra la guita." });
+    }
+    else {
+      if (row.money < costo){
+        return res.status(400).json({ message: "No tienes el suficiente dinero." });
+      }
+      else {
+        const vueltoPlata = (row.money - costo);
+        db.run(queryMoneyUpdate, [vueltoPlata, id_user], (err, row) => {
+          if (err) {
+            return res.status(500).json({ message: "No se ha establecer el vuelto." });
+          }
+          else{
+            return res.status(200).json({ message: `Se ha pagado un total de US$${costo}.` });
+          }
+        })
+      }
+    }
+  })
+})
+
 process.on("SIGINT", () => {
   db.close();
   process.exit(0);

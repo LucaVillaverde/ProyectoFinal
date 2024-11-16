@@ -114,7 +114,7 @@ const AddForm = memo(({
                 <input
                     className="inptFormRecipe"
                     type="text"
-                    pattern="[^,]*" 
+                    pattern="^[1-9][^,]*" 
                     placeholder={`Ingrediente ${index + 1} (sin "," porfavor.)`}
                     value={ingredient}
                     onChange={(e) => handleIngredientChange(index, e)}
@@ -140,7 +140,7 @@ const AddForm = memo(({
                     type="text"
                     placeholder={`Paso ${index + 1} (sin "," porfavor.)`}
                     value={step}
-                    pattern="[^,]*" 
+                    pattern="[^\-]*" 
                     onChange={(e) => handleStepChange(index, e)}
                     required
                 />
@@ -368,6 +368,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
                 showAlert('Favor de indicar pasos de la receta.', 'warning');
                 return;
             }
+            const stepsFormales = formData.steps.map((step) => step.replaceAll(",", "-"));
     
             // Crear un objeto FormData
             const formDataToSend = new FormData();
@@ -376,7 +377,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
             formDataToSend.append('categories', categories); // Convertir array de categorías a string
             formDataToSend.append('description', description);
             formDataToSend.append('ingredients', ingredients); // Convertir array de ingredientes a string
-            formDataToSend.append('steps', steps); // Convertir array de pasos a string
+            formDataToSend.append('steps', stepsFormales); // Convertir array de pasos a string
             formDataToSend.append('tiempo', tiempo);
             formDataToSend.append('username', nombreUsuario);
     
@@ -384,6 +385,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
             if (image) {
                 formDataToSend.append('image', image);
             }
+    
     
             try {
                 const response = await axios.post("/api/receta-nueva", formDataToSend, {
