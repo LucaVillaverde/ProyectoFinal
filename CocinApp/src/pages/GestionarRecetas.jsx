@@ -36,7 +36,6 @@ const AddForm = memo(({
     formData,
     handleInputChange,
     handleCategoryChange,
-    handleRemoveCategory,
     handleAddIngredient,
     handleRemoveIngredient,
     handleAddStep,
@@ -62,7 +61,7 @@ const AddForm = memo(({
             <h3 className="lbl-title-form imgDiff">Subir Imagen:</h3>
             <label className='lbl-title-form' id="fileButton" htmlFor="fileInput"><img src={imgUpload} alt="Subir Imagen portada de la receta"/></label>
             <input id="fileInput" style={{display: "none"}} type="file" name="recipeImage" onChange={handleFileChange} accept="image/*"></input>
-
+            
             <label className='lbl-title-form imgDiff' htmlFor="difficulty">Dificultad:</label>
             <select
                 name="recipeDiff"
@@ -187,6 +186,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
     const [totalPages, setTotalPages] = useState(1);
     const [tipoDispositivo, setTipoDispositivo] = useState();
     const [primeraCarga, setPrimeraCarga] = useState(true);
+    
 
    
     const [formData, setFormData] = useState({
@@ -201,8 +201,16 @@ const GestioRecetas = ({ nombreUsuario }) => {
     });
 
     const handleFileChange = (event) => {
-        setFormData({ ...formData, image: event.target.files[0] });
-    };
+        const file = event.target.files[0];
+        if (file) {
+          // Actualiza el estado del formulario
+          setFormData({ ...formData, image: file });
+          
+          // Genera una URL de vista previa
+          const previewURL = URL.createObjectURL(file);
+          setPreviewImage(previewURL);
+        }
+      };
 
     const handleIngredientChange = useCallback((index, event) => {
         const newIngredients = [...formData.ingredients];
