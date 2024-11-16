@@ -32,8 +32,6 @@ const Producto = ({ nombre, imagen, precio, id, agregarAlCarrito, descripcion, s
     if (navigator.vibrate){
       navigator.vibrate(200); // 200ms de vibracion
       if (cantidadTotalProductos < 6){
-        const audioAgregar = new Audio('src/assets/AgregarAlCarrito.mp3');
-        audioAgregar.play();
         localProductos();
         const nuevoProducto = { id, nombre, precio, imagen, descripcion };
         agregarAlCarrito(nuevoProducto); // Llamamos a la función del padre
@@ -45,8 +43,6 @@ const Producto = ({ nombre, imagen, precio, id, agregarAlCarrito, descripcion, s
     }
     else {
       if (cantidadTotalProductos < 6){
-        const audioAgregar = new Audio('src/assets/AgregarAlCarrito.mp3');
-        audioAgregar.play();
         localProductos();
         const nuevoProducto = { id, nombre, precio, imagen, descripcion };
         agregarAlCarrito(nuevoProducto); // Llamamos a la función del padre
@@ -57,10 +53,6 @@ const Producto = ({ nombre, imagen, precio, id, agregarAlCarrito, descripcion, s
       }
     }
   };
-
-  useEffect(()=>{
-    console.log(cantidadTotalProductos);
-  },[cantidadTotalProductos])
 
   const localProductos = () => {
     if (productos === 0) {

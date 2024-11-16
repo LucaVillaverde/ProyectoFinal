@@ -10,12 +10,12 @@ import menuHamburguesa from "../../assets/btn_burgerIcon.png";
 import { useAlert } from "../../context/messageContext";
 import {useConfirm} from "../../context/confirmContext";
 
-const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
+const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername, dineroUser }) => {
     const [visible, setMenuVisible] = useState(false);
     const [movil, setMovil] = useState(true);
     const {showConfirm, showAlert} = useAlert();
     const {openConfirm} = useConfirm();
-    const [dineroUser, setDineroUser] = useState(0);
+    
 
     const links = [
         { href: "/", label: "INICIO" },
@@ -23,19 +23,6 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
         { href: "/tienda", label: "TIENDA" },
     ];
 
-    useEffect(() => {
-        const fefoResponse = async () => {
-            try{
-                const response = await axios.post('/api/dinero-cantidad', {});
-                if (response.status === 200){
-                    setDineroUser(response.data.money);
-                }
-            }catch{
-                console.log("Hola soy un error.");
-            }
-        }
-        fefoResponse();
-    },[])
 
     useEffect(() => {
         const determinarAncho = (ancho) => (ancho > 720 ? 1 : 0);
@@ -178,6 +165,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
                             username={localUsername}
                             logout={logout}
                             del_profile={()=>showConfirm(deleteUser)}
+                            dineroUser={dineroUser}
                         />
                     ) : (
                         <div className="animate__animated animate__backInRight btn_user-move">
@@ -205,7 +193,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername }) => {
 export default Header;
 
 
-const UserMenu = ({ logout, del_profile, username,movil }) => {
+const UserMenu = ({ logout, del_profile, username, movil, dineroUser }) => {
     const [isOpen, setIsOpen] = useState(false);
     // Función para alternar la visibilidad del menú
     const toggleMenu = () => {
@@ -271,6 +259,9 @@ const UserMenu = ({ logout, del_profile, username,movil }) => {
                 </div>
             ) : (
                 <div className="animate__animated animate__backInRight menu-container-move">
+                        <div className="animate__animated animate__backInDown dineroUsuario">
+                            <span>US${dineroUser}</span>
+                        </div>
                         <div className="menu-container" onClick={closeMenu}>
                             <div className="menu ">
                                 <button

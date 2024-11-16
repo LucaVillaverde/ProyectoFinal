@@ -29,6 +29,7 @@ function App() {
     const [localUsername, setLocalUsername] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(null);
     const { confirm, alert} = useAlert();
+    const [dineroUser, setDineroUser] = useState(0);
 
 
     useEffect(() => {
@@ -41,6 +42,20 @@ function App() {
             document.getElementsByTagName('head')[0].removeChild(metaViewport);
         };
     }, []);
+
+    useEffect(() => {
+        const fefoResponse = async () => {
+            try{
+                const response = await axios.post('/api/dinero-cantidad', {});
+                if (response.status === 200){
+                    setDineroUser(response.data.money);
+                }
+            }catch{
+                console.log("Hola soy un error.");
+            }
+        }
+        fefoResponse();
+    },[])
 
     useEffect(() => {    
         const checkAuth = async () => {
@@ -88,6 +103,8 @@ function App() {
                     setIsLoggedIn={setIsLoggedIn}
                     showForm={showForm}
                     localUsername={localUsername}
+                    setDineroUser={setDineroUser}
+                    dineroUser={dineroUser}
                 />
                 {/* >-------------------- MAIN PAGE --------------------< */}
                 <Routes>
@@ -103,7 +120,14 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
-                    <Route path="/tienda" element={<Tienda />} />
+                    <Route 
+                        path="/tienda"
+                        element={
+                            <Tienda
+                            dineroUser={dineroUser}
+                            setDineroUser={setDineroUser}
+                        />}
+                    />
                     {/* Pagina 404 */}
                     <Route path="*" element={<Page404 />} />
                 </Routes>
