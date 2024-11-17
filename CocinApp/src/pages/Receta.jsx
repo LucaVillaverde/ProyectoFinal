@@ -42,7 +42,9 @@ const Receta = () => {
           try {
             const llamado = await axios.get("/api/info-usuario"); // Agrega comillas alrededor de la URL
             if (llamado.status === 200) {
-              setLocalUsername(llamado.data.username);
+                const name = llamado.data.username;
+                const toLower = name.toLowerCase();
+              setLocalUsername(toLower);
             }
             
             if (llamado.status === 401) {

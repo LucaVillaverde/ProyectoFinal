@@ -365,7 +365,7 @@ app.post("/api/verifpassword", (req, res) => {
             // Actualiza las recetas del usuario antes de borrar el usuario
             db.run(
               updateQueryRecipeTable,
-              ["CocinApp", usernameNH],
+              ["cocinapp", usernameNH],
               function (err) {
                 if (err) {
                   console.log("Error en la actualización de recetas:", err);
