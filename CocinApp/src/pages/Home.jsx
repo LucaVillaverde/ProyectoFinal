@@ -44,8 +44,6 @@ const Home = () => {
             window.removeEventListener('resize', verificarAncho);
         };
     }, [tipoDispositivo]); // Asegúrate de que tipoDispositivo esté en las dependencias
-    
-    
 
 
     const fetchRecetas = async (anchoBoolean) => {

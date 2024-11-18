@@ -8,6 +8,9 @@ import delIco from '../assets/minus.svg';
 import addIco from '../assets/add.svg';
 import discordIn from '../assets/Discord_Join.mp3';
 import discordLeave from '../assets/Discord_Leave.mp3';
+import audioSuccess from "/src/assets/SuccessSound.mp3";
+import audioError from "/src/assets/DangerSound.mp3";
+import audioWarning from '/src/assets/WarningSound.mp3';
 
 const Tienda = ({ setDineroUser }) => {
   const {showAlert} = useAlert();
@@ -86,8 +89,8 @@ const Tienda = ({ setDineroUser }) => {
         showAlert(compraResponse.data.message, "successful");
 
         // Sonido de éxito
-        const audioSuccess = new Audio("/src/assets/SuccessSound.mp3");
-        audioSuccess.play();
+        const audioOK = new Audio(audioSuccess);
+        audioOK.play();
         if (navigator.vibrate) navigator.vibrate([100, 300, 100]);
 
         // Actualizar dinero del usuario
@@ -100,10 +103,11 @@ const Tienda = ({ setDineroUser }) => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Error de conexión";
       showAlert(errorMessage, "danger");
-      setDisabled(false);
+      setDisabledMessage("Error...");
+      setTimeout(() => {setDisabledMessage("Comprar"); setDisabled(false)}, 1000)
       // Sonido de error
-      const audioError = new Audio("/src/assets/DangerSound.mp3");
-      audioError.play();
+      const audioWrong = new Audio(audioError);
+      audioWrong.play();
       if (navigator.vibrate) navigator.vibrate(300);
     }
   };
@@ -126,7 +130,7 @@ const Tienda = ({ setDineroUser }) => {
   };
 
   const agregarAlCarrito = (producto) => {
-    const audioWarning = new Audio('/src/assets/WarningSound.mp3');
+    const audioWarn = new Audio(audioWarning);
     setCarrito((carritoActual) => {
       // Calculamos la cantidad total actual de productos en el carrito
       const nuevaCantidadTotal = carritoActual.reduce(
@@ -136,7 +140,7 @@ const Tienda = ({ setDineroUser }) => {
   
       // Si ya alcanzamos el límite, mostramos una alerta y no hacemos cambios
       if (nuevaCantidadTotal >= 6) {
-        audioWarning.play();
+        audioWarn.play();
         showAlert("No puedes agregar más productos", "warning");
         return carritoActual; // Devolver el carrito sin cambios
       }
@@ -231,7 +235,7 @@ const Tienda = ({ setDineroUser }) => {
         </div>
       </div>
       {productosData === null ? (
-        <h2>No hay productos</h2>
+        <h2>Cargando productos...</h2>
       ) : (
         <div className="contenedorProductos">
         {productosData.map(({ id_product, product_name, product_image, product_price, product_description }) => (

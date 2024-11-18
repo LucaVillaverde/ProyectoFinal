@@ -120,7 +120,7 @@ header{
     height: 32px;
     margin-right: 5px;
     transform: rotate(90deg);
-    transition: transform 1s;
+    transition: transform 0.8s;
     justify-self: end;
 }
 
@@ -137,6 +137,7 @@ header{
 
 .rotate {
     transform: rotate(0deg);
+    transition: transform 0.8s;
 }
 
 /* SEARCH BAR by alexruix */ 

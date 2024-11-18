@@ -423,7 +423,7 @@ const Receta = () => {
             ) : (
                 <div className="content">
                     <div className="recipe">
-                        <h2 className="recipe-title">{`${receta?.recipe_name} by ${receta?.author}`}</h2>
+                        <h2 className="recipe-title">{`${receta?.recipe_name} BY ${receta?.author}`}</h2>
                         <section className="recipe-img-cont frame-content">
                             <img
                                 src={imagenRecipe}
@@ -433,43 +433,51 @@ const Receta = () => {
                         </section>
                         <section className="recipe-steps-cont frame-content">
                     
-                            <div className="contenedorDescripcion">
-                                <h3 className="subtitle">Categoria/s:</h3>
+                            <div className="contenedorDescripcion contenedorTop">
+                                <h3 className="subtitle" id="recipeCategories">Categoria/s:</h3>
                                 <ul className="ingredientesReceta">
                                 {receta?.categories?.map((category, index) => (
                                     <li className="recipe-ingredient" key={index}>
                                         {category}
                                     </li>
                                 ))}
-                            </ul>
-                                <h3 className="subtitle">Descripción:</h3>
+                                </ul>
+                            </div>
+                            <div className="contenedorDescripcion">
+                                <h3 className="subtitle noTopMargin">Descripción:</h3>
                                 <p className="descripcion">{receta?.description}</p>
                             </div>
                         </section>
                         <section className="recipe-data-cont frame-content">
-                            <h3 className="subtitle">Tiempo de preparación:</h3>
-                            <p>{receta?.tiempo}</p>
-                            <h3 className="subtitle">Dificultad:</h3>
-                            <p>{receta?.difficulty}</p>
+                            <div className="contenedorDescripcion">
+                                <h3 className="subtitle noTopMargin">Tiempo de preparación:</h3>
+                                <p>{receta?.tiempo}</p>
+                                <h3 className="subtitle">Dificultad:</h3>
+                                <p>{receta?.difficulty}</p>
+                            </div>
                         </section>
 
                         <section className="recipe-ingredients-cont frame-content">
-                            <h3 className="subtitle">Ingredientes:</h3>
-                            <ul className="ingredientesReceta">
-                                {receta?.ingredients?.map((ingredient, index) => (
-                                    <li className="recipe-ingredient" key={index}>
-                                        {ingredient}
-                                    </li>
-                                ))}
-                            </ul>
-                            <h3 className="subtitle">Pasos:</h3>
-                            <ol className="pasosReceta">
-                                {receta?.steps?.map((step, index) => (
-                                    <li className="recipe-step" key={index}>
-                                        {step}
-                                    </li>
-                                ))}
-                            </ol>
+                            <div className="contenedorDescripcion contenedorTop">
+                                <h3 className="subtitle noTopMargin">Ingredientes:</h3>
+                                <ul className="ingredientesReceta">
+                                    {receta?.ingredients?.map((ingredient, index) => (
+                                        <li className="recipe-ingredient" key={index}>
+                                            {ingredient}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div className="contenedorDescripcion">
+                                <h3 className="subtitle noTopMargin">Pasos:</h3>
+                                <ol className="pasosReceta">
+                                    {receta?.steps?.map((step, index) => (
+                                        <li className="recipe-step" key={index}>
+                                            {step}
+                                        </li>
+                                    ))}
+                                </ol>
+                            </div>
                         </section>
                         
                         {localUsername === receta?.username && (

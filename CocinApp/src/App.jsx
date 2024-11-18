@@ -30,6 +30,8 @@ function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(null);
     const { confirm, alert} = useAlert();
     const [dineroUser, setDineroUser] = useState(0);
+    import.meta.glob('../src/assets/**/*.*');
+    
 
 
     useEffect(() => {
@@ -107,7 +109,7 @@ function App() {
                     dineroUser={dineroUser}
                 />
                 {/* >-------------------- MAIN PAGE --------------------< */}
-                <Routes>
+                    <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/receta/:id" element={<Receta />} />
                     <Route path="/Buscar" element={<Buscar />}
@@ -130,12 +132,11 @@ function App() {
                     />
                     {/* Pagina 404 */}
                     <Route path="*" element={<Page404 />} />
-                </Routes>
+                </Routes>                
                 {/* >-------------------- FOOTER --------------------< */}
                 <Footer />
             </>
         </Router>
-    );
-}
+)}
 
 export default App;
