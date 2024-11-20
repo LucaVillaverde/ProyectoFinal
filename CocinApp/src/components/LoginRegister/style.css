@@ -29,7 +29,7 @@
 
 .form-user{
   animation: zoomIn; 
-  animation-duration: .8s; 
+  animation-duration: 0.8s; 
 }
 
 .form-head{
@@ -43,10 +43,10 @@
   border: none;
   background-color: transparent;
   font-size: 30px;
-  color: grey;
+  color: rgb(61, 61, 61);
   transform: scale(.8);
+  transition: transform 0.5s;
 }
-.bts{padding: 8px;}
 
 .form-btnChange{
   background-color: transparent;
@@ -58,8 +58,6 @@
 .form-btnClose:hover{
   color: black;
   transform: scale(1);
-  animation: bounceIn; 
-  animation-duration: 1s; 
 }
 
 .form-user-content{

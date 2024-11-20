@@ -76,6 +76,7 @@ function App() {
 
     // Funciones para uso en componentes.
     const showForm = (tipo) => {
+        if (navigator.vibrate) navigator.vibrate(100);
         setForm(tipo);
         const formulario = document.getElementById("form_login");
         formulario.className = formulario.className === "displayNone" ? "backgroundForm" : "displayNone";

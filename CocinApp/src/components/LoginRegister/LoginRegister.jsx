@@ -4,7 +4,7 @@ import "./style.css";
 // import Cookies from "js-cookie";
 import axios from "axios";
 
-const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
+const LoginRegister = ({form, setForm, setIsLoggedIn, setLocalUsername}) => {
     // Variables
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -132,6 +132,7 @@ const LoginRegister = ({form,setForm, setIsLoggedIn, setLocalUsername}) => {
     };
 
     const changeForm = () => {
+        if (navigator.vibrate) navigator.vibrate(100);
         if (form === "login") {
             console.log('cambio a registro')
             setForm("register");

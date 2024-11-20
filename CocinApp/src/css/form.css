@@ -15,6 +15,24 @@
     background-color: #f8b137;
   }
 
+  .imagePreview {
+    display: flex;
+    justify-content: center;
+    background-color: var(--secondary-color);
+    border-radius: 20px;
+    margin: auto;
+    margin-top: 4%;
+    margin-bottom: 4%;
+    font-size: 13px;
+    width: 90%;
+  }
+
+  .imagePreview img{
+    border-radius: 30px;
+    padding: 5%;
+    width: 100%;
+  }
+
   #difficulty option{
     background-color: var(--secondary-color);
     color: #000;
@@ -259,6 +277,20 @@ option{
   .containerImgDiff{
     grid-template-columns: repeat(4, 1fr);
     row-gap: 0;
+  }
+
+  .imagePreview {
+    margin: auto;
+    margin-top: 2.5%;
+    margin-bottom: 2.5%;
+    width: 85%;
+    font-size: 30px;
+  }
+
+  .imagePreview img{
+    border-radius: 40px;
+    padding: 3%;
+    width: 100%;
   }
 
   #difficulty{

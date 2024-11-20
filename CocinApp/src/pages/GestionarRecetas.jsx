@@ -1,6 +1,7 @@
 import React, { useEffect, useState, memo, useCallback } from "react";
 import { useAlert } from '../context/messageContext';
 import axios from "axios";
+import imageCompression from "browser-image-compression";
 // Componentes
 import SimpleCard from "../components/card/SimpleCard";
 import "../css/form.css";
@@ -78,7 +79,18 @@ const AddForm = memo(({
                 <option value="Difícil">Difícil</option>
             </select>
         </div>
-
+        
+        <label className="lbl-title-form">Previsualizar imagen:</label>
+        <div className="imagePreview">
+        {formData.image ? (
+            <img
+                src={URL.createObjectURL(formData.image)}
+                alt="Previsualización"
+            />
+        ) : (
+            <h3>No has seleccionado imagen</h3>
+        )}
+        </div>
         <label className='lbl-title-form'>Categoría (máx. 4):</label>
         <div className="categorias">
             {["Entrada", "Sopa", "Caldo", "Ensalada", "Plato Principal", "Guarnición", "Postre", "Bebida", "Vegetariana", "Saludable"].map((category) => (
@@ -200,8 +212,34 @@ const GestioRecetas = ({ nombreUsuario }) => {
         image: null,
     });
 
-    const handleFileChange = (event) => {
-        setFormData({ ...formData, image: event.target.files[0] });
+    const handleFileChange = async (event) => {
+        const file = event.target.files[0]; // Obtiene el archivo seleccionado
+        if (file) {
+            try {
+                // Opciones de compresión
+                const options = {
+                    maxWidthOrHeight: 1280, // Ajusta el tamaño máximo
+                    initialQuality: 0.8,    // Calidad inicial de la imagen
+                    useWebWorker: true,     // Usa Web Workers para mejorar el rendimiento
+                    maxSizeMB: 1,
+                    fileType: "image/webp", // Cambiar formato a WebP
+                    onProgress: (progress) => console.log(`Progreso: ${progress}%`),
+                };
+    
+                // Comprime/redimensiona la imagen
+                const compressedFile = await imageCompression(file, options);
+                const archivoComprimidoPeso = `${(compressedFile.size / 1024)} KB`;
+    
+                window.alert(archivoComprimidoPeso);
+                console.log("Original file size:", file.size / 1024, "KB");
+                console.log("Compressed file size:", compressedFile.size / 1024, "KB");
+    
+                // Actualiza el estado con la imagen comprimida
+                setFormData({ ...formData, image: compressedFile });
+            } catch (error) {
+                console.error("Error al comprimir la imagen:", error);
+            }
+        }
     };
 
     const handleIngredientChange = useCallback((index, event) => {

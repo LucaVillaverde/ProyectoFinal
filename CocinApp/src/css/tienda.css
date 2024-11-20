@@ -17,6 +17,11 @@
     justify-content: center;
 }
 
+#closeCartIco{
+  width: 34px;
+  height: 34px;
+}
+
 .productos{
     width: 93%;
     display: grid;

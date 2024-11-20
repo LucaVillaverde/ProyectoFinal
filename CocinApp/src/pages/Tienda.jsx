@@ -6,6 +6,7 @@ import Product from "../components/Product/Product";
 import carritoImg from "../assets/carrito.svg";
 import delIco from '../assets/minus.svg';
 import addIco from '../assets/add.svg';
+import closeCartIco from '../assets/closeCart.svg';
 import discordIn from '../assets/Discord_Join.mp3';
 import discordLeave from '../assets/Discord_Leave.mp3';
 import audioSuccess from "/src/assets/SuccessSound.mp3";
@@ -81,7 +82,6 @@ const Tienda = ({ setDineroUser }) => {
   const comprar = async () => {
     setDisabled(true);
     setDisabledMessage("Procesando Compra");
-    if (navigator.vibrate) navigator.vibrate(100); // 100ms de vibración
 
     try {
       const compraResponse = await axios.post("/api/comprar", { costo: aPagar });
@@ -91,7 +91,7 @@ const Tienda = ({ setDineroUser }) => {
         // Sonido de éxito
         const audioOK = new Audio(audioSuccess);
         audioOK.play();
-        if (navigator.vibrate) navigator.vibrate([100, 300, 100]);
+        if (navigator.vibrate) navigator.vibrate([200, 300, 200]);
 
         // Actualizar dinero del usuario
         const response = await axios.post("/api/dinero-cantidad", {});
@@ -179,12 +179,19 @@ const Tienda = ({ setDineroUser }) => {
     <div className="contentenido">
       <div id="contenedorCarrito">
         <button className="btnCarrito" onClick={cambEstado}>
-          <img
+          {listaCarrito ? (
+            <img id="closeCartIco" src={closeCartIco}></img>
+          ) : (
+            <>
+            <img
             id="carrito"
             src={carritoImg}
             alt="Carrito de compras"
-          ></img>
+          >
+          </img>
           <span className="carritoCantidad">{cantidadTotalProductos}</span>
+          </>
+          )}
         </button>
       </div>
       <div className="backgroundlistaCarrito" id="bglistaPopOver">
@@ -199,6 +206,7 @@ const Tienda = ({ setDineroUser }) => {
                 <button
                     className="btnAgregar"
                     onClick={() => {
+                      if (navigator.vibrate) navigator.vibrate(100); // 100ms de vibración
                       const producto = carrito.find((item) => item.id === id);
                       agregarAlCarrito(producto);
                     }}
@@ -208,6 +216,7 @@ const Tienda = ({ setDineroUser }) => {
                 <button
                   className="btnQuitar"
                   onClick={() => {
+                    if (navigator.vibrate) navigator.vibrate(100); // 100ms de vibración
                     const audioBorrado = new Audio(discordLeave);
                     audioBorrado.play();
                     quitarDelCarrito(id)

@@ -1180,17 +1180,18 @@ const resizeImage = (req, res, next) => {
 
             const replaceRecipeName = safeString(recipeName);
             const replaceUsername = safeString(username);
-            const fileExtension = path
-              .extname(imagen.originalname)
-              .toLowerCase();
+            const fileExtension = path.extname(imagen.originalname).toLowerCase();
             const customFileName = `${replaceUsername}-${replaceRecipeName}-${Date.now()}.webp`;
             const outputPath = path.join("../dist/", "uploads", customFileName);
 
-            const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+            console.log(fileExtension);
+            console.log(imagen.originalname);
+
+            const MAX_FILE_SIZE = 120 * 1024; // 120 KB
             if (imagen.size > MAX_FILE_SIZE) {
               return res.status(400).json({
                 message:
-                  "El archivo es demasiado grande. El tamaño máximo permitido es 4MB.",
+                  "El archivo es demasiado grande. El tamaño máximo permitido es 120KB.",
               });
             }
 
@@ -1208,12 +1209,14 @@ const resizeImage = (req, res, next) => {
               await sharp(imagen.buffer)
                 .resize(targetWidth, targetHeight)
                 .toFile(outputPath);
+                console.log("La imagen subida ya es webp");
             } else {
               // Convertimos a webp y redimensionamos si no es webp
               await sharp(imagen.buffer)
                 .resize(targetWidth, targetHeight)
-                .webp({ quality: 70 })
+                .webp({ quality: 80 })
                 .toFile(outputPath);
+                console.log("La imagen subida no es webp, convirtiendo.");
             }
 
             imagen.path = outputPath;
