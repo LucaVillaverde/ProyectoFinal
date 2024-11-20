@@ -37,7 +37,6 @@ const AddForm = memo(({
     formData,
     handleInputChange,
     handleCategoryChange,
-    handleRemoveCategory,
     handleAddIngredient,
     handleRemoveIngredient,
     handleAddStep,
@@ -63,7 +62,7 @@ const AddForm = memo(({
             <h3 className="lbl-title-form imgDiff">Subir Imagen:</h3>
             <label className='lbl-title-form' id="fileButton" htmlFor="fileInput"><img src={imgUpload} alt="Subir Imagen portada de la receta"/></label>
             <input id="fileInput" style={{display: "none"}} type="file" name="recipeImage" onChange={handleFileChange} accept="image/*"></input>
-
+            
             <label className='lbl-title-form imgDiff' htmlFor="difficulty">Dificultad:</label>
             <select
                 name="recipeDiff"
@@ -199,6 +198,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
     const [totalPages, setTotalPages] = useState(1);
     const [tipoDispositivo, setTipoDispositivo] = useState();
     const [primeraCarga, setPrimeraCarga] = useState(true);
+    
 
    
     const [formData, setFormData] = useState({
