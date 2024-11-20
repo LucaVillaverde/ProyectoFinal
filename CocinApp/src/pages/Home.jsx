@@ -2,11 +2,14 @@ import { React, useEffect, useState } from "react";
 import axios from "axios";
 import "../index.css";
 import SimpleCard from "../components/card/SimpleCard.jsx";
+import { Navigate, useHref, useNavigate } from "react-router-dom";
 
 const Home = () => {
     const [recetas, setRecetas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [tipoDispositivo, setTipoDispositivo] = useState(undefined);
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         const metaDescription = document.createElement('meta');
@@ -44,8 +47,6 @@ const Home = () => {
             window.removeEventListener('resize', verificarAncho);
         };
     }, [tipoDispositivo]); // Asegúrate de que tipoDispositivo esté en las dependencias
-    
-    
 
 
     const fetchRecetas = async (anchoBoolean) => {
@@ -65,6 +66,19 @@ const Home = () => {
         }
     };
 
+    const interactivo = (id_recipe) => {
+        const miDominio = window.location.origin;
+        console.log(miDominio);
+        console.log(id_recipe);
+        const urlReceta = `/receta/${id_recipe}`; // No necesitas el dominio completo para rutas internas
+    
+        if (navigator.vibrate) navigator.vibrate(100);
+    
+        navigate(urlReceta);
+    };
+    
+    
+
 
     return (
         <>
@@ -75,7 +89,7 @@ const Home = () => {
             ) : (
                 <div className='contenedor-tarjetas'>
                 {recetas.map(({ id_recipe, tiempo, image, recipe_name, username, difficulty, categories }) => (
-                                  <a className="card" href={`/receta/${id_recipe}`} key={id_recipe}>
+                                  <div className="card" onClick={() => interactivo(id_recipe)} key={id_recipe}>
                                       <SimpleCard
                                           tiempo={tiempo}
                                           image={image ? image : "https://placehold.co/400x250/000/fff/webp"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
@@ -84,7 +98,7 @@ const Home = () => {
                                           dificulty={difficulty}
                                           category={categories}  // Si tienes categorías como un array, deberías ajustarlo
                                       />
-                                  </a>
+                                  </div>
                               ))}
                 </div>
             )}

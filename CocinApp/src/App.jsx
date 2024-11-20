@@ -30,6 +30,8 @@ function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(null);
     const { confirm, alert} = useAlert();
     const [dineroUser, setDineroUser] = useState(0);
+    import.meta.glob('../src/assets/**/*.*');
+    
 
 
     useEffect(() => {
@@ -74,6 +76,7 @@ function App() {
 
     // Funciones para uso en componentes.
     const showForm = (tipo) => {
+        if (navigator.vibrate) navigator.vibrate(100);
         setForm(tipo);
         const formulario = document.getElementById("form_login");
         formulario.className = formulario.className === "displayNone" ? "backgroundForm" : "displayNone";
@@ -107,7 +110,7 @@ function App() {
                     dineroUser={dineroUser}
                 />
                 {/* >-------------------- MAIN PAGE --------------------< */}
-                <Routes>
+                    <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/receta/:id" element={<Receta />} />
                     <Route path="/Buscar" element={<Buscar />}
@@ -130,12 +133,11 @@ function App() {
                     />
                     {/* Pagina 404 */}
                     <Route path="*" element={<Page404 />} />
-                </Routes>
+                </Routes>                
                 {/* >-------------------- FOOTER --------------------< */}
                 <Footer />
             </>
         </Router>
-    );
-}
+)}
 
 export default App;

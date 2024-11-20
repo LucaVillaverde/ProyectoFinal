@@ -25,7 +25,7 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername, dineroUser
 
 
     useEffect(() => {
-        const determinarAncho = (ancho) => (ancho > 720 ? 1 : 0);
+        const determinarAncho = (ancho) => (ancho > 700 ? 1 : 0);
 
         const verificarAncho = () => {
             const anchoBoolean = determinarAncho(window.innerWidth);
@@ -101,15 +101,21 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername, dineroUser
     };
 
     const showMenu = () => {
+        if (navigator.vibrate) navigator.vibrate(100);
         setMenuVisible(!visible);
     };
 
     return movil ? (
         <header>
             <div className="nav-user">
-                <div className="animate__animated animate__backInDown dineroUsuario">
-                    <span>US${dineroUser}</span>
-                </div>
+                {dineroUser ? (
+                    <div className="animate__animated animate__backInDown dineroUsuario">
+                        <span>US${dineroUser}</span>
+                    </div>
+                ) : (
+                    <div>
+                    </div>
+                )}
                 <div className="seccion">
                     {isLoggedIn ? (
                             <UserMenu

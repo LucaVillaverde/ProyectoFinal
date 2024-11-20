@@ -14,8 +14,13 @@
     flex: 1 1 300px; 
     background-color: var(--secondary-color);
     border-radius: 8px;
-    box-shadow: 0 4px 6px #0009;
+    box-shadow: 0 4px 10px #0009;
+    transition: box-shadow 1s;
     min-height: 446px;
+}
+.card:hover{
+    box-shadow: 0 4px 40px var(--secondary-color);
+    transition: box-shadow 1s;
 }
 .card-content-image {
     width: 100%;
