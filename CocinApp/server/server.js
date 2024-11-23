@@ -1239,11 +1239,7 @@ const resizeImage = (req, res, next) => {
   }
 };
 
-app.post(
-  "/api/receta-nueva",
-  upload.single("image"),
-  resizeImage,
-  (req, res) => {
+app.post("/api/receta-nueva", upload.single("image"), resizeImage,(req, res) => {
     const {
       username,
       recipeName,

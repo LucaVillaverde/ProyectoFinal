@@ -15,10 +15,17 @@
     background-color: #f8b137;
   }
 
+  .uploadImage{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  
   .imagePreview {
     display: flex;
     justify-content: center;
-    background-color: var(--secondary-color);
+    /* background-color: var(--secondary-color); */
     border-radius: 20px;
     margin: auto;
     margin-top: 4%;
@@ -28,9 +35,9 @@
   }
 
   .imagePreview img{
-    border-radius: 30px;
+    border-radius: 10px;
     padding: 5%;
-    width: 100%;
+    width: 78%;
   }
 
   #difficulty option{
@@ -57,6 +64,8 @@ label{
 .lbl-title-form{
   margin: 10px 0;
 }
+
+button.lbl-title-form{border: none;}
 
 .lbl-title-form h3{
   margin: 0;
@@ -118,7 +127,7 @@ option{
 #fileButton{
   display: flex;
   flex-wrap: wrap;
-  width: 36px;
+  width: 55px;
   height: 36px;
   border-radius: 10px;
   align-content: center;
@@ -283,12 +292,12 @@ option{
     margin: auto;
     margin-top: 2.5%;
     margin-bottom: 2.5%;
-    width: 85%;
+    width: 50%;
     font-size: 30px;
   }
 
   .imagePreview img{
-    border-radius: 40px;
+    border-radius: 10px;
     padding: 3%;
     width: 100%;
   }
