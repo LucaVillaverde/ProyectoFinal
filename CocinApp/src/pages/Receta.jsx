@@ -1,13 +1,15 @@
-import { React, useCallback, useEffect, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { React,useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 // Imagenes
-import addIco from '../assets/add.svg';
-import delIco from '../assets/del.svg';
-import editIco from '../assets/edit.svg';
-import delRecipeIco from '../assets/delRecipe.svg';
-import imgUpload from '../assets/imgUpl.svg';
-import sendIco from '../assets/send.svg';
+import addIco from '@assets/add.svg';
+import delIco from '@assets/del.svg';
+import editIco from '@assets/edit.svg';
+import delRecipeIco from '@assets/delRecipe.svg';
+import imgUpload from '@assets/imgUpl.svg';
+import sendIco from '@assets/send.svg';
+import delImage from '@assets/delImage.svg';
+import imageDefault from'@assets/imagenDefault.webp';
 //  Otros
 import "../recipe.css";
 import "../css/form.css";
@@ -40,7 +42,7 @@ const Receta = () => {
     useEffect(() => {
         const llamadoInfoUsuario = async () => {
           try {
-            const llamado = await axios.get("/api/info-usuario"); // Agrega comillas alrededor de la URL
+            const llamado = await axios.get("/api/info-usuario");
             if (llamado.status === 200) {
                 const name = llamado.data.username;
                 const toLower = name.toLowerCase();
@@ -158,7 +160,7 @@ const Receta = () => {
                     author: recetaData.username,
                 });
     
-                setImagenRecipe(recetaData.image);
+                setImagenRecipe(recetaData.image && imageDefault);
                 return true;
             }
         } catch (err) {
@@ -263,6 +265,9 @@ const Receta = () => {
         newSteps.splice(index, 1);
         setFormData({ ...formData, steps: newSteps });
     };
+    const removeImage = ()=>{
+        setFormData({ ...formData, image: '' });
+    }
 
     const handleInputChange = (e) => {
         const { id, value } = e.target;
@@ -300,7 +305,7 @@ const Receta = () => {
         newSteps[index] = e.target.value;
         setFormData({ ...formData, steps: newSteps });
       };
-
+      console.log(formData.image);
     return (
         <div>
             {cargandoReceta ? (
@@ -324,9 +329,23 @@ const Receta = () => {
 
                         <div className="containerImgDiff">
                         <h3 className="lbl-title-form imgDiff">Subir Imagen:</h3>
-                        <label className='lbl-title-form' id="fileButton" htmlFor="fileInput"><img src={imgUpload} alt="Subir Imagen portada de la receta"/></label>
-                        <input id="fileInput" style={{display: "none"}} type="file" name="recipeImage" onChange={handleFileChange} accept="image/*"></input>
-    
+                        <div>
+                        {!formData.image?(
+                            <>
+                                <label className='lbl-title-form' id="fileButton" htmlFor="fileInput"><img src={imgUpload} alt="Subir Imagen portada de la receta"/></label>
+                                <input id="fileInput" style={{display: "none"}} type="file" name="recipeImage" onChange={handleFileChange} accept="image/*"></input>
+                            </>
+                        ):(
+                            <button className='lbl-title-form' id="fileButton" onClick={removeImage}><img src={delImage} alt="Eliminar imagen subida"/></button>
+                        )}
+                        <div className="imagePreview">
+                            
+                        <img  src={formData.image}   alt="Previsualización"/>
+                        </div>
+                        </div>
+ 
+
+
                         <label className='lbl-title-form imgDiff' htmlFor="difficulty">Dificultad:</label>
                         <select
                             id="difficulty"

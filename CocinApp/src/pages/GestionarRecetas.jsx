@@ -4,15 +4,20 @@ import axios from "axios";
 import imageCompression from "browser-image-compression";
 // Componentes
 import SimpleCard from "../components/card/SimpleCard";
+// Imagenes
+import img404 from '@assets/image_404.png';
+import addIco from '@assets/add.svg';
+import delIco from '@assets/del.svg';
+import editIco from '@assets/edit.svg';
+import delRecipeIco from '@assets/delRecipe.svg';
+import imgUpload from '@assets/imgUpl.svg';
+import delImage from '@assets/delImage.svg';
+import sendIco from '@assets/send.svg';
+// Otros
 import "../css/form.css";
-import img404 from '../assets/image_404.png';
-import addIco from '../assets/add.svg';
-import delIco from '../assets/del.svg';
-import editIco from '../assets/edit.svg';
-import delRecipeIco from '../assets/delRecipe.svg';
-import imgUpload from '../assets/imgUpl.svg';
-import sendIco from '../assets/send.svg';
+
 const useDebounce = (callback, delay) => {
+    
     const timerRef = React.useRef();
 
     const debouncedCallback = (...args) => {
@@ -35,6 +40,7 @@ const useDebounce = (callback, delay) => {
 
 const AddForm = memo(({     
     formData,
+    removeImage,
     handleInputChange,
     handleCategoryChange,
     handleAddIngredient,
@@ -60,9 +66,27 @@ const AddForm = memo(({
 
         <div className="containerImgDiff">
             <h3 className="lbl-title-form imgDiff">Subir Imagen:</h3>
-            <label className='lbl-title-form' id="fileButton" htmlFor="fileInput"><img src={imgUpload} alt="Subir Imagen portada de la receta"/></label>
-            <input id="fileInput" style={{display: "none"}} type="file" name="recipeImage" onChange={handleFileChange} accept="image/*"></input>
-            
+            <div className="uploadImage">
+
+            {!formData.image?(
+                <>
+                    <label className='lbl-title-form' id="fileButton" htmlFor="fileInput"><img src={imgUpload} alt="Subir Imagen portada de la receta"/></label>
+                    <input id="fileInput" style={{display: "none"}} type="file" name="recipeImage" onChange={handleFileChange} accept="image/*"></input>
+                </>
+            ):(
+                <button className='lbl-title-form' id="fileButton" onClick={removeImage}><img src={delImage} alt="Eliminar imagen subida"/></button>
+            )}
+                <div className="imagePreview">
+                {formData.image ? (
+                    <img
+                        src={URL.createObjectURL(formData.image)}
+                        alt="Previsualización"
+                    />
+                ):(
+                    <img src="../src/assets/imagenDefault.webp" alt="Imagen Default"/>
+                )}
+                </div>
+            </div>
             <label className='lbl-title-form imgDiff' htmlFor="difficulty">Dificultad:</label>
             <select
                 name="recipeDiff"
@@ -79,7 +103,7 @@ const AddForm = memo(({
             </select>
         </div>
         
-        <label className="lbl-title-form">Previsualizar imagen:</label>
+        {/* <label className="lbl-title-form">Previsualizar imagen:</label>
         <div className="imagePreview">
         {formData.image ? (
             <img
@@ -89,7 +113,9 @@ const AddForm = memo(({
         ) : (
             <h3>No has seleccionado imagen</h3>
         )}
-        </div>
+        </div> */}
+        
+
         <label className='lbl-title-form'>Categoría (máx. 4):</label>
         <div className="categorias">
             {["Entrada", "Sopa", "Caldo", "Ensalada", "Plato Principal", "Guarnición", "Postre", "Bebida", "Vegetariana", "Saludable"].map((category) => (
@@ -240,6 +266,9 @@ const GestioRecetas = ({ nombreUsuario }) => {
             }
         }
     };
+    const removeImage = ()=>{
+        setFormData({ ...formData, image: '../assets/imagenDefault.webp' });
+    }
 
     const handleIngredientChange = useCallback((index, event) => {
         const newIngredients = [...formData.ingredients];
@@ -322,6 +351,9 @@ const GestioRecetas = ({ nombreUsuario }) => {
         };
     }, [verificarAncho]);
 
+
+
+
     useEffect(() => {
         if (!primeraCarga) {
             setTimeout(() => {
@@ -377,10 +409,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
         });
     }, []);
 
-    const addRecipe = useCallback(
-        async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+    const addRecipe = useCallback(async (e) => {e.preventDefault(); e.stopPropagation();
     
             const tiempoRegex = /^(?:([1-9]|1[0-9]|2[0-4])\s?(hora|horas|h)|([1-9]|[1-5][0-9]|60)\s?(minuto|minutos|m|min|hs))$/i;
     
@@ -497,7 +526,6 @@ const GestioRecetas = ({ nombreUsuario }) => {
                 <div className="form-content">
                     <AddForm
                         formData={formData}
-                        setFormData={setFormData}
                         handleInputChange={handleInputChange}
                         handleCategoryChange={handleCategoryChange}
                         handleRemoveCategory={handleRemoveCategory}
@@ -509,6 +537,7 @@ const GestioRecetas = ({ nombreUsuario }) => {
                         handleIngredientChange={handleIngredientChange}
                         llamadaDB={addRecipe}
                         handleFileChange={handleFileChange}
+                        removeImage={removeImage}
                     />
                 </div>
                 

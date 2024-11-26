@@ -3,7 +3,8 @@ import axios from "axios";
 import "../index.css";
 import SimpleCard from "../components/card/SimpleCard.jsx";
 import { Navigate, useHref, useNavigate } from "react-router-dom";
-
+// Image
+import imageDefault from'@assets/imagenDefault.webp';
 const Home = () => {
     const [recetas, setRecetas] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -79,7 +80,7 @@ const Home = () => {
     
     
 
-
+    
     return (
         <>
             <h2 className="title">RECIENTES</h2>
@@ -90,9 +91,10 @@ const Home = () => {
                 <div className='contenedor-tarjetas'>
                 {recetas.map(({ id_recipe, tiempo, image, recipe_name, username, difficulty, categories }) => (
                                   <div className="card" onClick={() => interactivo(id_recipe)} key={id_recipe}>
+                                    {  }
                                       <SimpleCard
                                           tiempo={tiempo}
-                                          image={image ? image : "https://placehold.co/400x250/000/fff/webp"}  // Si no tienes imágenes en la DB, puedes usar una imagen por defecto
+                                          image={image ? image : imageDefault}  
                                           title={recipe_name}
                                           author={username}
                                           dificulty={difficulty}

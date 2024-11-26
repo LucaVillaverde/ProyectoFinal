@@ -9,10 +9,10 @@ lerna-debug.log*
 
 CocinApp/node_modules
 CocinApp/server/node_modules
-CocinApp/server/.env
 dist
 dist-ssr
 *.local
+*.env
 
 # Editor directories and files
 .vscode/*
