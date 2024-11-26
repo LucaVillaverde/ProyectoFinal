@@ -230,7 +230,6 @@ const GestioRecetas = ({ nombreUsuario }) => {
                 const compressedFile = await imageCompression(file, options);
                 const archivoComprimidoPeso = `${(compressedFile.size / 1024)} KB`;
     
-                window.alert(archivoComprimidoPeso);
                 console.log("Original file size:", file.size / 1024, "KB");
                 console.log("Compressed file size:", compressedFile.size / 1024, "KB");
     

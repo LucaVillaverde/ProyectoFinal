@@ -10,6 +10,10 @@ import menuHamburguesa from "../../assets/btn_burgerIcon.png";
 import { useAlert } from "../../context/messageContext";
 import {useConfirm} from "../../context/confirmContext";
 
+import audioSuccess from "/src/assets/SuccessSound.mp3";
+import audioError from "/src/assets/DangerSound.mp3";
+import audioWarning from '/src/assets/WarningSound.mp3';
+
 const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername, dineroUser }) => {
     const [visible, setMenuVisible] = useState(false);
     const [movil, setMovil] = useState(true);
@@ -89,9 +93,14 @@ const Header = ({ isLoggedIn, setIsLoggedIn, showForm, localUsername, dineroUser
                         borrarRecetas,
                     });
                     if (deleteResponse.status === 200) {
+                        const audioOK = new Audio(audioSuccess);
+                        audioOK.play();
+                        showAlert("Cuenta eliminada", "successful")
                         setIsLoggedIn(false);
                     }
                 } catch (err) {
+                    const audioWar = new Audio(audioWarning);
+                    audioWar.play();
                     const errorMessage = err.response?.data?.message || 'Error de conexión';
                     showAlert(errorMessage, 'warning');
                     console.error(err.response ? err.response.data.message : "Error al eliminar el usuario.");

@@ -15,7 +15,7 @@ const SimpleCard = ({ tiempo, image, title, author, dificulty, category }) => {
                         {author}
                     </p>
                     <p className="card-subtitle">
-                        <span className="card-title">Categoria: </span>
+                        <span className="card-title">Categoria/s: </span>
                         {category}
                     </p>
                     <p className="card-subtitle">

@@ -423,7 +423,7 @@ const Receta = () => {
             ) : (
                 <div className="content">
                     <div className="recipe">
-                        <h2 className="recipe-title">{`${receta?.recipe_name} BY ${receta?.author}`}</h2>
+                        <h2 className="recipe-title">{`${receta?.recipe_name} BY ${receta?.author.toUpperCase()}`}</h2>
                         <section className="recipe-img-cont frame-content">
                             <img
                                 src={imagenRecipe}

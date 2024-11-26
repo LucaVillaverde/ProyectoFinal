@@ -243,185 +243,96 @@ app.post("/api/verifpassword", (req, res) => {
   const id_user = req.cookies.id_user;
   const usernameH = req.cookies.username;
 
-  // Llamadas a base de datos
-  // Borrado:
+  // Consultas a la base de datos
   const deleteQueryUsersTable = "DELETE FROM Users WHERE id_user = ?";
   const deleteQueryTokensTable = "DELETE FROM Tokens WHERE id_user = ?";
   const deleteQueryRecipeTable = "DELETE FROM Recipe WHERE username = ?";
-
-  // Actualizar:
-  const updateQueryRecipeTable =
-    "UPDATE Recipe SET username = ? WHERE username = ?";
-
-  // Obtener Información:
-  const getUsernameFromUsers = "SELECT username FROM Users WHERE id_user = ?";
+  const updateQueryRecipeTable = "UPDATE Recipe SET username = ? WHERE username = ?";
   const getPasswordFromUsers = "SELECT password FROM Users WHERE id_user = ?";
+  const getUsernameFromUsers = "SELECT username FROM Users WHERE id_user = ?";
 
-  // Validar datos necesarios
+  // Validar datos iniciales
   if (!id_user || !contraUser || !usernameH) {
     return res.status(400).json({ message: "Falta proporcionar datos" });
   }
 
-  if (borrarRecetas) {
-    db.get(getPasswordFromUsers, [id_user], async (err, row) => {
+  // Función para borrar datos del usuario
+  function borrarDatosUsuario(username, id_user) {
+    db.run(deleteQueryRecipeTable, [username], (err) => {
       if (err) {
-        return res
-          .status(500)
-          .json({ message: "Error al obtener datos del usuario." });
+        return res.status(500).json({ message: "Error al eliminar recetas del usuario." });
       }
-      if (!row) {
-        res.clearCookie("id_user");
-        res.clearCookie("username");
-        res.clearCookie("token");
-        return res.status(404).json({ message: "Usuario no encontrado." });
-      }
-      const matchP = await bcrypt.compare(contraUser, row.password);
-      if (matchP) {
-        db.get(getUsernameFromUsers, [id_user], async (err, row) => {
+      db.run(deleteQueryTokensTable, [id_user], (err) => {
+        if (err) {
+          return res.status(500).json({ message: "Error al eliminar tokens del usuario." });
+        }
+        db.run(deleteQueryUsersTable, [id_user], (err) => {
           if (err) {
-            return res.status(500).json({
-              message: "Error al intentar obtener el nombre de usuario.",
-            });
+            return res.status(500).json({ message: "Error al eliminar usuario." });
           }
-          if (!row) {
-            return res.status(404).json({
-              message: "Error, no hay un nombre de usuario con ese id_user.",
-            });
-          } else {
-            const matchUsername = await bcrypt.compare(row.username, usernameH);
-            if (matchUsername) {
-              const usernameNH = row.username;
-              db.run(deleteQueryRecipeTable, [usernameNH], (err) => {
-                if (err) {
-                  return res.status(500).json({
-                    message:
-                      "No se ha podido eliminar la o las recetas a nombre del usuario.",
-                  });
-                } else {
-                  db.run(deleteQueryTokensTable, [id_user], (err) => {
-                    if (err) {
-                      return res.status(500).json({
-                        message:
-                          "No se ha podido eliminar al usuario de la tabla Tokens.",
-                      });
-                    } else {
-                      db.run(deleteQueryUsersTable, [id_user], (err) => {
-                        if (err) {
-                          return res.status(500).json({
-                            message:
-                              "No se ha podido eliminar al usuario de la tabla Users.",
-                          });
-                        } else {
-                          res.clearCookie("id_user");
-                          res.clearCookie("username");
-                          res.clearCookie("token");
-                          return res.status(200).json({
-                            message:
-                              "Se ha logrado con exito borrar las recetas, tokens y datos del usuario de la base de datos.",
-                          });
-                        }
-                      });
-                    }
-                  });
-                }
-              });
-            }
-          }
+          res.clearCookie("id_user");
+          res.clearCookie("username");
+          res.clearCookie("token");
+          return res.status(200).json({
+            message: "Usuario eliminado junto con sus datos asociados.",
+          });
         });
-      } else {
-        return res.status(401).json({ message: "Contraseña incorrecta." });
-      }
-    });
-  } else {
-    db.get(getPasswordFromUsers, [id_user], async (err, row) => {
-      if (err) {
-        return res
-          .status(500)
-          .json({ message: "Error al obtener datos del usuario." });
-      }
-      if (!row) {
-        res.clearCookie("id_user");
-        res.clearCookie("username");
-        res.clearCookie("token");
-        return res.status(404).json({ message: "Usuario no encontrado." });
-      }
-      const matchP = await bcrypt.compare(contraUser, row.password);
-      if (matchP) {
-        db.get(getUsernameFromUsers, [id_user], async (err, row) => {
-          if (err) {
-            return res
-              .status(500)
-              .json({ message: "Error al obtener nombre de usuario." });
-          }
-          if (!row) {
-            return res
-              .status(404)
-              .json({ message: "Nombre de usuario no encontrado." });
-          }
-
-          const matchUsername = await bcrypt.compare(row.username, usernameH);
-          const usernameNH = row.username;
-          if (matchUsername) {
-            // Actualiza las recetas del usuario antes de borrar el usuario
-            db.run(
-              updateQueryRecipeTable,
-              ["cocinapp", usernameNH],
-              function (err) {
-                if (err) {
-                  console.log("Error en la actualización de recetas:", err);
-                  return res.status(500).json({
-                    message:
-                      "Error al actualizar recetas a nombre de CocinApp.",
-                  });
-                }
-
-                if (this.changes > 0) {
-                  console.log(
-                    `Se actualizaron ${this.changes} recetas al usuario CocinApp.`
-                  );
-                } else {
-                  console.log("No se encontraron recetas para actualizar.");
-                }
-
-                // Luego, elimina el token y el usuario
-                db.run(deleteQueryTokensTable, [id_user], (err) => {
-                  if (err) {
-                    return res
-                      .status(500)
-                      .json({ message: "Error al eliminar token." });
-                  }
-
-                  db.run(deleteQueryUsersTable, [id_user], (err) => {
-                    if (err) {
-                      return res
-                        .status(500)
-                        .json({ message: "Error al eliminar usuario." });
-                    }
-
-                    // Limpia las cookies y responde con éxito
-                    res.clearCookie("id_user");
-                    res.clearCookie("username");
-                    res.clearCookie("token");
-                    return res.status(200).json({
-                      message:
-                        "Usuario eliminado con éxito y recetas transferidas a CocinApp.",
-                    });
-                  });
-                });
-              }
-            );
-          } else {
-            return res
-              .status(401)
-              .json({ message: "Verificación de nombre de usuario fallida." });
-          }
-        });
-      } else {
-        return res.status(401).json({ message: "Contraseña incorrecta." });
-      }
+      });
     });
   }
+
+  // Verificar contraseña del usuario
+  db.get(getPasswordFromUsers, [id_user], (err, row) => {
+    if (err) {
+      return res.status(500).json({ message: "Error al obtener datos del usuario." });
+    }
+    if (!row) {
+      res.clearCookie("id_user");
+      res.clearCookie("username");
+      res.clearCookie("token");
+      return res.status(404).json({ message: "Usuario no encontrado." });
+    }
+
+    bcrypt.compare(contraUser, row.password, (err, matchP) => {
+      if (err || !matchP) {
+        return res.status(401).json({ message: "Contraseña incorrecta." });
+      }
+
+      // Obtener nombre de usuario
+      db.get(getUsernameFromUsers, [id_user], (err, row) => {
+        if (err) {
+          return res.status(500).json({ message: "Error al obtener nombre de usuario." });
+        }
+        if (!row) {
+          return res.status(404).json({ message: "Usuario no encontrado." });
+        }
+
+        const username = row.username;
+        bcrypt.compare(username, usernameH, (err, matchUsername) => {
+          if (err || !matchUsername) {
+            return res.status(401).json({ message: "Verificación de nombre de usuario fallida." });
+          }
+
+          if (borrarRecetas) {
+            borrarDatosUsuario(username, id_user);
+          } else {
+            // Actualizar recetas antes de eliminar usuario
+            db.run(updateQueryRecipeTable, ["cocinapp", username], function (err) {
+              if (err) {
+                return res.status(500).json({ message: "Error al actualizar recetas." });
+              }
+              console.log(
+                `Se actualizaron ${this.changes || 0} recetas al usuario CocinApp.`
+              );
+              borrarDatosUsuario(username, id_user);
+            });
+          }
+        });
+      });
+    });
+  });
 });
+
 
 app.get("/api/info-usuario", async (req, res) => {
   const id_user = req.cookies.id_user;
